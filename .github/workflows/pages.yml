@@ -6,10 +6,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Every job can read the code and nothing more. Only the deploy job, which runs on main
+# after both check jobs pass, gets the two permissions that publish the site.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages-${{ github.ref }}
@@ -17,25 +17,52 @@ concurrency:
 
 jobs:
   build:
+    name: Lint, types, unit tests, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm test
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Unit tests, the hand-scored cases and coverage floors
+        run: npm run test:coverage
+      - name: Known vulnerabilities in the app's own dependencies
+        run: npm audit --omit=dev --audit-level=high
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
           path: dist
 
+  browser:
+    name: Browser checks and axe (4 display modes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Chromium and the system libraries it needs
+        run: npx playwright install --with-deps chromium
+      - name: Every check in e2e/ plus the axe audit, against the production build
+        run: npm run checks
+      - name: Report on the run page
+        if: always()
+        run: cat .checks/report.md >> "$GITHUB_STEP_SUMMARY"
+
   deploy:
     if: github.event_name != 'pull_request'
-    needs: build
+    needs: [build, browser]
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

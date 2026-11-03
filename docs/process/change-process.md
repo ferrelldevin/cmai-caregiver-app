@@ -33,6 +33,7 @@ Before building, list what the change looks like in each of these. The PR checkl
 ## 5. Verify
 - `npm test`, `npm run lint`, `npm run typecheck` and `npm run build` pass.
 - The browser checks in `e2e/` pass against the production build: the end-to-end flow (including the offline reload), navigation and theme. A new feature adds its own checks there.
+- CI runs `npm run checks` on every pull request, so a PR can't merge with a failing browser check once the main-branch ruleset requires it.
 - `npm run checks` runs every check in `e2e/` and the axe audit in all four modes in one go and writes one report; `npm run checks:report` also pushes it to the `checks-report` branch so a cloud session can read it.
 - axe-core WCAG 2.2 AA shows 0 violations in all four modes (`docs/audits/axe-run.cjs`).
 - Before and after screenshots, on a phone size, in light and dark.

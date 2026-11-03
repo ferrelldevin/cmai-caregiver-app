@@ -34,7 +34,7 @@ npm run preview   # serve the build at http://localhost:4173
 
 The pre-commit hook formats (Prettier) and lints the files you stage, and scans them for secrets if [gitleaks](https://github.com/gitleaks/gitleaks) is installed. Existing files are formatted when they are next edited, not all at once.
 
-Deploy: every push to `main` runs the tests, builds, and publishes to GitHub Pages (`.github/workflows/pages.yml`). Pull requests run the tests and build only.
+Checks and deploy (`.github/workflows/pages.yml`): every pull request runs lint, type check, unit tests with coverage floors, `npm audit`, the build, and every browser check plus the axe audit (`npm run checks`). A push to `main` runs the same and, if all pass, publishes to GitHub Pages. Dependabot proposes dependency updates once a month (`.github/dependabot.yml`).
 
 ## How the code is organized
 

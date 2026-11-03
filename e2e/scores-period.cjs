@@ -95,7 +95,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
     await page.evaluate(([t,c])=>{document.documentElement.dataset.theme=t;document.documentElement.dataset.contrast=c;},[theme,contrast]);
     await page.evaluate(()=>scrollTo(0,0)); await page.waitForTimeout(200);
     await page.screenshot({path:path.join(OUT,`scores-period-after-${name}.png`),fullPage:true});
-    await page.addScriptTag({content:axe});
+    await page.evaluate(axe); // evaluate, not an inline script tag: the app's Content-Security-Policy blocks those
     const result=await page.evaluate(()=>axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}}));
     audits.push({name,violations:result.violations,incomplete:result.incomplete.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))});
     fs.writeFileSync(path.join(OUT,'scores-period-axe.json'),JSON.stringify(audits,null,2));
