@@ -6,7 +6,7 @@ These scripts drive the production build in Chromium with Playwright. They are t
 
 ```sh
 npm run build && npx vite preview --port 4173 &
-npm i --no-save playwright axe-core     # once
+npx playwright install chromium         # once (Playwright and axe-core come with npm ci)
 node e2e/flows.cjs http://localhost:4173/ /tmp/out        # end-to-end flow, including the offline reload
 node e2e/navigation.cjs http://localhost:4173/ /tmp/out   # section bars, Data pages, back gesture, reload
 node e2e/theme.cjs http://localhost:4173/ /tmp/out        # light/dark/high contrast settings

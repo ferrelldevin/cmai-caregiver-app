@@ -1,8 +1,45 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { createHash } from "node:crypto";
+import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import pkg from "./package.json";
+
+// Content-Security-Policy for the built app. GitHub Pages can't send security headers, so it goes in
+// a meta tag. Scripts run only from the app's own files plus the one inline theme script in
+// index.html, allowed by its hash; the hash is worked out here on every build, so editing that
+// script can't silently break it. Build only: the dev server injects inline scripts of its own.
+function contentSecurityPolicy(): Plugin {
+  return {
+    name: "cmai-csp",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler(html) {
+        const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+          ([, body]) => `'sha256-${createHash("sha256").update(body).digest("base64")}'`,
+        );
+        const policy = [
+          "default-src 'self'",
+          `script-src 'self' ${hashes.join(" ")}`,
+          "style-src 'self'",
+          "img-src 'self' data: blob:",
+          "font-src 'self'",
+          "connect-src 'self'",
+          "worker-src 'self'",
+          "manifest-src 'self'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'none'",
+        ].join("; ");
+        return html.replace(
+          /(<meta charset="UTF-8" \/>)/,
+          `$1\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`,
+        );
+      },
+    },
+  };
+}
 
 // base: "./" lets the build run from any folder, including GitHub Pages.
 export default defineConfig({
@@ -10,6 +47,7 @@ export default defineConfig({
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     react(),
+    contentSecurityPolicy(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
@@ -32,5 +70,20 @@ export default defineConfig({
     }),
   ],
   build: { chunkSizeWarningLimit: 800 },
-  test: { include: ["tests/**/*.test.ts"] },
+  test: {
+    include: ["tests/**/*.test.ts"],
+    // `npm run test:coverage` (run in CI) fails if coverage of the logic the scores depend on drops.
+    // Floors are the 2026-11-03 levels: raise them as tests are added, never lower them to pass.
+    coverage: {
+      provider: "v8",
+      include: ["src/scoring/**", "src/data/**"],
+      reporter: ["text", "json-summary"],
+      thresholds: {
+        lines: 97,
+        branches: 96,
+        functions: 95,
+        "src/scoring/engine.ts": { lines: 100, functions: 100, branches: 98 },
+      },
+    },
+  },
 });

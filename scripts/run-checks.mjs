@@ -34,7 +34,6 @@ const say = (m) => console.log(`[checks] ${m}`);
 function setup() {
   const steps = [
     ["Install dependencies", "npm", ["ci"]],
-    ["Install Playwright and axe-core", "npm", ["i", "--no-save", "playwright", "axe-core"]],
     ["Install Chromium", "npx", ["playwright", "install", "chromium"]],
     ["Build", "npm", ["run", "build"]],
   ].filter(([name]) => !(name === "Install Chromium" && process.env.CHROME)); // CHROME points at a browser already on the machine

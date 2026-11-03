@@ -12,11 +12,18 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.
 - Pre-commit hook (Lefthook): formats and lints staged files, and scans them for secrets when gitleaks is installed.
 - `SECURITY.md`, `CITATION.cff` and this changelog.
+- CI runs every browser check and the axe audit (4 display modes) on each pull request, plus lint, type check, coverage floors on `src/scoring/` and `src/data/`, and `npm audit` for the app's dependencies. Deploy waits for all of them.
+- Content-Security-Policy meta tag in the built app: scripts only from the app's own files plus the inline theme script, allowed by a hash worked out at build time.
+- Dependabot: one grouped update PR a month for npm and for GitHub Actions.
+- Playwright 1.63.0 and axe-core 4.14.0 pinned as dev dependencies, so the browser checks run the same versions everywhere.
+
+### Security
+- Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
 ### Fixed
 - `NOTICE` said "[requested on DATE / granted on DATE]"; it now says permission has not been requested yet (register P-01).
 
-No change to the app, the scoring rule (`cmai-count-rule-2`) or stored data.
+No change to what a caregiver sees, the scoring rule (`cmai-count-rule-2`) or stored data.
 
 ## [0.2.0]
 
