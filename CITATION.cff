@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below. The CMAI itself is cited separately: Cohen-Mansfield, J. (1991). Instruction Manual for the Cohen-Mansfield Agitation Inventory."
+title: "CMAI Tracker"
+abstract: "A caregiver web app that logs Cohen-Mansfield Agitation Inventory behaviors as they happen and converts each 14-day period's counts into 1 to 7 ratings with a written, tested rule."
+type: software
+authors:
+  - family-names: Ferrell
+    given-names: Devin
+    affiliation: "Old Dominion University"
+version: 0.2.0
+license: MIT
+repository-code: "https://github.com/ferrelldevin/cmai-tracker"
+keywords:
+  - CMAI
+  - agitation
+  - dementia
+  - caregiver
+  - progressive web app

@@ -20,13 +20,19 @@ The CMAI isn't a count. It's a caregiver's look-back rating (1 to 7) of how ofte
 
 ## Run it
 
+Needs Node 22 (pinned in `.nvmrc`; with [fnm](https://github.com/Schniz/fnm), run `fnm use`). Open the folder in VS Code and accept the recommended extensions.
+
 ```bash
-npm install
-npm test          # 38 tests, including 19 hand-scored cases from docs/test-cases.json
+npm ci            # exact versions from package-lock.json; also installs the pre-commit hook
+npm test          # 94 tests, including 19 hand-scored cases from docs/test-cases.json
+npm run lint      # ESLint
+npm run typecheck # TypeScript
 npm run dev       # http://localhost:5173
 npm run build     # production build in dist/, with service worker
 npm run preview   # serve the build at http://localhost:4173
 ```
+
+The pre-commit hook formats (Prettier) and lints the files you stage, and scans them for secrets if [gitleaks](https://github.com/gitleaks/gitleaks) is installed. Existing files are formatted when they are next edited, not all at once.
 
 Deploy: every push to `main` runs the tests, builds, and publishes to GitHub Pages (`.github/workflows/pages.yml`). Pull requests run the tests and build only.
 
