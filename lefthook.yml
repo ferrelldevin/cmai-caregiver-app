@@ -6,7 +6,9 @@ pre-commit:
   jobs:
     - name: format
       glob: "*.{ts,tsx,js,mjs,cjs,json,css,html,yml,yaml}"
+      # The browser checks stay in their compact style; reformatting them would bury real changes.
       exclude:
+        - "e2e/**"
         - "docs/audits/**"
         - "docs/agreement/robustness-output/**"
         - "package-lock.json"

@@ -2,3 +2,5 @@ dist
 docs/audits
 docs/agreement/robustness-output
 package-lock.json
+e2e
+docs/audits/axe-run.cjs
