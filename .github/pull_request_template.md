@@ -16,7 +16,7 @@
 - [ ] Reduce motion
 
 ## Verified
-- [ ] `npm test` and `npm run build`
+- [ ] `npm test`, `npm run lint`, `npm run typecheck` and `npm run build`
 - [ ] End-to-end flow, including the offline reload
 - [ ] axe WCAG 2.2 AA, 0 violations in 4 modes
 - [ ] Before and after screenshots

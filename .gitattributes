@@ -1,0 +1,7 @@
+# Store every text file with LF endings, whatever machine edits it (Windows included).
+* text=auto eol=lf
+*.png binary
+*.pdf binary
+*.woff2 binary
+# The raters' template keeps the CRLF endings it was written with (spreadsheet apps on Windows expect them).
+docs/agreement/human-ratings-template.csv -text

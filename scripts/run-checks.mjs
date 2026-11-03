@@ -47,6 +47,7 @@ function setup() {
 }
 
 const tail = (text, n = 15) => text.trim().split(/\r?\n/).slice(-n).join("\n");
+// eslint-disable-next-line no-control-regex -- strips terminal color codes (ESC [ ... m) from tool output
 const clean = (text = "") => text.replace(/\x1b\[[0-9;]*m/g, "");
 
 async function startServer() {
@@ -62,7 +63,9 @@ async function startServer() {
     if (server.exitCode !== null) throw new Error(`The preview server stopped:\n${tail(log)}`);
     try {
       if ((await fetch(URL)).ok) return server;
-    } catch {}
+    } catch {
+      // not answering yet; try again
+    }
     await new Promise((r) => setTimeout(r, 500));
   }
   server.kill();
@@ -86,7 +89,11 @@ function runCheck({ name, file, out: outFile }) {
   // The scripts stop at the first failure and print it as "FAIL: ...". Keep that line exactly.
   // Anything else (a crash, a timeout) gets the head of the error, which names the cause.
   const fail = lines.find((l) => l.includes("FAIL:"));
-  const head = clean(r.stderr).split(/\r?\n/).filter((l) => l.trim()).slice(0, 3).join("\n");
+  const head = clean(r.stderr)
+    .split(/\r?\n/)
+    .filter((l) => l.trim())
+    .slice(0, 3)
+    .join("\n");
   const detail = fail ?? (r.error ? String(r.error) : head || "Stopped with no output.");
   return { name, ok: false, passed, detail };
 }

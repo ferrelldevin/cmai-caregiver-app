@@ -1,0 +1,28 @@
+# Git hooks, installed by `npm ci` (the "prepare" script). Docs: https://lefthook.dev/configuration/
+# They run on staged files only and take a few seconds. CI re-runs lint and type checks on every PR,
+# so a commit made with --no-verify is still caught there.
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      glob: "*.{ts,tsx,js,mjs,cjs,json,css,html,yml,yaml}"
+      exclude:
+        - "docs/audits/**"
+        - "docs/agreement/robustness-output/**"
+        - "package-lock.json"
+      run: npx prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+    - name: lint
+      glob: "*.{ts,tsx,js,mjs,cjs}"
+      run: npx eslint --no-warn-ignored {staged_files}
+
+    - name: secrets
+      # gitleaks is optional on a laptop (Windows: winget install Gitleaks.Gitleaks).
+      # GitHub push protection checks every push either way.
+      run: |
+        if command -v gitleaks >/dev/null 2>&1; then
+          gitleaks git --pre-commit --staged --redact --no-banner
+        else
+          echo "gitleaks not installed: skipped the local secret scan"
+        fi

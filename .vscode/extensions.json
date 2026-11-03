@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "deque-systems.vscode-axe-linter",
+    "editorconfig.editorconfig",
+    "usernamehw.errorlens",
+    "anthropic.claude-code"
+  ]
+}
