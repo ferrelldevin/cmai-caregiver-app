@@ -21,4 +21,8 @@ Behavior icons (design mockup only)
 The behavior icons in src/mockup/behavior-icons.tsx are shown only in Storybook, not in
 the app. They come from Lucide (https://lucide.dev), ISC License, (c) Lucide
 Contributors, and Tabler Icons (https://tabler.io/icons), MIT License, (c) Paweł Kuna.
-The Scratching icon is drawn in this repository.
+Icons picked from Iconify (src/mockup/iconify-icons.tsx): Microsoft Fluent Emoji high
+contrast (MIT, (c) Microsoft Corporation), Remix Icon (Apache 2.0, Remix Design),
+Material Design Icons (Apache 2.0, Pictogrammers), IconaMoon (CC BY 4.0, Dariush
+Habibpour) and Hugeicons (MIT). The Scratching and Trying to leave icons are drawn in
+this repository.

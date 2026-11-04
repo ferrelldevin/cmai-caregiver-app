@@ -1,29 +1,24 @@
 // One icon per CMAI behavior, so a caregiver can find a tile at a glance.
-// Icons come from two open sets drawn on the same 24 px grid with a 2 px line:
-// Lucide (https://lucide.dev, ISC) and Tabler (https://tabler.io/icons, MIT), names
-// starting with "Icon". Scratching is drawn here because neither set has claw marks.
+// Icons come from open sets: Lucide (https://lucide.dev, ISC), Tabler
+// (https://tabler.io/icons, MIT; names starting with "Icon") and the ones Devin picked
+// on Iconify (iconify-icons.tsx). Scratching is drawn here: no set has claw marks.
 // Credits are in NOTICE. Swap any icon here and every tile updates. The name on the
 // tile stays the thing to read; the icon only helps the eye find it.
 import {
-  Annoyed,
   Armchair,
   Hammer,
   BellRing,
   Boxes,
-  DoorOpen,
   Droplets,
   EyeOff,
-  Hand,
   HandFist,
   HandGrab,
-  Megaphone,
   MessageSquareHeart,
-  MessagesSquare,
   PackageOpen,
   Pointer,
-  Shirt,
   ThumbsDown,
   AudioWaveform,
+  Footprints,
 } from "lucide-react";
 import {
   IconDental,
@@ -34,9 +29,9 @@ import {
   IconMessageBolt,
   IconPlayHandball,
   IconToolsKitchen2Off,
-  IconWalk,
 } from "@tabler/icons-react";
 import type { ReactNode } from "react";
+import { Complaint, LeavingThroughDoor, PushingHand, RepeatList, Underwear, UserVoice } from "./iconify-icons";
 
 type BehaviorIcon = (props: { size?: number; className?: string; "aria-hidden"?: boolean }) => ReactNode;
 
@@ -62,24 +57,24 @@ function ScratchMarks({ size = 24, className }: { size?: number; className?: str
 }
 
 export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
-  1: IconWalk, // pacing, aimless wandering: a walking figure
-  2: Shirt, // inappropriate dressing or disrobing
+  1: Footprints, // pacing, aimless wandering: footprints
+  2: Underwear, // inappropriate dressing or disrobing
   3: Droplets, // spitting: a spray of drops
   4: IconMessageBolt, // cursing or verbal aggression: angry words
   5: BellRing, // constant request for attention or help: a call bell
-  6: MessagesSquare, // repetitive sentences or questions: the same thing said again
+  6: RepeatList, // repetitive sentences or questions: the same lines again
   7: HandFist, // hitting
   8: IconKarate, // kicking: a figure mid-kick
   9: HandGrab, // grabbing
-  10: Hand, // pushing: an open palm
+  10: PushingHand, // pushing: a hand pushing forward
   11: IconPlayHandball, // throwing things: a figure throwing
   12: AudioWaveform, // making strange noises
-  13: Megaphone, // screaming
+  13: UserVoice, // screaming: a person with sound coming out
   14: IconDental, // biting: a tooth
   15: ScratchMarks, // scratching: claw marks
-  16: DoorOpen, // trying to get to a different place
+  16: LeavingThroughDoor, // trying to get to a different place: heading out a door
   17: IconFall, // intentional falling: a falling figure
-  18: Annoyed, // complaining: a grumbling face
+  18: Complaint, // complaining
   19: ThumbsDown, // negativism
   20: IconToolsKitchen2Off, // eating or drinking inappropriate substances: "not food"
   21: IconBandage, // hurting self or other: a bandage
