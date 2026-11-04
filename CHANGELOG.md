@@ -20,6 +20,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Security
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
+### Removed
+- `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
+
 ### Fixed
 - `NOTICE` said "[requested on DATE / granted on DATE]"; it now says permission has not been requested yet (register P-01).
 
