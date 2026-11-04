@@ -185,8 +185,8 @@ export function LogScreen({ layout, columns, groupTabs, showFrequent }: LogProps
     return layout === "grid" ? (
       <button key={id} className="mk-tile" onClick={() => tap(id)}>
         <span className="mk-tile-top">
-          {count ?? <span />}
           <BehaviorIcon className="mk-bicon" size={26} aria-hidden />
+          {count}
         </span>
         <span className="mk-tile-name">{SHORT[id]}</span>
       </button>
