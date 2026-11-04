@@ -21,6 +21,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
 ### Fixed
+- A sheet reopened straight after Cancel could close itself: the browser's late "close" event from the first closing shut the new one. Found as an intermittent CI timeout in the `flows` check.
 - `NOTICE` said "[requested on DATE / granted on DATE]"; it now says permission has not been requested yet (register P-01).
 
 No change to what a caregiver sees, the scoring rule (`cmai-count-rule-2`) or stored data.
