@@ -58,7 +58,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const search = sheet().getByRole("searchbox", { name: "Find a patient by code" });
   ok(await search.isVisible(), "search shows with 8 patients");
   await search.fill("03");
-  ok(await sheet().getByRole("button", { name: /^P-/ }).count() === 1, "search filters to P-03");
+  // The list re-renders after the keystroke; counting at once can catch the unfiltered list.
+  const found = sheet().getByRole("button", { name: /^P-/ });
+  await found.nth(1).waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
+  ok(await found.count() === 1, "search filters to P-03");
   await shot("sw-04-search");
   await search.fill("zz");
   ok(await sheet().getByText('No patient code contains "zz".').isVisible(), "empty search result explains itself");
