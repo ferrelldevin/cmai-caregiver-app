@@ -21,6 +21,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await sheet().waitFor();
   const rows = sheet().getByRole("button", { name: /^P-/ });
   ok(await rows.count() === 2, "sheet lists both patients");
+  // The rows show codes at once and add period, day and last log when the database answers (about 10 ms
+  // later here, longer on a CI runner), so wait for the details before reading them.
+  await rows.nth(0).filter({ hasText: "Last log" }).waitFor({ timeout: 5000 }).catch(() => {});
   const first = await rows.nth(0).textContent();
   ok(/Period \d+ · day \d+ of 14/.test(first) && /Last log /.test(first), "rows show period, day and last log: " + first);
   ok((await rows.nth(0).getAttribute("aria-current")) === "true", "current patient is marked");
