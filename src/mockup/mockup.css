@@ -1,0 +1,612 @@
+/* Mockup styles. Built only from the app's tokens in src/styles.css, so a token changed there
+   changes the mockup too. Every class starts with mk- to stay apart from the app's classes. */
+
+.mk-phone {
+  width: 390px;
+  height: 844px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--rule-strong);
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: var(--shadow-2);
+  font-size: var(--fs-md);
+}
+:root[data-mk-text="large"] .mk-phone {
+  font-size: 20px;
+}
+:root[data-mk-text="large"] .mk-phone .mk-h1 {
+  font-size: 28px;
+}
+.mk-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  position: relative;
+}
+.mk-body > * {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.mk-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s5) var(--s4) var(--s3);
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+.mk-banner-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.mk-banner-text span {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.mk-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.mk-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--surface);
+  border-top: 1px solid var(--rule);
+  padding: var(--s1) var(--s2) var(--s5);
+}
+.mk-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 6px 0;
+}
+.mk-tab-icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 30px;
+  border-radius: 999px;
+}
+.mk-tab.on {
+  color: var(--accent-ink);
+}
+.mk-tab.on .mk-tab-icon {
+  background: var(--accent-soft);
+}
+
+.mk-h1 {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.mk-h2 {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: var(--s2) !important;
+}
+.mk-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+.mk-muted {
+  color: var(--text-muted);
+}
+.mk-small {
+  font-size: var(--fs-sm);
+}
+.mk-center {
+  text-align: center;
+}
+.mk-hint {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.mk-note {
+  font-size: var(--fs-sm);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+}
+/* Open questions from the review register, shown on the screen they affect. */
+.mk-open {
+  font-size: var(--fs-xs);
+  color: var(--attn);
+  background: var(--attn-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+}
+
+.mk-list {
+  list-style: none;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+.mk-list > li + li {
+  border-top: 1px solid var(--rule);
+}
+.mk-row-btn {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 14px var(--s4);
+  min-height: 56px;
+  color: var(--text);
+  cursor: pointer;
+}
+.mk-row-btn span {
+  grid-column: 1;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.mk-row-btn .mk-chev {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  transform: rotate(-90deg);
+  color: var(--text-muted);
+}
+
+/* Login */
+.mk-login-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  margin: var(--s6) 0 var(--s4) !important;
+  text-align: center;
+}
+.mk-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--accent-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mk-pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--s4);
+}
+.mk-pin-dots span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--rule-strong);
+}
+.mk-pin-dots span.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.mk-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  justify-content: center;
+  gap: var(--s3) var(--s5);
+  margin: var(--s3) 0 !important;
+}
+.mk-keypad button {
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  cursor: pointer;
+}
+.mk-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.mk-form label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+.mk-form input {
+  min-height: 48px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--s3);
+  background: var(--surface);
+}
+.mk-primary,
+.mk-secondary {
+  min-height: 52px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  cursor: pointer;
+}
+.mk-primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: 0;
+}
+.mk-secondary {
+  background: var(--surface);
+  color: var(--accent-ink);
+  border: 1px solid var(--rule-strong);
+}
+
+/* Log: tiles fit all 29 behaviors on far fewer screens than today's list. */
+.mk-seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 3px;
+}
+.mk-seg button {
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  min-height: 40px;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.mk-seg button.on {
+  background: var(--surface);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow-1);
+}
+.mk-grid {
+  display: grid;
+  gap: var(--s2);
+}
+.mk-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.mk-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.mk-tile {
+  position: relative;
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s1);
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.mk-tile:active,
+.mk-line:active {
+  background: var(--press);
+}
+.mk-lines {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.mk-line {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 48px;
+  padding: 0 var(--s3);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.mk-line + .mk-line {
+  border-top: 1px solid var(--rule);
+}
+.mk-line .mk-badge {
+  margin-left: auto;
+}
+.mk-num {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mk-tile-name {
+  font-size: var(--fs-sm);
+}
+.mk-badge {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: var(--fs-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.mk-tile .mk-badge {
+  position: absolute;
+  top: var(--s2);
+  right: var(--s2);
+}
+.mk-toast {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--inverse-surface);
+  color: var(--inverse-text);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s2) var(--s2) var(--s4);
+  box-shadow: var(--shadow-2);
+}
+.mk-toast button {
+  border: 0;
+  background: transparent;
+  color: var(--inverse-accent);
+  font-weight: 700;
+  min-height: 40px;
+  padding: 0 var(--s3);
+  cursor: pointer;
+}
+
+/* Score: the total and the behaviors look different on purpose (Devin, 2026-11-04).
+   The total is one big number on a tinted panel; behaviors are rows with a 1-7 rating square. */
+.mk-total {
+  background: var(--accent-soft);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.mk-total > * {
+  margin: 0;
+}
+.mk-total-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.mk-total h2 {
+  font-size: var(--fs-md);
+  margin: 0;
+  color: var(--accent-ink);
+}
+.mk-chip {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  border: 1px solid var(--accent-ink);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.mk-total-num {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+.mk-total-num b {
+  font-size: 48px;
+  line-height: 1;
+  color: var(--accent-ink);
+  font-variant-numeric: tabular-nums;
+}
+.mk-section-h {
+  font-size: var(--fs-lg);
+  margin: 0 0 var(--s2);
+  display: flex;
+  gap: var(--s2);
+  align-items: baseline;
+}
+.mk-section-h span {
+  font-size: var(--fs-sm);
+  font-weight: 400;
+}
+.mk-beh {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: 10px var(--s3);
+}
+.mk-beh-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+.mk-beh-text span {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.mk-quiet {
+  margin-top: var(--s2) !important;
+}
+.mk-more {
+  font-size: var(--fs-sm);
+  color: var(--accent-ink);
+  font-weight: 600;
+  padding: var(--s2) var(--s1);
+}
+.mk-rating {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--r-ink);
+  font-variant-numeric: tabular-nums;
+}
+.mk-rating.r1 {
+  background: var(--r1);
+}
+.mk-rating.r2 {
+  background: var(--r2);
+}
+.mk-rating.r3 {
+  background: var(--r3);
+}
+.mk-rating.r4 {
+  background: var(--r4);
+}
+.mk-rating.r5 {
+  background: var(--r5);
+}
+.mk-rating.r6 {
+  background: var(--r6);
+  color: var(--r-light);
+}
+.mk-rating.r7 {
+  background: var(--r7);
+  color: var(--r-light);
+}
+.mk-move {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+.mk-move.down {
+  color: var(--ok);
+}
+.mk-move.up {
+  color: var(--attn);
+}
+
+/* Report */
+.mk-time {
+  flex: none;
+  width: 72px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mk-bars {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 4px;
+  height: 120px;
+  align-items: end;
+}
+.mk-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  gap: 2px;
+}
+.mk-bar i {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+  flex: none;
+}
+.mk-bar small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mk-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.mk-table th {
+  text-align: left;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  padding: var(--s2) var(--s3);
+}
+.mk-table td {
+  padding: 6px var(--s3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-sm);
+}
+.mk-table .mk-rating {
+  width: 28px;
+  height: 28px;
+}
+
+.mk-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+/* The flow overview: all five screens in a row. */
+.mk-flow {
+  display: flex;
+  gap: var(--s6);
+  align-items: flex-start;
+  padding: var(--s5);
+}
+.mk-flow figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.mk-flow figcaption {
+  font-weight: 700;
+  color: var(--text);
+}

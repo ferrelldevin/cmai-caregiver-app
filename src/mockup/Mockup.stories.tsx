@@ -1,0 +1,90 @@
+// One story per screen of the five-step flow, plus Flow, which shows all five side by side.
+// Change a story's Controls (bottom panel) to try layouts live; edit Screens.tsx or
+// mockup.css and the page reloads on save. Made-up data only (mock-data.ts).
+
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { LoginScreen, LogScreen, ReportScreen, ScoreScreen, SettingsScreen } from "./Screens";
+
+const meta: Meta = { title: "Mockup/Five-step flow" };
+export default meta;
+
+export const Login: StoryObj<typeof LoginScreen> = {
+  name: "1. Login",
+  render: (args) => <LoginScreen {...args} />,
+  args: { step: "sign-in", method: "phone-pin" },
+  argTypes: {
+    step: { control: "inline-radio", options: ["sign-in", "choose-resident"] },
+    method: {
+      control: "inline-radio",
+      options: ["phone-pin", "lab-account"],
+      description: "R1 is open: phone PIN or lab accounts",
+    },
+  },
+};
+
+export const Log: StoryObj<typeof LogScreen> = {
+  name: "2. Behavior log",
+  render: (args) => <LogScreen {...args} />,
+  args: { layout: "grid", columns: 2, groupTabs: true, showFrequent: true },
+  argTypes: {
+    layout: { control: "inline-radio", options: ["grid", "list"] },
+    columns: { control: "inline-radio", options: [2, 3], if: { arg: "layout", eq: "grid" } },
+    groupTabs: { control: "boolean", description: "One behavior group at a time, picked from tabs" },
+    showFrequent: { control: "boolean", description: "This resident's most logged behaviors on top" },
+  },
+};
+
+export const Score: StoryObj<typeof ScoreScreen> = {
+  name: "3. Score",
+  render: (args) => <ScoreScreen {...args} />,
+  args: { order: "behaviors-first", showUnlogged: false },
+  argTypes: {
+    order: {
+      control: "inline-radio",
+      options: ["behaviors-first", "total-first"],
+      description: "D-08 (in the build): behaviors first, total secondary",
+    },
+    showUnlogged: { control: "boolean", description: "List the behaviors with no logs (each rated 1)" },
+  },
+};
+
+export const Report: StoryObj<typeof ReportScreen> = {
+  name: "4. Report",
+  render: (args) => <ReportScreen key={args.view} {...args} />,
+  args: { view: "daily" },
+  argTypes: { view: { control: "inline-radio", options: ["daily", "two-week"] } },
+};
+
+export const Settings: StoryObj = {
+  name: "5. Settings",
+  render: () => <SettingsScreen />,
+};
+
+export const Flow: StoryObj = {
+  name: "All five screens",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <div className="mk-flow">
+      <figure>
+        <figcaption>1. Login</figcaption>
+        <LoginScreen step="sign-in" method="phone-pin" />
+      </figure>
+      <figure>
+        <figcaption>2. Behavior log</figcaption>
+        <LogScreen layout="grid" columns={2} groupTabs showFrequent />
+      </figure>
+      <figure>
+        <figcaption>3. Score</figcaption>
+        <ScoreScreen order="behaviors-first" showUnlogged={false} />
+      </figure>
+      <figure>
+        <figcaption>4. Report</figcaption>
+        <ReportScreen view="two-week" />
+      </figure>
+      <figure>
+        <figcaption>5. Settings</figcaption>
+        <SettingsScreen />
+      </figure>
+    </div>
+  ),
+};
