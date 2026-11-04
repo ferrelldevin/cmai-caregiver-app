@@ -6,6 +6,7 @@
 import { useState, type ReactNode } from "react";
 import { GROUP_LABELS, type FactorGroup } from "../scoring/items";
 import { Icon, type IconName } from "../ui/Icon";
+import { BEHAVIOR_ICONS } from "./behavior-icons";
 import {
   BEHAVIOR_SCORES,
   DAILY_TOTALS,
@@ -174,13 +175,29 @@ export function LogScreen({ layout, columns, groupTabs, showFrequent }: LogProps
   const frequent = [6, 1, 29, 13];
   const shown = groupTabs ? [group] : GROUP_ORDER;
 
-  const tile = (id: number) => (
-    <button key={id} className={layout === "grid" ? "mk-tile" : "mk-line"} onClick={() => tap(id)}>
-      <span className="mk-num">{id}</span>
-      <span className="mk-tile-name">{SHORT[id]}</span>
-      {counts[id] ? <span className="mk-badge">{counts[id]}</span> : null}
-    </button>
-  );
+  const tile = (id: number) => {
+    const BehaviorIcon = BEHAVIOR_ICONS[id];
+    const count = counts[id] ? (
+      <span className="mk-badge" aria-label={`${counts[id]} today`}>
+        {counts[id]}
+      </span>
+    ) : null;
+    return layout === "grid" ? (
+      <button key={id} className="mk-tile" onClick={() => tap(id)}>
+        <span className="mk-tile-top">
+          {count ?? <span />}
+          <BehaviorIcon className="mk-bicon" size={26} aria-hidden />
+        </span>
+        <span className="mk-tile-name">{SHORT[id]}</span>
+      </button>
+    ) : (
+      <button key={id} className="mk-line" onClick={() => tap(id)}>
+        <BehaviorIcon className="mk-bicon" size={22} aria-hidden />
+        <span className="mk-tile-name">{SHORT[id]}</span>
+        {count}
+      </button>
+    );
+  };
   const cls = layout === "grid" ? `mk-grid cols-${columns}` : "mk-lines";
 
   return (

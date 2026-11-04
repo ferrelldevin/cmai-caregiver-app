@@ -358,11 +358,6 @@
 .mk-line .mk-badge {
   margin-left: auto;
 }
-.mk-num {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
 .mk-tile-name {
   font-size: var(--fs-sm);
 }
@@ -378,10 +373,16 @@
   align-items: center;
   justify-content: center;
 }
-.mk-tile .mk-badge {
-  position: absolute;
-  top: var(--s2);
-  right: var(--s2);
+.mk-tile-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+/* Behavior icons: brand teal, so they read as a finding aid, not as a status. */
+.mk-bicon {
+  color: var(--accent-ink);
+  flex: none;
 }
 .mk-toast {
   position: sticky;

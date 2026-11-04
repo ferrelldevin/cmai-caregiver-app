@@ -16,3 +16,8 @@ Permission to adapt and display these definitions in this app: not yet requested
 
 Citation: Cohen-Mansfield, J. (1991). Instruction Manual for the Cohen-Mansfield
 Agitation Inventory (CMAI). Research Institute of the Hebrew Home of Greater Washington.
+
+Lucide icons
+The behavior icons in the design mockup (src/mockup/behavior-icons.ts, shown only in
+Storybook, not in the app) come from Lucide (https://lucide.dev), ISC License,
+(c) Lucide Contributors.
