@@ -74,7 +74,18 @@ function lockPage() {
   };
 }
 
-export function Sheet({ open, viaKeyboard, keyboardFocus, title, subtitle, className, headerClose = true, footer, onClose, children }: Props) {
+export function Sheet({
+  open,
+  viaKeyboard,
+  keyboardFocus,
+  title,
+  subtitle,
+  className,
+  headerClose = true,
+  footer,
+  onClose,
+  children,
+}: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; t: number; dy: number; moved: boolean } | null>(null);
@@ -96,7 +107,10 @@ export function Sheet({ open, viaKeyboard, keyboardFocus, title, subtitle, class
     if (!open) return;
     const unlock = lockPage();
     const unfollow = followKeyboard(d);
-    return () => { unfollow(); unlock(); };
+    return () => {
+      unfollow();
+      unlock();
+    };
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function setOffset(dy: number, animate: boolean) {
@@ -131,11 +145,16 @@ export function Sheet({ open, viaKeyboard, keyboardFocus, title, subtitle, class
     drag.current = null;
     if (!g || !g.moved) return;
     justDragged.current = true;
-    window.setTimeout(() => { justDragged.current = false; }, 0);
+    window.setTimeout(() => {
+      justDragged.current = false;
+    }, 0);
     const speed = g.dy / Math.max(1, e.timeStamp - g.t);
     if (g.dy > CLOSE_DISTANCE || speed > CLOSE_SPEED) {
       setOffset(window.innerHeight, true);
-      window.setTimeout(() => { setOffset(0, false); onClose(); }, 180);
+      window.setTimeout(() => {
+        setOffset(0, false);
+        onClose();
+      }, 180);
     } else {
       setOffset(0, true);
     }
@@ -147,8 +166,15 @@ export function Sheet({ open, viaKeyboard, keyboardFocus, title, subtitle, class
       className={className ? `sheet ${className}` : "sheet"}
       tabIndex={-1}
       aria-labelledby={titleId}
-      onClose={onClose}
-      onClick={(e) => { if (e.target === dialog.current) onClose(); }}
+      // The browser delivers a dialog's "close" event a moment after close() runs. If the sheet was
+      // reopened in between (Cancel, then Delete again straight away), that late event belongs to the
+      // closing before and must not shut the sheet that is open now.
+      onClose={() => {
+        if (!dialog.current?.open) onClose();
+      }}
+      onClick={(e) => {
+        if (e.target === dialog.current) onClose();
+      }}
     >
       <div
         className="sheet-body"
@@ -156,9 +182,17 @@ export function Sheet({ open, viaKeyboard, keyboardFocus, title, subtitle, class
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={() => { drag.current = null; setOffset(0, true); }}
+        onPointerCancel={() => {
+          drag.current = null;
+          setOffset(0, true);
+        }}
         // A drag that started on a button must not also press it.
-        onClickCapture={(e) => { if (justDragged.current) { e.stopPropagation(); e.preventDefault(); } }}
+        onClickCapture={(e) => {
+          if (justDragged.current) {
+            e.stopPropagation();
+            e.preventDefault();
+          }
+        }}
       >
         <div className="sheet-grab" aria-hidden />
         <div className="sheet-head">
@@ -166,7 +200,11 @@ export function Sheet({ open, viaKeyboard, keyboardFocus, title, subtitle, class
             <h2 id={titleId}>{title}</h2>
             {subtitle && <p className="sheet-sub">{subtitle}</p>}
           </div>
-          {headerClose && <button className="ghost small sheet-close" onClick={onClose}>Close</button>}
+          {headerClose && (
+            <button className="ghost small sheet-close" onClick={onClose}>
+              Close
+            </button>
+          )}
         </div>
         {open && children}
         {open && footer && <div className="sheet-footer">{footer}</div>}

@@ -117,6 +117,20 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.screenshot({ path: `${OUT}/flow-05-confirm-delete.png` });
   await confirm.getByRole("button", { name: "Cancel" }).click();
   ok(!(await confirm.isVisible()) && (await p.locator(".patient-list li").count()) === rows, "Cancel keeps the patient");
+  // Cancel, then Delete again before the browser delivers the first closing's "close" event:
+  // the late event must not shut the reopened sheet (it did, and timed out the keyboard step in CI).
+  const stillOpen = await p.evaluate(async () => {
+    const tick = () => new Promise((r) => queueMicrotask(r));
+    const del = () => document.querySelector('.patient-list button[aria-label="Delete P-07"]');
+    del().click(); await new Promise((r) => setTimeout(r, 300));
+    document.querySelector(".confirm-cancel").click(); for (let i = 0; i < 5; i++) await tick();
+    del().click(); for (let i = 0; i < 5; i++) await tick();
+    await new Promise((r) => setTimeout(r, 300));
+    const open = document.querySelector("dialog.confirm-sheet").open;
+    document.querySelector(".confirm-cancel")?.click(); await new Promise((r) => setTimeout(r, 300));
+    return open;
+  });
+  ok(stillOpen, "a sheet reopened right after Cancel stays open");
   await p.getByRole("button", { name: "Delete P-07" }).focus(); await p.keyboard.press("Enter"); await confirm.waitFor();
   ok(await p.evaluate(() => document.activeElement?.classList.contains("confirm-cancel")), "delete opened by keyboard: focus starts on Cancel, the safe choice");
   await confirm.getByRole("button", { name: "Delete P-07" }).click();
