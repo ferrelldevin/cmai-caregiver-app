@@ -5,7 +5,6 @@
 // Credits are in NOTICE. Swap any icon here and every tile updates. The name on the
 // tile stays the thing to read; the icon only helps the eye find it.
 import {
-  Armchair,
   Hammer,
   BellRing,
   Boxes,
@@ -63,6 +62,34 @@ function ScratchMarks({ size = 24, className }: { size?: number; className?: str
   );
 }
 
+// Restlessness: an armchair (Tabler armchair, MIT, scaled down) with motion lines either
+// side, so it reads as "can't sit still". Drawn in this repo.
+function RestlessChair({ size = 24, className }: { size?: number; className?: string }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <g transform="translate(12 12.5) scale(.68) translate(-12 -12)" strokeWidth="2.9">
+        <path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" />
+        <path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" />
+        <path d="M6 19v2" />
+        <path d="M18 19v2" />
+      </g>
+      <path d="M2.5 9.5q-1 2.5 0 5" />
+      <path d="M21.5 9.5q1 2.5 0 5" />
+    </svg>
+  );
+}
+
 export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
   1: Footprints, // pacing, aimless wandering: footprints
   2: Underwear, // inappropriate dressing or disrobing
@@ -92,5 +119,5 @@ export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
   26: Pointer, // repetitious mannerisms: tapping
   27: MessageSquareHeart, // verbal sexual advances
   28: IconHandOff, // physical sexual advances: unwanted touch
-  29: Armchair, // general restlessness: can't stay seated
+  29: RestlessChair, // general restlessness: can't sit still
 };
