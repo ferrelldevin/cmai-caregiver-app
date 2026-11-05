@@ -78,16 +78,21 @@ function RestlessChair({ size = 24, className }: { size?: number; className?: st
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <g transform="translate(12 12.5) scale(.68) translate(-12 -12)" strokeWidth="2.9">
+      <g transform="translate(12 12) scale(.86) translate(-12 -12)" strokeWidth="2.33">
         <path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" />
         <path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" />
         <path d="M6 19v2" />
         <path d="M18 19v2" />
       </g>
-      <path d="M2.5 9.5q-1 2.5 0 5" />
-      <path d="M21.5 9.5q1 2.5 0 5" />
+      <path d="M1.8 9.5q-1 2.5 0 5" />
+      <path d="M22.2 9.5q1 2.5 0 5" />
     </svg>
   );
+}
+
+// The tooth draws smaller than the other icons on the same grid, so scale it up to match.
+function Tooth(props: { size?: number; className?: string }) {
+  return <IconDental {...props} style={{ transform: "scale(1.12)" }} />;
 }
 
 export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
@@ -104,7 +109,7 @@ export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
   11: IconPlayHandball, // throwing things: a figure throwing
   12: AudioWaveform, // making strange noises
   13: UserVoice, // screaming: a person with sound coming out
-  14: IconDental, // biting: a tooth
+  14: Tooth, // biting: a tooth
   15: ScratchMarks, // scratching: claw marks
   16: LeavingThroughDoor, // trying to get to a different place: heading out a door
   17: IconFall, // intentional falling: a falling figure
