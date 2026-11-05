@@ -3,7 +3,7 @@
 // layout can be tried in Storybook (npm run storybook) before the real screens change,
 // which waits on Dr. Gupta's review (cmai-mobile-plan.md).
 
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { GROUP_LABELS, type FactorGroup } from "../scoring/items";
 import { Icon, type IconName } from "../ui/Icon";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
@@ -154,12 +154,30 @@ export function LoginScreen({ step, method }: LoginProps) {
 
 export interface LogProps {
   layout: "grid" | "list";
-  columns: 2 | 3;
+  columns: 1 | 2 | 3 | 4;
   groupTabs: boolean;
   showFrequent: boolean;
+  /** Tile sizing, for trying options live in Storybook's Controls panel. */
+  iconSize?: number;
+  iconPlacement?: "top" | "beside-name" | "centered";
+  tileHeight?: number;
+  tilePaddingY?: number;
+  tilePaddingX?: number;
+  tileGap?: number;
 }
 
-export function LogScreen({ layout, columns, groupTabs, showFrequent }: LogProps) {
+export function LogScreen({
+  layout,
+  columns,
+  groupTabs,
+  showFrequent,
+  iconSize = 26,
+  iconPlacement = "top",
+  tileHeight = 76,
+  tilePaddingY = 8,
+  tilePaddingX = 12,
+  tileGap = 8,
+}: LogProps) {
   const [group, setGroup] = useState<FactorGroup>("aggressive");
   const [counts, setCounts] = useState<Record<number, number>>(() => {
     const c: Record<number, number> = {};
@@ -182,23 +200,52 @@ export function LogScreen({ layout, columns, groupTabs, showFrequent }: LogProps
         {counts[id]}
       </span>
     ) : null;
-    return layout === "grid" ? (
+    const icon = <BehaviorIcon className="mk-bicon" size={iconSize} aria-hidden />;
+    if (layout === "list") {
+      return (
+        <button key={id} className="mk-line" onClick={() => tap(id)}>
+          {icon}
+          <span className="mk-tile-name">{SHORT[id]}</span>
+          {count}
+        </button>
+      );
+    }
+    if (iconPlacement === "beside-name") {
+      return (
+        <button key={id} className="mk-tile place-beside" onClick={() => tap(id)}>
+          {icon}
+          <span className="mk-tile-name">{SHORT[id]}</span>
+          {count}
+        </button>
+      );
+    }
+    if (iconPlacement === "centered") {
+      return (
+        <button key={id} className="mk-tile place-centered" onClick={() => tap(id)}>
+          {count}
+          {icon}
+          <span className="mk-tile-name">{SHORT[id]}</span>
+        </button>
+      );
+    }
+    return (
       <button key={id} className="mk-tile" onClick={() => tap(id)}>
         <span className="mk-tile-top">
-          <BehaviorIcon className="mk-bicon" size={26} aria-hidden />
+          {icon}
           {count}
         </span>
         <span className="mk-tile-name">{SHORT[id]}</span>
       </button>
-    ) : (
-      <button key={id} className="mk-line" onClick={() => tap(id)}>
-        <BehaviorIcon className="mk-bicon" size={22} aria-hidden />
-        <span className="mk-tile-name">{SHORT[id]}</span>
-        {count}
-      </button>
     );
   };
-  const cls = layout === "grid" ? `mk-grid cols-${columns}` : "mk-lines";
+  const cls = layout === "grid" ? "mk-grid" : "mk-lines";
+  const sizing = {
+    gridTemplateColumns: layout === "grid" ? `repeat(${columns}, 1fr)` : undefined,
+    gap: layout === "grid" ? tileGap : undefined,
+    "--mk-tile-h": `${tileHeight}px`,
+    "--mk-tile-py": `${tilePaddingY}px`,
+    "--mk-tile-px": `${tilePaddingX}px`,
+  } as CSSProperties;
 
   return (
     <Phone tab="log">
@@ -209,7 +256,9 @@ export function LogScreen({ layout, columns, groupTabs, showFrequent }: LogProps
       {showFrequent && (
         <>
           <h2 className="mk-h2">Most logged for this resident</h2>
-          <div className={cls}>{frequent.map(tile)}</div>
+          <div className={cls} style={sizing}>
+            {frequent.map(tile)}
+          </div>
         </>
       )}
       {groupTabs && (
@@ -230,7 +279,9 @@ export function LogScreen({ layout, columns, groupTabs, showFrequent }: LogProps
       {shown.map((g) => (
         <section key={g}>
           {!groupTabs && <h2 className="mk-h2">{GROUP_LABELS[g]}</h2>}
-          <div className={cls}>{BEHAVIOR_SCORES.filter((b) => b.group === g).map((b) => tile(b.id))}</div>
+          <div className={cls} style={sizing}>
+            {BEHAVIOR_SCORES.filter((b) => b.group === g).map((b) => tile(b.id))}
+          </div>
         </section>
       ))}
       <p className="mk-hint">Tap once per event. Hold a tile to see what counts and the manual page.</p>
