@@ -33,19 +33,26 @@ const TABS: { id: MockTab; label: string; icon: IconName }[] = [
 
 /** A phone-sized frame: resident banner on top, four tabs at the bottom. */
 export function Phone({ tab, children, bare }: { tab?: MockTab; children: ReactNode; bare?: boolean }) {
+  // Switch flips between the two demo residents, so the badge color change can be tried.
+  const [who, setWho] = useState(0);
+  const pt = DEMO_PATIENTS[who];
   return (
     <div className="mk-phone">
       {!bare && (
-        <div className="mk-banner">
+        <div className="mk-banner" data-res={who}>
           <span className="mk-banner-who">
             <span className="mk-avatar" aria-hidden>
-              A
+              <span className="mk-av-letter">{pt.label.slice(-1)}</span>
+              <span className="mk-av-num">{pt.short}</span>
             </span>
             <span className="mk-banner-text">
-              <b>{DEMO_PATIENTS[0].label}</b>
+              <b>
+                <span className="mk-name">{pt.label}</span>
+                <span className="mk-code">{pt.code}</span>
+              </b>
               <span>
-                <span className="mk-pid">{DEMO_PATIENTS[0].id} · </span>
-                {DEMO_PATIENTS[0].room}
+                <span className="mk-pid">{pt.code} · </span>
+                {pt.room}
                 <span className="mk-sw-word"> · switch</span>
               </span>
             </span>
@@ -53,7 +60,12 @@ export function Phone({ tab, children, bare }: { tab?: MockTab; children: ReactN
               <Icon name="chevron" size={16} />
             </span>
           </span>
-          <button type="button" className="mk-banner-switch" aria-label="Switch resident">
+          <button
+            type="button"
+            className="mk-banner-switch"
+            aria-label="Switch resident"
+            onClick={() => setWho(1 - who)}
+          >
             <ArrowRightLeft size={16} aria-hidden />
             Switch
           </button>

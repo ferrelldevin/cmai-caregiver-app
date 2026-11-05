@@ -54,30 +54,40 @@
   display: none;
 }
 /* Healthcare apps show two identifiers for the patient (here the code and the room). */
-:root[data-mk-top="compact"] .mk-pid,
 :root[data-mk-top="pill"] .mk-pid {
   display: inline;
+}
+.mk-code,
+.mk-av-num {
+  display: none;
+}
+/* Compact styles lead with the resident code, the way the real app names residents. */
+:root[data-mk-top^="compact"] .mk-name,
+:root[data-mk-top^="compact"] .mk-av-letter {
+  display: none;
+}
+:root[data-mk-top^="compact"] .mk-code,
+:root[data-mk-top^="compact"] .mk-av-num {
+  display: inline;
+}
+:root[data-mk-top="compact-plain"] .mk-avatar {
+  display: none;
 }
 /* Top bar styles, picked from the Top switch in Storybook's toolbar. The resident's name
    stays on every screen in all of them: logging for the wrong resident is the costliest
    mistake on this app. */
 /* "compact": a slim patient banner (name over code and room) with a clear Switch button. */
-:root[data-mk-top="compact"] .mk-banner {
+:root[data-mk-top^="compact"] .mk-banner {
   justify-content: space-between;
   padding: 8px var(--s4);
 }
-:root[data-mk-top="compact"] .mk-avatar {
-  width: 28px;
-  height: 28px;
-  font-size: var(--fs-xs);
-}
-:root[data-mk-top="compact"] .mk-sw-word,
+:root[data-mk-top^="compact"] .mk-sw-word,
 :root[data-mk-top="pill"] .mk-sw-word {
   display: none;
 }
 /* The Switch button reads as a button: tinted fill, brand outline, an arrows icon, and a
    44 px tall tap target. */
-:root[data-mk-top="compact"] .mk-banner-switch {
+:root[data-mk-top^="compact"] .mk-banner-switch {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -93,8 +103,42 @@
   cursor: pointer;
   flex: none;
 }
-:root[data-mk-top="compact"] .mk-banner-switch:active {
+:root[data-mk-top^="compact"] .mk-banner-switch:active {
   background: var(--press);
+}
+/* "compact" badge: each resident has a color, so a switch changes the whole bar at a glance.
+   The code number is still the identifier; color only backs it up. */
+.mk-banner[data-res="0"] {
+  --res: #0b6b66;
+}
+.mk-banner[data-res="1"] {
+  --res: #6a4bb5;
+}
+:root[data-theme="dark"] .mk-banner[data-res="0"] {
+  --res: #3fb3a8;
+}
+:root[data-theme="dark"] .mk-banner[data-res="1"] {
+  --res: #a58cf0;
+}
+:root[data-mk-top="compact"] .mk-banner {
+  background: color-mix(in srgb, var(--surface) 90%, var(--res));
+  border-bottom: 2px solid var(--res);
+}
+:root[data-mk-top="compact"] .mk-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--res);
+  color: #fff;
+  font-size: var(--fs-sm);
+}
+:root[data-theme="dark"][data-mk-top="compact"] .mk-avatar {
+  color: #0e1417;
+}
+:root[data-mk-top="compact"] .mk-banner-switch {
+  border-color: var(--res);
+  color: var(--res);
+  background: var(--surface);
 }
 /* "pill": no bar at all; the resident is a tappable chip on the page, with a dropdown arrow. */
 :root[data-mk-top="pill"] .mk-banner {
@@ -758,4 +802,9 @@
 .mk-flow figcaption {
   font-weight: 700;
   color: var(--text);
+}
+/* The name or code line keeps the bold title style (not the small grey second line). */
+.mk-banner-text b span {
+  font-size: inherit;
+  color: inherit;
 }

@@ -7,9 +7,10 @@ export { RATING_LABELS } from "../scoring/engine";
 import { ITEMS, type FactorGroup } from "../scoring/items";
 
 export const DEMO_CAREGIVER = { name: "Caregiver Demo", role: "Night shift" };
+// code is how the real app names a resident (no names are stored); short goes in the badge.
 export const DEMO_PATIENTS = [
-  { id: "P-DEMO-A", label: "Demo resident A", room: "Room 12" },
-  { id: "P-DEMO-B", label: "Demo resident B", room: "Room 14" },
+  { id: "P-DEMO-A", label: "Demo resident A", code: "P-03", short: "03", room: "Room 12" },
+  { id: "P-DEMO-B", label: "Demo resident B", code: "P-07", short: "07", room: "Room 14" },
 ];
 
 // Tile labels for the compact log grid: short names in our own words.

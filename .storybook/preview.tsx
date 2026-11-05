@@ -25,8 +25,13 @@ const preview: Preview = {
     },
     top: {
       description:
-        "Top bar style: compact (chosen 2026-11-05: name over code and room, Switch button), current, or pill (resident chip)",
-      toolbar: { title: "Top", icon: "sidebaralt", items: ["compact", "current", "pill"], dynamicTitle: true },
+        "Top bar style: compact (chosen 2026-11-05: code over room, resident color badge, Switch button), compact-plain (no badge), current, or pill (resident chip)",
+      toolbar: {
+        title: "Top",
+        icon: "sidebaralt",
+        items: ["compact", "compact-plain", "current", "pill"],
+        dynamicTitle: true,
+      },
     },
   },
   initialGlobals: { theme: "light", textSize: "standard", nav: "current", top: "compact" },
