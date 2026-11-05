@@ -36,13 +36,23 @@ export function Phone({ tab, children, bare }: { tab?: MockTab; children: ReactN
     <div className="mk-phone">
       {!bare && (
         <div className="mk-banner">
-          <span className="mk-avatar" aria-hidden>
-            A
+          <span className="mk-banner-who">
+            <span className="mk-avatar" aria-hidden>
+              A
+            </span>
+            <span className="mk-banner-text">
+              <b>{DEMO_PATIENTS[0].label}</b>
+              <span>
+                <span className="mk-pid">{DEMO_PATIENTS[0].id} · </span>
+                {DEMO_PATIENTS[0].room}
+                <span className="mk-sw-word"> · switch</span>
+              </span>
+            </span>
+            <span className="mk-banner-chev" aria-hidden>
+              <Icon name="chevron" size={16} />
+            </span>
           </span>
-          <span className="mk-banner-text">
-            <b>{DEMO_PATIENTS[0].label}</b>
-            <span>{DEMO_PATIENTS[0].room} · switch</span>
-          </span>
+          <span className="mk-banner-switch">Switch</span>
         </div>
       )}
       <div className="mk-body">{children}</div>

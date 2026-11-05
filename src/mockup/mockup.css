@@ -42,6 +42,68 @@
   background: var(--surface);
   border-bottom: 1px solid var(--rule);
 }
+.mk-banner-who {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-width: 0;
+}
+.mk-banner-chev,
+.mk-banner-switch,
+.mk-pid {
+  display: none;
+}
+/* Healthcare apps show two identifiers for the patient (here the code and the room). */
+:root[data-mk-top="compact"] .mk-pid,
+:root[data-mk-top="pill"] .mk-pid {
+  display: inline;
+}
+/* Top bar styles, picked from the Top switch in Storybook's toolbar. The resident's name
+   stays on every screen in all of them: logging for the wrong resident is the costliest
+   mistake on this app. */
+/* "compact": a slim patient banner (name over code and room) with a clear Switch button. */
+:root[data-mk-top="compact"] .mk-banner {
+  justify-content: space-between;
+  padding: 12px var(--s4) 8px;
+}
+:root[data-mk-top="compact"] .mk-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: var(--fs-xs);
+}
+:root[data-mk-top="compact"] .mk-sw-word,
+:root[data-mk-top="pill"] .mk-sw-word {
+  display: none;
+}
+:root[data-mk-top="compact"] .mk-banner-switch {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--accent-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+/* "pill": no bar at all; the resident is a tappable chip on the page, with a dropdown arrow. */
+:root[data-mk-top="pill"] .mk-banner {
+  background: transparent;
+  border-bottom: 0;
+  padding: 12px var(--s4) 0;
+}
+:root[data-mk-top="pill"] .mk-banner-who {
+  gap: var(--s2);
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+:root[data-mk-top="pill"] .mk-banner-chev {
+  display: inline-flex;
+  color: var(--text-muted);
+}
 .mk-banner-text {
   display: flex;
   flex-direction: column;
