@@ -11,10 +11,8 @@ import {
   Boxes,
   Droplets,
   EyeOff,
-  HandFist,
   HandGrab,
   MessageSquareHeart,
-  PackageOpen,
   Pointer,
   ThumbsDown,
   AudioWaveform,
@@ -28,10 +26,19 @@ import {
   IconKarate,
   IconMessageBolt,
   IconPlayHandball,
-  IconToolsKitchen2Off,
 } from "@tabler/icons-react";
 import type { ReactNode } from "react";
-import { Complaint, LeavingThroughDoor, PushingHand, RepeatList, Underwear, UserVoice } from "./iconify-icons";
+import {
+  BoxingGlove,
+  Complaint,
+  HandPackage,
+  PoisonBottle,
+  LeavingThroughDoor,
+  PushingHand,
+  RepeatList,
+  Underwear,
+  UserVoice,
+} from "./iconify-icons";
 
 type BehaviorIcon = (props: { size?: number; className?: string; "aria-hidden"?: boolean }) => ReactNode;
 
@@ -63,7 +70,7 @@ export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
   4: IconMessageBolt, // cursing or verbal aggression: angry words
   5: BellRing, // constant request for attention or help: a call bell
   6: RepeatList, // repetitive sentences or questions: the same lines again
-  7: HandFist, // hitting
+  7: BoxingGlove, // hitting: a glove reads as "punch" and can't be mistaken for grabbing
   8: IconKarate, // kicking: a figure mid-kick
   9: HandGrab, // grabbing
   10: PushingHand, // pushing: a hand pushing forward
@@ -76,9 +83,9 @@ export const BEHAVIOR_ICONS: Record<number, BehaviorIcon> = {
   17: IconFall, // intentional falling: a falling figure
   18: Complaint, // complaining
   19: ThumbsDown, // negativism
-  20: IconToolsKitchen2Off, // eating or drinking inappropriate substances: "not food"
+  20: PoisonBottle, // eating or drinking inappropriate substances: a poison bottle
   21: IconBandage, // hurting self or other: a bandage
-  22: PackageOpen, // handling things inappropriately: rummaging
+  22: HandPackage, // handling things inappropriately: taking someone's things
   23: EyeOff, // hiding things
   24: Boxes, // hoarding things
   25: Hammer, // tearing things or destroying property: smashing

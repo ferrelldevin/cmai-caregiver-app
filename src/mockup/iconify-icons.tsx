@@ -51,6 +51,24 @@ export const Complaint = iconify(
   '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m17 7l.005-1.495M17.05 9.9H17m.1 0a.1.1 0 1 1-.2 0a.1.1 0 0 1 .2 0"/><path d="M17 12.567c2.761 0 5-2.142 5-4.784S19.761 3 17 3s-5 2.142-5 4.783c0 1.27.517 2.423 1.36 3.279c.185.188.309.445.259.71a2.66 2.66 0 0 1-.543 1.175a3.25 3.25 0 0 0 2.111-.329h.001c.227-.12.34-.181.42-.193s.195.01.425.052q.479.09.967.09M10 13a3 3 0 1 1-6 0a3 3 0 0 1 6 0"/><path d="M12 21a5 5 0 0 0-10 0"/></g>',
 );
 
+// material-symbols:hand-package-outline. Material Symbols by Google, Apache 2.0.
+export const HandPackage = iconify(
+  24,
+  '<path fill="currentColor" d="M15 4H9v7h6zm5 0h-3v7h3zm-5.625 9H8v6h5.55q.525 0 1.013-.175t.887-.525l4.15-3.425q-.2-.2-.45-.3t-.525-.15q-.425-.075-.825.025t-.75.375L14.35 17H10v-2h3.65l1.1-.9q.125-.075.188-.2t.062-.275q0-.25-.187-.437T14.375 13M6 13H4v7h2zm1 0V4q0-.825.588-1.412T9 2h11q.825 0 1.413.588T22 4v7q0 .825-.587 1.413T20 13zm-1 9H4q-.825 0-1.412-.587T2 20v-7q0-.825.588-1.412T4 11h10.375q2.125 0 4.1.725t3.175 2.45l.675 1.025l-5.575 4.65q-.675.575-1.5.863t-1.7.287H7.725q-.275.45-.725.725T6 22"/>',
+);
+
+// ph:boxing-glove. Phosphor Icons, MIT.
+export const BoxingGlove = iconify(
+  256,
+  '<path fill="currentColor" d="M168 16h-48a56.06 56.06 0 0 0-56 56h-8a32 32 0 0 0-32 32v29.19a16.1 16.1 0 0 0 3.51 10a8 8 0 0 0 .62.69L64 179.34V216a16 16 0 0 0 16 16h112a16 16 0 0 0 16-16v-38.88l15.38-53.85a16 16 0 0 0 .62-4.39V72a56.06 56.06 0 0 0-56-56m40 102.88l-15.69 54.92a8 8 0 0 0-.31 2.2v40H80v-40a8 8 0 0 0-2.38-5.69L40 133.12V104a16 16 0 0 1 16-16h8v16a8 8 0 0 0 16 0V72a40 40 0 0 1 40-40h48a40 40 0 0 1 40 40Zm-36.42 48.28L153.89 176l17.69 8.84a8 8 0 0 1-7.16 14.32L136 184.94l-28.42 14.22a8 8 0 1 1-7.16-14.32l17.69-8.84l-17.69-8.84a8 8 0 1 1 7.16-14.32L136 167.06l28.42-14.22a8 8 0 1 1 7.16 14.32"/>',
+);
+
+// mdi:bottle-tonic-skull-outline. Material Design Icons by Pictogrammers, Apache 2.0.
+export const PoisonBottle = iconify(
+  24,
+  '<path fill="currentColor" d="M13 4h-2l-1-2h4zm1 4V6h1V5H9v1h1v2c-2.76 0-5 2.24-5 5v9h14v-9c0-2.76-2.24-5-5-5m3 12H7v-7c0-1.65 1.35-3 3-3h4c1.65 0 3 1.35 3 3zm-5-9c-2.21 0-4 1.79-4 4c0 1 .39 1.9 1 2.59V19h1.25v-1.5h1.13V19h1.25v-1.5h1.12V19H15v-1.41A3.9 3.9 0 0 0 16 15c0-2.21-1.79-4-4-4m-1.5 4c-.55 0-1-.45-1-1s.45-1 1-1s1 .45 1 1s-.45 1-1 1m.75 1.25L12 15l.75 1.25zM13.5 15c-.55 0-1-.45-1-1s.45-1 1-1s1 .45 1 1s-.45 1-1 1"/>',
+);
+
 /**
  * A person walking toward an open door: drawn here for "trying to leave", after the
  * OpenMoji emergency-exit idea (that drawing is CC BY-SA and in color, so it is not copied).
