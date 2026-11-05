@@ -89,8 +89,15 @@ export const Score: StoryObj<typeof ScoreScreen> = {
 export const Report: StoryObj<typeof ReportScreen> = {
   name: "4. Report",
   render: (args) => <ReportScreen key={args.view} {...args} />,
-  args: { view: "daily" },
-  argTypes: { view: { control: "inline-radio", options: ["daily", "two-week"] } },
+  args: { view: "two-week", todayLogs: "as logged" },
+  argTypes: {
+    view: { control: "inline-radio", options: ["daily", "two-week"] },
+    todayLogs: {
+      control: "inline-radio",
+      options: ["as logged", "busy day"],
+      description: "Busy day: 32 logs, to check the Today list as it grows",
+    },
+  },
 };
 
 export const Settings: StoryObj = {

@@ -64,7 +64,7 @@ const PERIOD_COUNTS: Record<number, [now: number, before: number]> = {
   16: [1, 0],
 };
 // Logs per day so far in this period, oldest first (9 days logged).
-export const DAILY_TOTALS = [9, 7, 8, 6, 5, 7, 4, 2, 2];
+export const DAILY_TOTALS = [9, 7, 8, 6, 5, 6, 3, 1, 5];
 export const PERIOD = { number: 3, day: 9, start: "Oct 27", end: "Nov 9" };
 
 // Today's logs: [itemId, time of day].

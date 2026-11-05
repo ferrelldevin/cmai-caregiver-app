@@ -829,3 +829,353 @@
   font-size: inherit;
   color: inherit;
 }
+
+/* Score: one tight row per behavior --------------------------------------- */
+.mk-move.same {
+  color: var(--text-muted);
+}
+.mk-srow {
+  display: grid;
+  grid-template-columns: 32px 1fr 44px 48px;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 48px;
+  padding: 0 var(--s3);
+}
+.mk-srow + .mk-srow {
+  border-top: 1px solid var(--rule);
+}
+.mk-srow > :nth-child(3) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mk-srow > :nth-child(4) {
+  text-align: right;
+}
+.mk-cols {
+  display: grid;
+  grid-template-columns: 32px 1fr 44px 48px;
+  gap: var(--s2);
+  padding: 0 var(--s3);
+  margin-bottom: -6px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.mk-cols > :nth-child(1) {
+  grid-column: 1 / 3;
+}
+.mk-cols > :nth-child(2),
+.mk-cols > :nth-child(3) {
+  text-align: right;
+}
+.mk-total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  padding: var(--s2) var(--s3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+}
+.mk-total-line b {
+  font-size: var(--fs-lg);
+}
+
+/* Report: shared pieces ---------------------------------------------------- */
+.mk-period {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+.mk-period .mk-muted {
+  font-size: var(--fs-xs);
+}
+.mk-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s2);
+}
+.mk-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s2) var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+.mk-stats small {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.mk-stats b {
+  font-size: var(--fs-xl);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.mk-stats b.mk-stat-time {
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+.mk-stats .mk-muted {
+  font-size: var(--fs-xs);
+  line-height: 1.3;
+}
+.mk-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.mk-card > * {
+  margin: 0;
+}
+.mk-card-h {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+.mk-card-sub {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+/* Logs per day: 14 thin bars, dated */
+.mk-daybars {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 3px;
+  align-items: end;
+}
+.mk-daybar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.mk-daybar i {
+  width: 100%;
+  max-width: 16px;
+  border-radius: 4px 4px 0 0;
+  background: var(--r5);
+}
+.mk-daybar i.future {
+  background: var(--grid);
+}
+.mk-daybar.now i {
+  background: var(--accent-ink);
+}
+.mk-daybar-n {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-height: 14px;
+}
+.mk-daybar small {
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--text-muted);
+}
+.mk-daybar.now small {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Time of day: 6 blocks x 14 days */
+.mk-heat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mk-heat-row {
+  display: grid;
+  grid-template-columns: 44px repeat(14, 1fr);
+  gap: 2px;
+  align-items: center;
+}
+.mk-heat-row small {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mk-heat-axis small {
+  text-align: center;
+}
+.mk-heat-cell {
+  height: 16px;
+  border-radius: 3px;
+}
+.mk-heat-cell.future {
+  background: transparent;
+  outline: 1px dashed var(--grid);
+  outline-offset: -1px;
+}
+
+/* Average rating by group: bar on a 1-7 track, last period as a thin mark */
+.mk-gbars {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.mk-gbars li {
+  display: grid;
+  grid-template-columns: 112px 1fr 32px;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--fs-sm);
+}
+.mk-gbars b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mk-gbars-track {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--grid);
+}
+.mk-gbars-track i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  min-width: 4px;
+  border-radius: 6px;
+  background: var(--r5);
+}
+.mk-gbars-track em {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 18px;
+  margin-left: -1px;
+  background: var(--text);
+}
+
+/* Behavior table */
+.mk-rtable td,
+.mk-rtable th {
+  padding: 6px 8px;
+}
+.mk-rtable td:nth-child(n + 2),
+.mk-rtable th:nth-child(n + 2) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mk-patterns {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--fs-sm);
+}
+
+/* Today: timeline strip and grouped list -------------------------------- */
+.mk-timeline {
+  position: relative;
+  height: 28px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  margin-bottom: -8px;
+}
+.mk-timeline i {
+  position: absolute;
+  top: 6px;
+  width: 3px;
+  height: 16px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.mk-timeline-now {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--attn);
+}
+.mk-timeline-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.mk-acc > li + li {
+  border-top: 1px solid var(--rule);
+}
+.mk-acc-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px 1fr auto auto 16px;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 52px;
+  padding: 0 var(--s3);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.mk-acc-chev {
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+.mk-acc-chev.open {
+  transform: rotate(180deg);
+}
+.mk-acc-body {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--s3) var(--s2) calc(var(--s3) + 22px + var(--s2));
+  display: flex;
+  flex-direction: column;
+}
+.mk-acc-body li {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 36px;
+  border-top: 1px dashed var(--rule);
+}
+.mk-link {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.mk-heat-key {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.mk-heat-key span {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+}
+.mk-heat-key small:first-child {
+  margin-right: 3px;
+}
+.mk-heat-key small:last-child {
+  margin-left: 3px;
+}
