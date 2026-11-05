@@ -33,7 +33,7 @@ const TABS: { id: MockTab; label: string; icon: IconName }[] = [
 
 /** A phone-sized frame: resident banner on top, four tabs at the bottom. */
 export function Phone({ tab, children, bare }: { tab?: MockTab; children: ReactNode; bare?: boolean }) {
-  // Switch flips between the two demo residents, so the badge color change can be tried.
+  // Switch steps through the demo residents, so each badge color can be tried.
   const [who, setWho] = useState(0);
   const pt = DEMO_PATIENTS[who];
   return (
@@ -64,7 +64,7 @@ export function Phone({ tab, children, bare }: { tab?: MockTab; children: ReactN
             type="button"
             className="mk-banner-switch"
             aria-label="Switch resident"
-            onClick={() => setWho(1 - who)}
+            onClick={() => setWho((who + 1) % DEMO_PATIENTS.length)}
           >
             <ArrowRightLeft size={16} aria-hidden />
             Switch

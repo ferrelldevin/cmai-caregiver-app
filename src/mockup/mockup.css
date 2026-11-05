@@ -108,17 +108,45 @@
 }
 /* "compact" badge: each resident has a color, so a switch changes the whole bar at a glance.
    The code number is still the identifier; color only backs it up. */
+/* Resident colors: Paul Tol's "muted" palette (personal.sron.nl/~pault), built to stay
+   apart for color-blind readers. Teal, rose and sand are left out because the app already
+   uses teal (brand, ratings), red (danger) and amber/yellow (attention, focus). Ordered so
+   neighbors differ most; a sixth resident reuses the first color, and the number tells them
+   apart. Dark mode uses lighter tints with dark text. */
 .mk-banner[data-res="0"] {
-  --res: #0b6b66;
+  --res: #332288;
+  --res-ink: #ffffff;
 }
 .mk-banner[data-res="1"] {
-  --res: #6a4bb5;
+  --res: #999933;
+  --res-ink: #1b2630;
+}
+.mk-banner[data-res="2"] {
+  --res: #882255;
+  --res-ink: #ffffff;
+}
+.mk-banner[data-res="3"] {
+  --res: #88ccee;
+  --res-ink: #1b2630;
+}
+.mk-banner[data-res="4"] {
+  --res: #aa4499;
+  --res-ink: #ffffff;
 }
 :root[data-theme="dark"] .mk-banner[data-res="0"] {
-  --res: #3fb3a8;
+  --res: #8f7fe8;
 }
 :root[data-theme="dark"] .mk-banner[data-res="1"] {
-  --res: #a58cf0;
+  --res: #c2c46a;
+}
+:root[data-theme="dark"] .mk-banner[data-res="2"] {
+  --res: #d9709f;
+}
+:root[data-theme="dark"] .mk-banner[data-res="4"] {
+  --res: #c77ec0;
+}
+:root[data-theme="dark"] .mk-banner {
+  --res-ink: #0e1417;
 }
 :root[data-mk-top="compact"] .mk-banner {
   background: color-mix(in srgb, var(--surface) 90%, var(--res));
@@ -129,17 +157,10 @@
   height: 36px;
   border-radius: 10px;
   background: var(--res);
-  color: #fff;
+  color: var(--res-ink);
   font-size: var(--fs-sm);
 }
-:root[data-theme="dark"][data-mk-top="compact"] .mk-avatar {
-  color: #0e1417;
-}
-:root[data-mk-top="compact"] .mk-banner-switch {
-  border-color: var(--res);
-  color: var(--res);
-  background: var(--surface);
-}
+/* Switch keeps the brand teal for every resident: some resident colors are too light for text. */
 /* "pill": no bar at all; the resident is a tappable chip on the page, with a dropdown arrow. */
 :root[data-mk-top="pill"] .mk-banner {
   background: transparent;

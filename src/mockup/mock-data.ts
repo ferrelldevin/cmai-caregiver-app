@@ -11,6 +11,9 @@ export const DEMO_CAREGIVER = { name: "Caregiver Demo", role: "Night shift" };
 export const DEMO_PATIENTS = [
   { id: "P-DEMO-A", label: "Demo resident A", code: "P-03", short: "03", room: "Room 12" },
   { id: "P-DEMO-B", label: "Demo resident B", code: "P-07", short: "07", room: "Room 14" },
+  { id: "P-DEMO-C", label: "Demo resident C", code: "P-11", short: "11", room: "Room 15" },
+  { id: "P-DEMO-D", label: "Demo resident D", code: "P-14", short: "14", room: "Room 18" },
+  { id: "P-DEMO-E", label: "Demo resident E", code: "P-20", short: "20", room: "Room 21" },
 ];
 
 // Tile labels for the compact log grid: short names in our own words.
