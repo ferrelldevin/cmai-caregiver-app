@@ -95,6 +95,51 @@
 .mk-tab.on .mk-tab-icon {
   background: var(--accent-soft);
 }
+/* Bottom bar styles, picked from the Nav switch in Storybook's toolbar.
+   "soft": the usual app pattern (Material 3, iOS). No hard line on top; a faint shadow and a
+   light brand tint lift it off the page, the corners round into the phone, and a home bar
+   marks the gesture area. */
+:root[data-mk-nav="soft"] .mk-tabs {
+  border-top: 0;
+  background: color-mix(in srgb, var(--surface) 96%, var(--accent));
+  box-shadow: 0 -6px 18px rgba(27, 38, 48, 0.07);
+  border-radius: 22px 22px 0 0;
+  padding: var(--s2) var(--s3) 26px;
+  position: relative;
+}
+/* "floating": a rounded bar that hovers above the bottom edge, like a dock; the list
+   scrolls underneath it. */
+:root[data-mk-nav="floating"] .mk-tabs {
+  position: absolute;
+  left: var(--s3);
+  right: var(--s3);
+  bottom: 26px;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(27, 38, 48, 0.14);
+  border-radius: 28px;
+  padding: var(--s2);
+}
+:root[data-mk-nav="floating"] .mk-body {
+  padding-bottom: 116px;
+}
+:root[data-mk-nav="soft"] .mk-tabs::after,
+:root[data-mk-nav="floating"] .mk-phone::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 120px;
+  height: 5px;
+  margin-left: -60px;
+  border-radius: 999px;
+  background: var(--text);
+  opacity: 0.25;
+}
+:root[data-mk-nav="floating"] .mk-phone {
+  position: relative;
+}
 
 .mk-h1 {
   font-size: var(--fs-xl);
