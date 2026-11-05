@@ -6,6 +6,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { GROUP_LABELS, type FactorGroup } from "../scoring/items";
 import { Icon, type IconName } from "../ui/Icon";
+import { ArrowRightLeft } from "lucide-react";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import {
   BEHAVIOR_SCORES,
@@ -52,7 +53,10 @@ export function Phone({ tab, children, bare }: { tab?: MockTab; children: ReactN
               <Icon name="chevron" size={16} />
             </span>
           </span>
-          <span className="mk-banner-switch">Switch</span>
+          <button type="button" className="mk-banner-switch" aria-label="Switch resident">
+            <ArrowRightLeft size={16} aria-hidden />
+            Switch
+          </button>
         </div>
       )}
       <div className="mk-body">{children}</div>

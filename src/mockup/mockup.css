@@ -64,7 +64,7 @@
 /* "compact": a slim patient banner (name over code and room) with a clear Switch button. */
 :root[data-mk-top="compact"] .mk-banner {
   justify-content: space-between;
-  padding: 12px var(--s4) 8px;
+  padding: 8px var(--s4);
 }
 :root[data-mk-top="compact"] .mk-avatar {
   width: 28px;
@@ -75,16 +75,26 @@
 :root[data-mk-top="pill"] .mk-sw-word {
   display: none;
 }
+/* The Switch button reads as a button: tinted fill, brand outline, an arrows icon, and a
+   44 px tall tap target. */
 :root[data-mk-top="compact"] .mk-banner-switch {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid var(--rule);
+  border: 1.5px solid var(--accent);
+  background: var(--accent-soft);
   color: var(--accent-ink);
-  font-size: var(--fs-xs);
+  font: inherit;
+  font-size: var(--fs-sm);
   font-weight: 700;
+  cursor: pointer;
+  flex: none;
+}
+:root[data-mk-top="compact"] .mk-banner-switch:active {
+  background: var(--press);
 }
 /* "pill": no bar at all; the resident is a tappable chip on the page, with a dropdown arrow. */
 :root[data-mk-top="pill"] .mk-banner {

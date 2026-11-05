@@ -24,11 +24,12 @@ const preview: Preview = {
       toolbar: { title: "Nav", icon: "component", items: ["current", "soft", "floating"], dynamicTitle: true },
     },
     top: {
-      description: "Top bar style: current, compact (one line, Switch button) or pill (resident chip)",
-      toolbar: { title: "Top", icon: "sidebaralt", items: ["current", "compact", "pill"], dynamicTitle: true },
+      description:
+        "Top bar style: compact (chosen 2026-11-05: name over code and room, Switch button), current, or pill (resident chip)",
+      toolbar: { title: "Top", icon: "sidebaralt", items: ["compact", "current", "pill"], dynamicTitle: true },
     },
   },
-  initialGlobals: { theme: "light", textSize: "standard", nav: "current", top: "current" },
+  initialGlobals: { theme: "light", textSize: "standard", nav: "current", top: "compact" },
   decorators: [
     (Story, ctx) => {
       const theme = ctx.globals.theme as string;
