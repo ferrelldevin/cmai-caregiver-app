@@ -160,3 +160,35 @@ export const BUSY_DAY: MockLog[] = (() => {
     })
     .sort((a, b) => a.minute - b.minute);
 })();
+
+const hourLabel = (h: number) => `${h % 12 === 0 ? 12 : h % 12}${h % 24 < 12 ? "a" : "p"}`;
+
+/**
+ * Logs by time block and day, for any block size. The "most logs" line is only claimed
+ * when there is enough to go on: at least 20 logs, and the busiest block holding at least
+ * 1.5 times its even share.
+ */
+export function heatFor(hours: 2 | 3 | 4 | 6) {
+  const n = 24 / hours;
+  const labels = Array.from({ length: n }, (_, b) => `${hourLabel(b * hours)}–${hourLabel((b + 1) * hours)}`);
+  const heat = labels.map((_, b) =>
+    Array.from(
+      { length: 14 },
+      (_, d) => LOGS_NOW.filter((l) => l.day === d && Math.floor(l.minute / (hours * 60)) === b).length,
+    ),
+  );
+  const sums = heat.map((row) => row.reduce((a, c) => a + c, 0));
+  const top = sums.indexOf(Math.max(...sums));
+  const share = sums[top] / LOGS_NOW.length;
+  return {
+    labels,
+    heat,
+    max: Math.max(...heat.flat()),
+    busiest: { label: labels[top], pct: Math.round(share * 100) },
+    claim: LOGS_NOW.length >= 20 && share >= 1.5 / n,
+  };
+}
+
+/** Logs per hour for one day's logs (24 numbers). */
+export const perHour = (logs: MockLog[]) =>
+  Array.from({ length: 24 }, (_, h) => logs.filter((l) => Math.floor(l.minute / 60) === h).length);

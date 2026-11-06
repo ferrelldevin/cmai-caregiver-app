@@ -21,16 +21,15 @@ import {
   TOTAL_NOW,
 } from "./mock-data";
 import {
-  BLOCKS,
-  BUSIEST_BLOCK,
   BUSY_DAY,
   GROUP_AVG,
-  HEAT,
   LOGS_BEFORE,
   LOGS_NOW,
   PER_DAY,
   TOGETHER,
   fmtTime,
+  heatFor,
+  perHour,
   periodDate,
   type MockLog,
 } from "./mock-history";
@@ -448,23 +447,27 @@ export function ScoreScreen({ order, showUnlogged }: ScoreProps) {
 export interface ReportProps {
   view: "daily" | "two-week";
   todayLogs?: "as logged" | "busy day";
+  heatHours?: 2 | 3 | 4 | 6;
 }
 
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
 const fmtDate = (d: Date) => d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
 /** The two-week view: dates, charts and the behavior table. */
-function TwoWeeks() {
+function TwoWeeks({ heatHours }: { heatHours: 2 | 3 | 4 | 6 }) {
   const today = PERIOD.day - 1;
   const days = Array.from({ length: 14 }, (_, d) => periodDate(d));
   const max = Math.max(...(PER_DAY.filter((n) => n !== null) as number[]));
   const sofar = LOGS_NOW.length;
   const lastSameDays = LOGS_BEFORE.filter((l) => l.day <= today).length;
-  const heatMax = Math.max(...HEAT.flat());
+  const tod = heatFor(heatHours);
+  const bins = heatBins(tod.max);
   const rows = BEHAVIOR_SCORES.filter((b) => b.count > 0 || b.before > 1).sort(
     (a, b) => b.rating - a.rating || b.count - a.count,
   );
   const lastCount = (id: number) => LOGS_BEFORE.filter((l) => l.itemId === id).length;
+  const groupLogs = (g: FactorGroup, logs: MockLog[]) =>
+    logs.filter((l) => BEHAVIOR_SCORES.find((b) => b.id === l.itemId)?.group === g).length;
   return (
     <>
       <p className="mk-period">
@@ -484,15 +487,15 @@ function TwoWeeks() {
             {lastSameDays} by day {PERIOD.day} last time
           </span>
         </div>
-        <div>
+        <div className="mk-stat-live">
           <small>CMAI score</small>
           <b>{TOTAL_NOW}</b>
           <span className="mk-muted">
-            last {TOTAL_BEFORE} <Move now={TOTAL_NOW} before={TOTAL_BEFORE} />
+            So far, final {fmtDate(days[13]).replace(/^\w+, /, "")} · last {TOTAL_BEFORE}
           </span>
         </div>
         <div>
-          <small>Seen</small>
+          <small>Behaviors seen</small>
           <b>{BEHAVIOR_SCORES.filter((b) => b.count > 0).length}</b>
           <span className="mk-muted">of 29</span>
         </div>
@@ -528,20 +531,26 @@ function TwoWeeks() {
         <h2 className="mk-card-h" id="rp-time">
           Time of day
         </h2>
-        <p className="mk-card-sub">
-          Most logs fall {BUSIEST_BLOCK.block}m ({BUSIEST_BLOCK.share}%).
-        </p>
-        <div className="mk-heat" role="table" aria-label="Logs by time of day and day">
-          {BLOCKS.map((label, b) => (
+        {tod.claim && (
+          <p className="mk-finding">
+            Most logs: <b>{tod.busiest.label}</b> ({tod.busiest.pct}%)
+          </p>
+        )}
+        <div className="mk-heat" role="table" aria-label="Logs by time of day (rows) and date (columns)">
+          <div className="mk-heat-row mk-heat-axis" aria-hidden>
+            <small className="mk-axis-title">Time</small>
+            <small className="mk-axis-title mk-axis-x">Date →</small>
+          </div>
+          {tod.labels.map((label, b) => (
             <div key={label} className="mk-heat-row" role="row">
               <small role="rowheader">{label}</small>
-              {HEAT[b].map((n, d) => (
+              {tod.heat[b].map((n, d) => (
                 <span
                   key={d}
                   role="cell"
                   className={d > today ? "mk-heat-cell future" : "mk-heat-cell"}
                   title={`${fmtDate(days[d])}, ${label}: ${n} logs`}
-                  style={{ background: d > today ? undefined : heatColor(n, heatMax) }}
+                  style={{ background: d > today ? undefined : `var(--r${bins.find((x) => n <= x.to)!.step})` }}
                 />
               ))}
             </div>
@@ -549,39 +558,52 @@ function TwoWeeks() {
           <div className="mk-heat-row mk-heat-axis" aria-hidden>
             <small />
             {days.map((dt, d) => (
-              <small key={d}>{d % 2 === 0 ? dt.getDate() : ""}</small>
+              <small key={d} className={d === today ? "now" : ""}>
+                {d % 2 === 0 || d === today ? dt.getDate() : ""}
+              </small>
             ))}
           </div>
         </div>
-        <div className="mk-heat-key" aria-hidden>
-          <small>Fewer</small>
-          {[1, 3, 5, 7].map((r) => (
-            <span key={r} style={{ background: `var(--r${r})` }} />
+        <div className="mk-key" aria-label="Legend: logs in a block">
+          <span className="mk-key-title">Logs</span>
+          {bins.map((x) => (
+            <span key={x.label} className="mk-key-item">
+              <span style={{ background: `var(--r${x.step})` }} />
+              {x.label}
+            </span>
           ))}
-          <small>More logs</small>
         </div>
       </section>
 
       <section className="mk-card" aria-labelledby="rp-group">
         <h2 className="mk-card-h" id="rp-group">
-          Average rating by group
+          Behavior groups
         </h2>
-        <p className="mk-card-sub">
-          Mean of each group&apos;s item ratings, 1 to 7 (· number of items). The thin mark is last period.
-        </p>
-        <ul className="mk-gbars">
-          {GROUP_AVG.map((g) => (
-            <li key={g.group}>
-              <span className="mk-gbars-label">
-                {GROUP_LABELS[g.group].split(/[ ,]/)[0]} <small className="mk-muted">· {g.items}</small>
-              </span>
-              <span className="mk-gbars-track">
-                <i style={{ width: `${((g.now - 1) / 6) * 100}%` }} />
-                <em style={{ left: `${((g.before - 1) / 6) * 100}%` }} title={`Last period ${g.before.toFixed(1)}`} />
-              </span>
-              <b>{g.now.toFixed(1)}</b>
-            </li>
-          ))}
+        <p className="mk-card-sub">Each square is one behavior in the group, showing its rating.</p>
+        <ul className="mk-groups">
+          {GROUP_AVG.map((g) => {
+            const items = BEHAVIOR_SCORES.filter((b) => b.group === g.group).sort((a, b) => b.rating - a.rating);
+            const now = groupLogs(g.group, LOGS_NOW);
+            const last = groupLogs(g.group, LOGS_BEFORE);
+            return (
+              <li key={g.group}>
+                <div className="mk-groups-head">
+                  <b>{GROUP_LABELS[g.group].split(/[ ,]/)[0]}</b>
+                  <span>
+                    <b>{now}</b> logs <span className="mk-muted">· {last} last period</span>
+                  </span>
+                </div>
+                <div className="mk-groups-squares" aria-label={`Ratings: ${items.map((b) => b.rating).join(", ")}`}>
+                  {items.map((b) => (
+                    <span key={b.id} className={`mk-rating mini r${b.rating}`} title={`${b.short}: ${b.rating}`}>
+                      {b.rating > 1 ? b.rating : ""}
+                    </span>
+                  ))}
+                  <span className="mk-muted mk-small">avg {g.now.toFixed(1)}</span>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </section>
 
@@ -592,10 +614,16 @@ function TwoWeeks() {
         <table className="mk-table mk-rtable">
           <thead>
             <tr>
-              <th>Behavior</th>
-              <th>Rating</th>
-              <th>Logs</th>
-              <th>Change</th>
+              <th rowSpan={2}>Behavior</th>
+              <th rowSpan={2}>Rating</th>
+              <th colSpan={2} className="mk-th-group">
+                Logs
+              </th>
+              <th rowSpan={2}>Change</th>
+            </tr>
+            <tr>
+              <th className="mk-th-sub">Now</th>
+              <th className="mk-th-sub">Last</th>
             </tr>
           </thead>
           <tbody>
@@ -605,9 +633,8 @@ function TwoWeeks() {
                 <td>
                   <Rating r={b.rating} />
                 </td>
-                <td>
-                  {b.count} <small className="mk-muted">/ {lastCount(b.id)}</small>
-                </td>
+                <td className="mk-td-now">{b.count}</td>
+                <td className="mk-td-last">{lastCount(b.id)}</td>
                 <td>
                   <Move now={b.rating} before={b.before} />
                 </td>
@@ -615,7 +642,7 @@ function TwoWeeks() {
             ))}
           </tbody>
         </table>
-        <p className="mk-card-sub">Logs: this period / last period. Change is in rating steps.</p>
+        <p className="mk-card-sub">Change is in rating steps, from last period&apos;s final rating.</p>
       </section>
 
       <section className="mk-card" aria-labelledby="rp-pat">
@@ -631,12 +658,14 @@ function TwoWeeks() {
               were logged within 30 minutes of each other {t.times} times.
             </li>
           ))}
-          <li>
-            <b>{BUSIEST_BLOCK.share}% of logs</b> fall {BUSIEST_BLOCK.block}m, late afternoon into evening.
-          </li>
+          {tod.claim && (
+            <li>
+              <b>{tod.busiest.pct}% of logs</b> fall {tod.busiest.label}.
+            </li>
+          )}
         </ul>
         <p className="mk-card-sub">
-          These are patterns in this resident&apos;s logs, not causes. Weekday patterns need more than two weeks.
+          Found by simple counting on the phone, once there are enough logs. Patterns, not causes.
         </p>
       </section>
 
@@ -647,10 +676,22 @@ function TwoWeeks() {
   );
 }
 
-function heatColor(n: number, max: number): string {
-  if (n === 0) return "var(--r1)";
-  const step = Math.min(7, 2 + Math.round(((n - 1) / Math.max(1, max - 1)) * 5));
-  return `var(--r${step})`;
+/** Four plain-language legend steps that fit the busiest cell. */
+function heatBins(max: number): { to: number; step: number; label: string }[] {
+  if (max <= 3)
+    return [
+      { to: 0, step: 1, label: "0" },
+      { to: 1, step: 3, label: "1" },
+      { to: 2, step: 5, label: "2" },
+      { to: Infinity, step: 7, label: "3+" },
+    ];
+  const a = Math.ceil(max / 3);
+  return [
+    { to: 0, step: 1, label: "0" },
+    { to: a, step: 3, label: a === 1 ? "1" : `1–${a}` },
+    { to: 2 * a, step: 5, label: `${a + 1}–${2 * a}` },
+    { to: Infinity, step: 7, label: `${2 * a + 1}+` },
+  ];
 }
 
 /** Today's view: grouped by behavior, a tap opens each log's time. */
@@ -661,6 +702,9 @@ function Today({ busy }: { busy: boolean }) {
   for (const l of logs) byItem.set(l.itemId, [...(byItem.get(l.itemId) ?? []), l]);
   const groups = [...byItem.entries()].sort((a, b) => b[1][b[1].length - 1].minute - a[1][a[1].length - 1].minute);
   const last = logs.reduce((m, l) => Math.max(m, l.minute), 0);
+  const hours = perHour(logs);
+  const hmax = Math.max(1, ...hours);
+  const nowHour = 16; // the mock's clock: 4:30 PM
   return (
     <>
       <p className="mk-period">
@@ -681,23 +725,30 @@ function Today({ busy }: { busy: boolean }) {
           <b className="mk-stat-time">{fmtTime(last)}</b>
         </div>
       </div>
-      <div className="mk-timeline" role="img" aria-label={`${logs.length} logs between midnight and now`}>
-        {logs.map((l, i) => (
-          <i
-            key={i}
-            style={{ left: `${(l.minute / 1440) * 100}%` }}
-            title={`${fmtTime(l.minute)} ${SHORT[l.itemId]}`}
-          />
-        ))}
-        <span className="mk-timeline-now" style={{ left: `${((16 * 60 + 30) / 1440) * 100}%` }} />
-      </div>
-      <div className="mk-timeline-axis" aria-hidden>
-        <small>12a</small>
-        <small>6a</small>
-        <small>12p</small>
-        <small>6p</small>
-        <small>12a</small>
-      </div>
+      <section className="mk-card" aria-labelledby="rp-hours">
+        <h2 className="mk-card-h" id="rp-hours">
+          Logs by hour
+        </h2>
+        <div className="mk-hours" role="img" aria-label={`Logs by hour today: ${hours.join(", ")}`}>
+          {hours.map((n, h) => (
+            <span
+              key={h}
+              className={h > nowHour ? "mk-hour future" : h === nowHour ? "mk-hour now" : "mk-hour"}
+              title={`${fmtTime(h * 60)}: ${n} logs`}
+            >
+              {n > 0 && <small>{n}</small>}
+              <i style={{ height: h > nowHour ? 3 : n === 0 ? 2 : Math.max(4, (n / hmax) * 56) }} />
+            </span>
+          ))}
+        </div>
+        <div className="mk-hours-axis" aria-hidden>
+          <small>12a</small>
+          <small>6a</small>
+          <small>12p</small>
+          <small>6p</small>
+          <small>12a</small>
+        </div>
+      </section>
       <ul className="mk-list mk-acc">
         {groups.map(([id, ls]) => {
           const BehaviorIcon = BEHAVIOR_ICONS[id];
@@ -734,7 +785,7 @@ function Today({ busy }: { busy: boolean }) {
   );
 }
 
-export function ReportScreen({ view: initial, todayLogs = "as logged" }: ReportProps) {
+export function ReportScreen({ view: initial, todayLogs = "as logged", heatHours = 4 }: ReportProps) {
   const [view, setView] = useState(initial);
   return (
     <Phone tab="report">
@@ -756,7 +807,7 @@ export function ReportScreen({ view: initial, todayLogs = "as logged" }: ReportP
           Two weeks
         </button>
       </div>
-      {view === "daily" ? <Today busy={todayLogs === "busy day"} /> : <TwoWeeks />}
+      {view === "daily" ? <Today busy={todayLogs === "busy day"} /> : <TwoWeeks heatHours={heatHours} />}
     </Phone>
   );
 }

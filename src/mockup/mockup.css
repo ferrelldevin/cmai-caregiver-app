@@ -16,6 +16,11 @@
 }
 :root[data-mk-text="large"] .mk-phone {
   font-size: 20px;
+  --fs-xs: 15px;
+  --fs-sm: 17px;
+  --fs-md: 20px;
+  --fs-lg: 22px;
+  --fs-xl: 26px;
 }
 :root[data-mk-text="large"] .mk-phone .mk-h1 {
   font-size: 24px;
@@ -114,22 +119,27 @@
    neighbors differ most; a sixth resident reuses the first color, and the number tells them
    apart. Dark mode uses lighter tints with dark text. */
 .mk-banner[data-res="0"] {
+  --res-text: #332288;
   --res: #332288;
   --res-ink: #ffffff;
 }
 .mk-banner[data-res="1"] {
+  --res-text: #676b32;
   --res: #999933;
   --res-ink: #1b2630;
 }
 .mk-banner[data-res="2"] {
+  --res-text: #882255;
   --res: #882255;
   --res-ink: #ffffff;
 }
 .mk-banner[data-res="3"] {
+  --res-text: #47687c;
   --res: #88ccee;
   --res-ink: #1b2630;
 }
 .mk-banner[data-res="4"] {
+  --res-text: #9c418e;
   --res: #aa4499;
   --res-ink: #ffffff;
 }
@@ -147,6 +157,10 @@
 }
 :root[data-theme="dark"] .mk-banner {
   --res-ink: #0e1417;
+  --res-text: var(--res);
+}
+:root[data-theme="dark"] .mk-banner[data-res="0"] {
+  --res-text: #988ae9;
 }
 :root[data-mk-top="compact"] .mk-banner {
   background: color-mix(in srgb, var(--surface) 90%, var(--res));
@@ -160,7 +174,13 @@
   color: var(--res-ink);
   font-size: var(--fs-sm);
 }
-/* Switch keeps the brand teal for every resident: some resident colors are too light for text. */
+/* Switch matches the resident bar: a white (dark-mode: surface) pill with the resident's
+   color as its outline, and a text shade of that color checked for 4.5:1 contrast. */
+:root[data-mk-top="compact"] .mk-banner-switch {
+  background: var(--surface);
+  border-color: var(--res);
+  color: var(--res-text);
+}
 /* "pill": no bar at all; the resident is a tappable chip on the page, with a dropdown arrow. */
 :root[data-mk-top="pill"] .mk-banner {
   background: transparent;
@@ -974,12 +994,12 @@
   background: var(--accent-ink);
 }
 .mk-daybar-n {
-  font-size: 11px;
+  font-size: calc(var(--fs-xs) - 1px);
   color: var(--text-muted);
   min-height: 14px;
 }
 .mk-daybar small {
-  font-size: 10px;
+  font-size: calc(var(--fs-xs) - 2px);
   line-height: 1.2;
   color: var(--text-muted);
 }
@@ -996,12 +1016,12 @@
 }
 .mk-heat-row {
   display: grid;
-  grid-template-columns: 44px repeat(14, 1fr);
+  grid-template-columns: 58px repeat(14, 1fr);
   gap: 2px;
   align-items: center;
 }
 .mk-heat-row small {
-  font-size: 10px;
+  font-size: calc(var(--fs-xs) - 2px);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -1107,7 +1127,7 @@
 .mk-timeline-axis {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: calc(var(--fs-xs) - 2px);
   color: var(--text-muted);
 }
 .mk-acc > li + li {
@@ -1165,7 +1185,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  font-size: 10px;
+  font-size: calc(var(--fs-xs) - 2px);
   color: var(--text-muted);
 }
 .mk-heat-key span {
@@ -1178,4 +1198,142 @@
 }
 .mk-heat-key small:last-child {
   margin-left: 3px;
+}
+
+/* Round 2 ---------------------------------------------------------------- */
+.mk-stat-live {
+  border-style: dashed !important;
+}
+.mk-finding {
+  font-size: var(--fs-sm);
+}
+.mk-axis-title {
+  font-weight: 700;
+  color: var(--text) !important;
+}
+.mk-heat-axis .mk-axis-x {
+  grid-column: 2 / -1;
+  text-align: left !important;
+}
+.mk-heat-axis small.now {
+  color: var(--text);
+  font-weight: 700;
+}
+.mk-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: var(--fs-xs);
+  color: var(--text);
+}
+.mk-key-title {
+  font-weight: 700;
+}
+.mk-key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+}
+.mk-key-item span {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+.mk-groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.mk-groups li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mk-groups-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+}
+.mk-groups-squares {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.mk-rating.mini {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  font-size: var(--fs-xs);
+  border-radius: 5px;
+}
+.mk-groups-squares .mk-small {
+  margin-left: 6px;
+}
+.mk-rtable .mk-th-group {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2px;
+}
+.mk-rtable .mk-th-sub {
+  font-size: calc(var(--fs-xs) - 1px);
+  padding-top: 2px;
+}
+.mk-rtable .mk-td-now {
+  font-weight: 700;
+}
+.mk-rtable .mk-td-last {
+  color: var(--text-muted);
+}
+.mk-hours {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 2px;
+  align-items: end;
+  height: 76px;
+}
+.mk-hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 100%;
+}
+.mk-hour small {
+  font-size: calc(var(--fs-xs) - 3px);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mk-hour i {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  background: var(--r5);
+}
+.mk-hour.now i {
+  background: var(--accent-ink);
+}
+.mk-hour.future i {
+  background: var(--grid);
+}
+.mk-hours-axis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 0;
+  font-size: calc(var(--fs-xs) - 2px);
+  color: var(--text-muted);
+  border-top: 1px solid var(--rule);
+  padding-top: 2px;
+}
+.mk-hours-axis small:last-child {
+  text-align: right;
+  width: 0;
+  direction: rtl;
 }

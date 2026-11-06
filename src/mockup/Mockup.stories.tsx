@@ -75,12 +75,13 @@ export const Log: StoryObj<typeof LogScreen> = {
 export const Score: StoryObj<typeof ScoreScreen> = {
   name: "3. Score",
   render: (args) => <ScoreScreen {...args} />,
-  args: { order: "behaviors-first", showUnlogged: false },
+  args: { order: "total-first", showUnlogged: false },
   argTypes: {
     order: {
       control: "inline-radio",
       options: ["behaviors-first", "total-first"],
-      description: "D-08 (in the build): behaviors first, total secondary",
+      description:
+        "Devin 2026-11-05: total on top, still marked secondary. The app follows D-08 (behaviors first) until the register changes.",
     },
     showUnlogged: { control: "boolean", description: "List the behaviors with no logs (each rated 1)" },
   },
@@ -89,9 +90,14 @@ export const Score: StoryObj<typeof ScoreScreen> = {
 export const Report: StoryObj<typeof ReportScreen> = {
   name: "4. Report",
   render: (args) => <ReportScreen key={args.view} {...args} />,
-  args: { view: "two-week", todayLogs: "as logged" },
+  args: { view: "two-week", todayLogs: "as logged", heatHours: 4 },
   argTypes: {
     view: { control: "inline-radio", options: ["daily", "two-week"] },
+    heatHours: {
+      control: "inline-radio",
+      options: [2, 3, 4, 6],
+      description: "Time of day chart: hours per block",
+    },
     todayLogs: {
       control: "inline-radio",
       options: ["as logged", "busy day"],
@@ -120,7 +126,7 @@ export const Flow: StoryObj = {
       </figure>
       <figure>
         <figcaption>3. Score</figcaption>
-        <ScoreScreen order="behaviors-first" showUnlogged={false} />
+        <ScoreScreen order="total-first" showUnlogged={false} />
       </figure>
       <figure>
         <figcaption>4. Report</figcaption>
