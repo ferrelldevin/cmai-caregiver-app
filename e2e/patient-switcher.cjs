@@ -61,7 +61,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   // The list re-renders after the keystroke; counting at once can catch the unfiltered list.
   const found = sheet().getByRole("button", { name: /^P-/ });
   for (let t = 0; t < 30 && (await found.count()) !== 1; t++) await p.waitForTimeout(100);
-  // On failure, say what the sheet showed, so a CI-only failure can be traced (failed twice on PR #37).
+  // On failure, say what the sheet showed, so a CI-only failure can be traced (failed twice on PR #37 and on main 2026-11-06).
   const seen = `${await found.count()} rows [${(await found.allTextContents()).map((t) => t.slice(0, 12)).join(", ")}], search box "${await search.inputValue()}"`;
   ok(await found.count() === 1, "search filters to P-03 (saw " + seen + ")");
   await shot("sw-04-search");

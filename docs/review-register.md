@@ -112,6 +112,7 @@ Newest first. Every rule change and every sign-off goes here, with who and when.
 
 | Date | Change | By | Approved by |
 |---|---|---|---|
+| 2026-11-06 | `patient-switcher` check polls up to 3 s for the search to filter to one row before counting, and on failure prints the rows and search box it saw. Counting straight after typing caught the unfiltered list on CI runners (PR #37 twice; main 2026-11-06, which skipped that deploy). Test only, taken from PR #37 so main is unblocked without the Storybook work. No app, scoring or data change | Claude (cloud), on Devin's ask | n/a (test only, no scoring change) |
 | 2026-11-04 | Removed unused `itemById` helper from `src/scoring/items.ts` (no callers, no tests). No scoring rule or output change | Claude (cloud) | Devin (decision card, 2026-11-04) |
 | 2026-11-04 | `patient-switcher` check waits for a row's period, day and last log before reading them. The switcher shows codes first and adds those details when the database answers (about 10 ms later locally); the check read the row in that gap on a CI runner and failed on PR #34. No app, scoring or data change | Claude (cloud), on Devin's ask | n/a (test only, no scoring change) |
 | 2026-11-04 | Sheet fix: ignore a dialog "close" event that arrives after the sheet was reopened (it closed the reopened sheet; root cause of the intermittent `flows` CI timeout on main 2026-11-03 and PR #34). Regression check added to `e2e/flows.cjs`. No scoring or data change | Claude (cloud), on Devin's ask | n/a (bug fix, no scoring change) |
