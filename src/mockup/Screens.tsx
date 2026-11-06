@@ -398,9 +398,13 @@ function BehaviorList({ showUnlogged }: { showUnlogged: boolean }) {
         {seen.map((b) => (
           <li key={b.id} className="mk-srow">
             <Rating r={b.rating} />
-            <b>{b.short}</b>
-            <span className="mk-muted">{b.count}</span>
-            <Move now={b.rating} before={b.before} />
+            <b data-align-left="score-name">{b.short}</b>
+            <span className="mk-muted" data-align-right="score-logs">
+              {b.count}
+            </span>
+            <span data-align-right="score-move">
+              <Move now={b.rating} before={b.before} />
+            </span>
           </li>
         ))}
       </ul>
@@ -430,8 +434,8 @@ export function ScoreScreen({ order, showUnlogged }: ScoreProps) {
       {order === "total-first" && <TotalLine />}
       <div className="mk-cols" aria-hidden>
         <span>Rating</span>
-        <span>Logs</span>
-        <span>vs last</span>
+        <span data-align-right="score-logs">Logs</span>
+        <span data-align-right="score-move">vs last</span>
       </div>
       <BehaviorList showUnlogged={showUnlogged} />
       {order === "behaviors-first" && <TotalLine />}
@@ -579,27 +583,43 @@ function TwoWeeks({ heatHours }: { heatHours: 2 | 3 | 4 | 6 }) {
         <h2 className="mk-card-h" id="rp-group">
           Behavior groups
         </h2>
-        <p className="mk-card-sub">Each square is one behavior in the group, showing its rating.</p>
+        <p className="mk-card-sub">Each square is one behavior in the group, showing its rating (1 to 7).</p>
+        <div className="mk-groups-cols" aria-hidden="true">
+          <span>Group</span>
+          <span data-align-right="grp-avg">Average</span>
+        </div>
         <ul className="mk-groups">
           {GROUP_AVG.map((g) => {
             const items = BEHAVIOR_SCORES.filter((b) => b.group === g.group).sort((a, b) => b.rating - a.rating);
             const now = groupLogs(g.group, LOGS_NOW);
             const last = groupLogs(g.group, LOGS_BEFORE);
+            const name = GROUP_LABELS[g.group].split(/[ ,]/)[0];
             return (
               <li key={g.group}>
-                <div className="mk-groups-head">
-                  <b>{GROUP_LABELS[g.group].split(/[ ,]/)[0]}</b>
-                  <span>
-                    <b>{now}</b> logs <span className="mk-muted">· {last} last period</span>
-                  </span>
-                </div>
-                <div className="mk-groups-squares" aria-label={`Ratings: ${items.map((b) => b.rating).join(", ")}`}>
+                <b className="mk-groups-name" data-align-left="grp">
+                  {name}
+                </b>
+                <div
+                  className="mk-groups-squares"
+                  data-align-left="grp"
+                  aria-label={`${name} ratings: ${items.map((b) => b.rating).join(", ")}`}
+                >
                   {items.map((b) => (
                     <span key={b.id} className={`mk-rating mini r${b.rating}`} title={`${b.short}: ${b.rating}`}>
                       {b.rating > 1 ? b.rating : ""}
                     </span>
                   ))}
-                  <span className="mk-muted mk-small">avg {g.now.toFixed(1)}</span>
+                </div>
+                <span className="mk-groups-logs mk-muted" data-align-left="grp">
+                  {now} logs · {last} last period
+                </span>
+                <div className="mk-groups-avg">
+                  <b data-align-right="grp-avg" aria-label={`Average rating ${g.now.toFixed(1)}`}>
+                    {g.now.toFixed(1)}
+                  </b>
+                  <span className="mk-muted" data-align-right="grp-last">
+                    last {g.before.toFixed(1)}
+                  </span>
                 </div>
               </li>
             );

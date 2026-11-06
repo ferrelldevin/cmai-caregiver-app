@@ -20,7 +20,8 @@
     "typecheck": "tsc -b",
     "prepare": "lefthook install",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static"
+    "build-storybook": "storybook build -o storybook-static",
+    "mockup:align": "node scripts/mockup-align-check.mjs"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible-next": "^5.3.0",

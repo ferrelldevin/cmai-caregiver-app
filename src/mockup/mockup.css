@@ -502,6 +502,8 @@
   padding: 3px;
 }
 .mk-seg button {
+  min-width: 0;
+  padding: 0 4px;
   border: 0;
   background: transparent;
   border-radius: 999px;
@@ -510,6 +512,13 @@
   font-size: var(--fs-sm);
   color: var(--text-muted);
   cursor: pointer;
+}
+/* Large text: four group tabs no longer fit one row on a phone, so they go two by two
+   rather than running off the edge (found by npm run mockup:align). */
+:root[data-mk-text="large"] .mk-seg:has(> :nth-child(3)) {
+  grid-auto-flow: row;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 22px;
 }
 .mk-seg button.on {
   background: var(--surface);
@@ -1083,7 +1092,7 @@
 /* Behavior table */
 .mk-rtable td,
 .mk-rtable th {
-  padding: 6px 8px;
+  padding: 6px;
 }
 .mk-rtable td:nth-child(n + 2),
 .mk-rtable th:nth-child(n + 2) {
@@ -1242,32 +1251,75 @@
   border-radius: 3px;
   border: 1px solid var(--rule);
 }
+/* Behavior groups: one shared two-column grid. The left column (name, squares, logs) starts at
+   the same x in every row; the right column is a fixed width, right-aligned, tabular figures,
+   so every average sits in the same place. Checked by scripts/mockup-align-check.mjs. */
+.mk-groups-cols,
+.mk-groups li {
+  display: grid;
+  /* One width for the header and every row, from a size token so large text widens it too. */
+  grid-template-columns: minmax(0, 1fr) calc(var(--fs-xs) * 4.5);
+  column-gap: var(--s3);
+}
+.mk-groups-cols {
+  font-size: calc(var(--fs-xs) - 1px);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--rule);
+}
+.mk-groups-cols span:last-child {
+  text-align: right;
+}
 .mk-groups {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--s3);
 }
 .mk-groups li {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  grid-template-rows: auto auto auto;
+  row-gap: 4px;
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--rule);
 }
-.mk-groups-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--s2);
-  flex-wrap: wrap;
+.mk-groups li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.mk-groups-name {
+  grid-column: 1;
   font-size: var(--fs-sm);
 }
 .mk-groups-squares {
+  grid-column: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+}
+.mk-groups-logs {
+  grid-column: 1;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+.mk-groups-avg {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mk-groups-avg b {
+  font-size: var(--fs-xl);
+  line-height: 1.1;
+}
+.mk-groups-avg span {
+  font-size: calc(var(--fs-xs) - 1px);
+  white-space: nowrap;
 }
 .mk-rating.mini {
   width: 24px;
@@ -1275,9 +1327,6 @@
   min-width: 24px;
   font-size: var(--fs-xs);
   border-radius: 5px;
-}
-.mk-groups-squares .mk-small {
-  margin-left: 6px;
 }
 .mk-rtable .mk-th-group {
   border-bottom: 1px solid var(--rule);
