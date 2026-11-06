@@ -17,7 +17,7 @@
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { extname, join, resolve } from "node:path";
+import { extname, join, resolve, sep } from "node:path";
 import { execSync } from "node:child_process";
 
 const ROOT = resolve("storybook-static");
@@ -34,13 +34,22 @@ const TYPES = {
   ".woff2": "font/woff2",
   ".svg": "image/svg+xml",
 };
+// Serves only files inside storybook-static/: the path is resolved and checked to be inside
+// ROOT before the file system is touched, so "../" in a request can't reach other files.
+const notFound = (res) => {
+  res.writeHead(404);
+  res.end();
+};
 const server = createServer((req, res) => {
-  let f = join(ROOT, decodeURIComponent(req.url.split("?")[0]));
-  if (existsSync(f) && statSync(f).isDirectory()) f = join(f, "index.html");
-  if (!f.startsWith(ROOT) || !existsSync(f)) {
-    res.writeHead(404);
-    return res.end();
+  let f;
+  try {
+    f = resolve(ROOT, "." + decodeURIComponent(new URL(req.url, "http://x").pathname));
+  } catch {
+    return notFound(res);
   }
+  if (f !== ROOT && !f.startsWith(ROOT + sep)) return notFound(res);
+  if (existsSync(f) && statSync(f).isDirectory()) f = join(f, "index.html");
+  if (!existsSync(f)) return notFound(res);
   res.writeHead(200, { "content-type": TYPES[extname(f)] ?? "application/octet-stream" });
   createReadStream(f).pipe(res);
 });
