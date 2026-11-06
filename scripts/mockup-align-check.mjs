@@ -10,15 +10,20 @@
 //   2. Nothing spills sideways: no element inside the phone is wider than the phone's body.
 //   3. Marked numbers stay on one line (a wrapped average or count reads as two values), and
 //      marked text stays inside its own column instead of running into the next one.
+//   4. Accessibility: axe-core (WCAG 2.2 A and AA rules) finds no violations on the phone,
+//      which covers text contrast in both themes.
 //
 // Made-up demo data only, like the rest of the mockup.
 
-/* global document, getComputedStyle */
+/* global document, getComputedStyle, window */
 import { chromium } from "playwright";
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, join, resolve, sep } from "node:path";
 import { execSync } from "node:child_process";
+import { createRequire } from "node:module";
+
+const AXE = createRequire(import.meta.url).resolve("axe-core/axe.min.js");
 
 const ROOT = resolve("storybook-static");
 if (process.argv.includes("--rebuild") || !existsSync(join(ROOT, "iframe.html"))) {
@@ -62,6 +67,8 @@ const SCREENS = [
   { name: "Report, today", id: "mockup-five-step-flow--report", args: "view:daily" },
   { name: "Report, today (busy day)", id: "mockup-five-step-flow--report", args: "view:daily;todayLogs:busy+day" },
   { name: "Log", id: "mockup-five-step-flow--log", args: "" },
+  { name: "Login", id: "mockup-five-step-flow--login", args: "" },
+  { name: "Login, choose resident", id: "mockup-five-step-flow--login", args: "step:choose-resident" },
   { name: "Settings", id: "mockup-five-step-flow--settings", args: "" },
 ];
 const MODES = [];
@@ -142,6 +149,14 @@ for (const s of SCREENS) {
       }
       return out;
     });
+    await page.addScriptTag({ path: AXE });
+    const axe = await page.evaluate(async () => {
+      const r = await window.axe.run(document.querySelector(".mk-phone"), {
+        runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },
+      });
+      return r.violations.map((v) => `${v.id} (${v.nodes.length}): ${v.nodes[0]?.target.join(" ")}`);
+    });
+    for (const v of axe) problems.push(`axe ${v}`);
     checks++;
     if (problems.length) {
       fails++;

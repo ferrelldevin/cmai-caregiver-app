@@ -118,48 +118,48 @@
    uses teal (brand, ratings), red (danger) and amber/yellow (attention, focus). Ordered so
    neighbors differ most; a sixth resident reuses the first color, and the number tells them
    apart. Dark mode uses lighter tints with dark text. */
-.mk-banner[data-res="0"] {
+[data-res="0"] {
   --res-text: #332288;
   --res: #332288;
   --res-ink: #ffffff;
 }
-.mk-banner[data-res="1"] {
+[data-res="1"] {
   --res-text: #676b32;
   --res: #999933;
   --res-ink: #1b2630;
 }
-.mk-banner[data-res="2"] {
+[data-res="2"] {
   --res-text: #882255;
   --res: #882255;
   --res-ink: #ffffff;
 }
-.mk-banner[data-res="3"] {
+[data-res="3"] {
   --res-text: #47687c;
   --res: #88ccee;
   --res-ink: #1b2630;
 }
-.mk-banner[data-res="4"] {
+[data-res="4"] {
   --res-text: #9c418e;
   --res: #aa4499;
   --res-ink: #ffffff;
 }
-:root[data-theme="dark"] .mk-banner[data-res="0"] {
+:root[data-theme="dark"] [data-res="0"] {
   --res: #8f7fe8;
 }
-:root[data-theme="dark"] .mk-banner[data-res="1"] {
+:root[data-theme="dark"] [data-res="1"] {
   --res: #c2c46a;
 }
-:root[data-theme="dark"] .mk-banner[data-res="2"] {
+:root[data-theme="dark"] [data-res="2"] {
   --res: #d9709f;
 }
-:root[data-theme="dark"] .mk-banner[data-res="4"] {
+:root[data-theme="dark"] [data-res="4"] {
   --res: #c77ec0;
 }
-:root[data-theme="dark"] .mk-banner {
+:root[data-theme="dark"] [data-res] {
   --res-ink: #0e1417;
   --res-text: var(--res);
 }
-:root[data-theme="dark"] .mk-banner[data-res="0"] {
+:root[data-theme="dark"] [data-res="0"] {
   --res-text: #988ae9;
 }
 :root[data-mk-top="compact"] .mk-banner {
@@ -1385,4 +1385,51 @@
   text-align: right;
   width: 0;
   direction: rtl;
+}
+
+/* Read by screen readers, not shown. */
+.mk-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Resident badge outside the top bar (Choose resident list): same color and number as the
+   bar, so the resident looks the same everywhere. */
+.mk-res-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--res);
+  color: var(--res-ink);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.mk-row-btn.mk-res-row {
+  grid-template-columns: auto 1fr auto;
+  column-gap: var(--s3);
+}
+.mk-res-row .mk-res-badge {
+  color: var(--res-ink);
+  font-size: var(--fs-sm);
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
+}
+.mk-res-row b,
+.mk-res-row span:not(.mk-res-badge) {
+  grid-column: 2;
+}
+.mk-res-row .mk-chev {
+  grid-column: 3;
 }

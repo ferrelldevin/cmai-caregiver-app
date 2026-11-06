@@ -27,7 +27,7 @@ export const Log: StoryObj<typeof LogScreen> = {
   render: (args) => <LogScreen {...args} />,
   args: {
     layout: "grid",
-    columns: 2,
+    columns: 3,
     groupTabs: true,
     showFrequent: true,
     iconSize: 26,
@@ -121,16 +121,24 @@ export const Flow: StoryObj = {
         <LoginScreen step="sign-in" method="phone-pin" />
       </figure>
       <figure>
+        <figcaption>1b. Choose resident</figcaption>
+        <LoginScreen step="choose-resident" method="phone-pin" />
+      </figure>
+      <figure>
         <figcaption>2. Behavior log</figcaption>
-        <LogScreen layout="grid" columns={2} groupTabs showFrequent />
+        <LogScreen layout="grid" columns={3} groupTabs showFrequent />
       </figure>
       <figure>
         <figcaption>3. Score</figcaption>
         <ScoreScreen order="total-first" showUnlogged={false} />
       </figure>
       <figure>
-        <figcaption>4. Report</figcaption>
+        <figcaption>4. Report, two weeks</figcaption>
         <ReportScreen view="two-week" />
+      </figure>
+      <figure>
+        <figcaption>4b. Report, today</figcaption>
+        <ReportScreen view="daily" />
       </figure>
       <figure>
         <figcaption>5. Settings</figcaption>

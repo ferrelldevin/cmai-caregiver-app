@@ -121,10 +121,13 @@ export function LoginScreen({ step, method }: LoginProps) {
           Signed in as {DEMO_CAREGIVER.name}, {DEMO_CAREGIVER.role.toLowerCase()}.
         </p>
         <ul className="mk-list">
-          {DEMO_PATIENTS.map((p) => (
+          {DEMO_PATIENTS.map((p, i) => (
             <li key={p.id}>
-              <button className="mk-row-btn">
-                <b>{p.label}</b>
+              <button className="mk-row-btn mk-res-row" data-res={i}>
+                <span className="mk-res-badge" aria-hidden="true">
+                  {p.short}
+                </span>
+                <b>{p.code}</b>
                 <span>{p.room}</span>
                 <Icon name="chevron" className="mk-chev" />
               </button>
@@ -147,11 +150,16 @@ export function LoginScreen({ step, method }: LoginProps) {
       {method === "phone-pin" ? (
         <>
           <p className="mk-center">Enter your 4-digit PIN</p>
-          <div className="mk-pin-dots" aria-label={`${pin.length} of 4 digits`}>
+          {/* Dots are decoration; the count is read out from a live text line instead
+              (a plain div may not carry aria-label, axe aria-prohibited-attr). */}
+          <div className="mk-pin-dots" aria-hidden="true">
             {[0, 1, 2, 3].map((i) => (
               <span key={i} className={i < pin.length ? "on" : ""} />
             ))}
           </div>
+          <p className="mk-sr-only" role="status">
+            {pin.length} of 4 digits entered
+          </p>
           <div className="mk-keypad">
             {["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"].map((k, i) =>
               k ? (
@@ -228,7 +236,7 @@ export function LogScreen({
     setCounts({ ...counts, [id]: (counts[id] ?? 0) + 1 });
     setLast(id);
   };
-  const frequent = [6, 1, 29, 13];
+  const frequent = [6, 1, 29, 13].slice(0, columns === 3 ? 3 : 4); // one full row at 3 across
   const shown = groupTabs ? [group] : GROUP_ORDER;
 
   const tile = (id: number) => {
@@ -836,7 +844,7 @@ export function ReportScreen({ view: initial, todayLogs = "as logged", heatHours
 
 export function SettingsScreen() {
   const rows: [string, string][] = [
-    ["Residents", "2 assigned to you"],
+    ["Residents", `${DEMO_PATIENTS.length} assigned to you`],
     ["Text size", "Standard or large"],
     ["Theme", "Match phone"],
     ["Backup and export", "Last backup Nov 2"],
@@ -848,7 +856,7 @@ export function SettingsScreen() {
       <h1 className="mk-h1">Settings</h1>
       <div className="mk-profile">
         <span className="mk-avatar" aria-hidden>
-          C
+          CD
         </span>
         <span>
           <b>{DEMO_CAREGIVER.name}</b>

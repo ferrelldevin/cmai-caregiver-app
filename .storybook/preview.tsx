@@ -34,7 +34,7 @@ const preview: Preview = {
       },
     },
   },
-  initialGlobals: { theme: "light", textSize: "standard", nav: "current", top: "compact" },
+  initialGlobals: { theme: "light", textSize: "standard", nav: "floating", top: "compact" },
   decorators: [
     (Story, ctx) => {
       const theme = ctx.globals.theme as string;
