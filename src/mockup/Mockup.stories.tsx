@@ -81,7 +81,7 @@ export const Score: StoryObj<typeof ScoreScreen> = {
       control: "inline-radio",
       options: ["behaviors-first", "total-first"],
       description:
-        "Devin 2026-11-05: total on top, still marked secondary. The app follows D-08 (behaviors first) until the register changes.",
+        "Devin 2026-11-06: total on top in the mockup, still marked secondary. D-08 has a proposed change; the app stays behaviors first until the lab agrees.",
     },
     showUnlogged: { control: "boolean", description: "List the behaviors with no logs (each rated 1)" },
   },
