@@ -94,6 +94,7 @@ Each one waits on a lab decision or on V-01. Severity comes from the heuristic r
 | F-19 | Sheets sit above the on-screen keyboard and keep the focused field in view | Devin's iPhone test, 2026-10-26: choosing Other opened the keyboard but the note field was hidden behind it (note 003 follow-up) | none | Verified on iPhone (2026-10-26) |
 | F-21 | Delete a log with a reason and a confirm; the log is kept, marked deleted, and skipped in scoring; every edit, delete and undo goes in a change history | Devin, 2026-10-27: deletions must be accountable for the study | D-14 | Merged in PR #17 (2026-10-27), design note 007 |
 | F-22 | Screen-reader names match the visible words: the patient banner says its own text plus "Choose patient" on every tab; the "At log" time button is named "At log, when I logged it" | Checks run on Devin's PC, 2026-10-27: axe 4.14 flagged `label-content-name-mismatch` on 48 screens (the banner) and on the log details sheet | none | Merged in PR #22 (2026-10-27); axe 4.14: 0 violations in 72 scans |
+| F-25 | Shell from the round 3 mockup: full-width resident bar in the resident's color with code badge and Switch pill; floating tab bar; Scores tab renamed Score, Data renamed Settings; header theme button removed (Settings, Display keeps the full choice) | Devin approved the round 3 mockup on 2026-11-07 ("start the development of this in full"); design note 008, phase 1 | none | Built on a PR (2026-11-07); all checks pass, axe 0 violations in 72 scans |
 
 ## Decision log
 

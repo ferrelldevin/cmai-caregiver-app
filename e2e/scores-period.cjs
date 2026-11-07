@@ -31,7 +31,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
       tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
     }); db.close(); localStorage.setItem('cmai-patient','P-TEST-A');
   });
-  await page.reload(); await page.getByRole('button', { name:'Scores', exact:true }).click();
+  await page.reload(); await page.getByRole('button', { name:'Score', exact:true }).click();
   await page.getByRole('heading', { name:'Period 2 scores',exact:true }).waitFor();
   const total = page.locator('.score-total-value');
   ok(await total.textContent() === '30', 'P2 total is hand-expected 30 from logs alone, all 29 items');
@@ -58,7 +58,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   ok((await page.locator('#sc-total').textContent()).includes('11 unlogged days'), 'quiet-day check-in counts as covered; missed days remain unknown');
   await page.reload(); await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor();
   ok(await total.textContent()==='32', 'reload preserves selected period for this patient');
-  await page.locator('nav.tabs button',{hasText:'Log'}).click(); await page.getByRole('button',{name:'Scores',exact:true}).click();
+  await page.locator('nav.tabs button',{hasText:'Log'}).click(); await page.getByRole('button',{name:'Score',exact:true}).click();
   await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor(); ok(true,'leaving and returning preserves selected period');
   await page.getByRole('button',{name:'Next period',exact:true}).focus(); await page.keyboard.press('Enter');
   await page.getByRole('heading',{name:'Period 2 scores',exact:true}).waitFor(); ok(true,'keyboard changes the period');

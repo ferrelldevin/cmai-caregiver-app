@@ -105,7 +105,7 @@ Every change follows [`docs/process/change-process.md`](docs/process/change-proc
 Layouts are tried first in the mockup: `npm run storybook`, then change a screen's Controls panel (layout, columns, score order) or the Theme and Text switches in the toolbar. Saving `src/mockup/Screens.tsx` or `mockup.css` reloads the page. The mockup uses the app's tokens and scoring rule, so what works there carries over, but it is not the app: real screens change only through the review and one pull request per requirement.
 
 
-Visual design follows public health design systems (NHS, USWDS), Apple and Material patterns, and research on older users and patient identification. Light and dark mode switch from the sun/moon button at the top, or under Data, Display, where "Match phone" (the default) follows the phone's Dark Mode. High contrast is there too, and turns on by itself when the phone's Increase Contrast setting is on. Palette, type and the reasons for each are in [`docs/design/design-brief.md`](docs/design/design-brief.md).
+Visual design follows public health design systems (NHS, USWDS), Apple and Material patterns, and research on older users and patient identification. Light and dark mode are under Settings, Display, where "Match phone" (the default) follows the phone's Dark Mode. High contrast is there too, and turns on by itself when the phone's Increase Contrast setting is on. Palette, type and the reasons for each are in [`docs/design/design-brief.md`](docs/design/design-brief.md).
 
 ## License
 

@@ -3,17 +3,16 @@ import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
 import { ScoresScreen } from "./ui/ScoresScreen";
 import { Icon, type IconName } from "./ui/Icon";
-import { PatientAvatar } from "./ui/PatientAvatar";
+import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
 import { useCmaiData } from "./ui/useCmaiData";
-import { currentTheme, onDisplayChange, toggleTheme } from "./ui/display";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
-  { id: "scores", label: "Scores", title: "Scores", icon: "chart" },
-  { id: "data", label: "Data", title: "Patients and data", icon: "data" },
+  { id: "scores", label: "Score", title: "Score", icon: "chart" },
+  { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
 
 const PAGE_TITLES: Record<DataPage, string> = {
@@ -130,16 +129,19 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="top">
-        <div className="brand">
-          <img src="icon.svg" alt="" width="28" height="28" />
-          <b>CMAI Tracker</b>
-          <ThemeButton />
-        </div>
-      </header>
+      {/* The app's name shows only before a patient exists. After that the resident bar is the
+          top of every screen (design note 008: the patient's identity, not the brand, comes first). */}
+      {!hasPatient && (
+        <header className="top">
+          <div className="brand">
+            <img src="icon.svg" alt="" width="28" height="28" />
+            <b>CMAI Tracker</b>
+          </div>
+        </header>
+      )}
 
       {hasPatient && current && (
-        <div className="pin" ref={pinRef}>
+        <div className="pin" ref={pinRef} data-res={residentColor(current.id)}>
           <button
             className={switched ? "pt-banner switched" : "pt-banner"}
             aria-haspopup="dialog"
@@ -157,8 +159,8 @@ export default function App() {
                 {periodLine}
               </span>
             </span>
-            <span className="pt-switch-hint" aria-hidden>
-              {patients.length > 1 ? "Switch" : "Patients"} <Icon name="chevron" size={18} />
+            <span className="pt-switch" aria-hidden>
+              <Icon name="swap" size={18} /> {patients.length > 1 ? "Switch" : "Patients"}
             </span>
             <span className="sr">Choose patient</span>
           </button>
@@ -256,22 +258,5 @@ export default function App() {
         </div>
       </nav>
     </div>
-  );
-}
-
-// Quick light/dark switch in the header. The full choice, including "Match phone", is on the Data screen.
-function ThemeButton() {
-  const [theme, setTheme] = useState(currentTheme);
-  useEffect(() => onDisplayChange(() => setTheme(currentTheme())), []);
-  const next = theme === "dark" ? "light" : "dark";
-  return (
-    <button
-      className="theme-btn ghost"
-      onClick={toggleTheme}
-      aria-label={`Switch to ${next} mode`}
-      title={`Switch to ${next} mode`}
-    >
-      <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
-    </button>
   );
 }
