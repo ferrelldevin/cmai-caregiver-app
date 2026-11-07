@@ -25,7 +25,19 @@ export type IconName = keyof typeof PATHS;
 
 export function Icon({ name, size = 20, className }: { name: IconName; size?: number; className?: string }) {
   return (
-    <svg className={className ? `icon ${className}` : "icon"} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <svg
+      className={className ? `icon ${className}` : "icon"}
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
       <path d={PATHS[name]} />
     </svg>
   );

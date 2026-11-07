@@ -15,7 +15,11 @@ const initials = (id: string) => (id.split("-").filter(Boolean).pop() ?? id).sli
 
 export function PatientAvatar({ id, size = 40 }: { id: string; size?: number }) {
   return (
-    <span className="avatar" aria-hidden="true" style={{ background: avatarColor(id), width: size, height: size, fontSize: size * 0.38 }}>
+    <span
+      className="avatar"
+      aria-hidden="true"
+      style={{ background: avatarColor(id), width: size, height: size, fontSize: size * 0.38 }}
+    >
       {initials(id)}
     </span>
   );
