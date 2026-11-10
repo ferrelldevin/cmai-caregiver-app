@@ -245,7 +245,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               The count rule cannot give <b>8</b> (would happen if not prevented) or <b>9</b> (not applicable); those are answers only a caregiver's own rating can give.
             </p>
             <p className="muted small-print">
-              Version {__APP_VERSION__} · scoring rule {RULE_VERSION} · a prototype for Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
+              Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · a prototype for Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
               <a href="https://github.com/ferrelldevin/cmai-tracker/blob/main/docs/scoring-spec.md" target="_blank" rel="noreferrer">scoring spec</a>.
             </p>
           </section>
