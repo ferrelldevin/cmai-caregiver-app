@@ -349,6 +349,10 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               as zero, so a period with many of them may read low. The count rule cannot give <b>8</b> (would happen if
               not prevented) or <b>9</b> (not applicable); those are answers only a caregiver's own rating can give.
             </p>
+            <p>
+              <b>This app tells no one.</b> A log is a record for the study. For an injury or an emergency, do what your
+              workplace says.
+            </p>
             <p className="muted small-print">
               Version {__APP_VERSION__} · scoring rule {RULE_VERSION} · a prototype for Professor Gupta's Hands-On Lab,
               not a medical device. Full rules:{" "}
@@ -409,6 +413,10 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
             </li>
             <li>
               <b>Review.</b> On day 15, check the app's ratings against what you saw.
+            </li>
+            <li>
+              <b>This app tells no one.</b> A log is a record for the study. For an injury or an emergency, do what your
+              workplace says.
             </li>
           </ol>
           <p className="privacy">
