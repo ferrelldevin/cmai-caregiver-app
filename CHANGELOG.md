@@ -27,6 +27,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Security
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
+### Removed
+- `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
+
 ### Fixed
 - The scoring spec said the Total card lists the behaviors marked as changed; since F-20 each behavior row says how it moved instead. The spec now says so, and F-20 has its own register row.
 - A sheet reopened straight after Cancel could close itself: the browser's late "close" event from the first closing shut the new one. Found as an intermittent CI timeout in the `flows` check.
