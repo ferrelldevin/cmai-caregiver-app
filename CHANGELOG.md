@@ -17,6 +17,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Dependabot: one grouped update PR a month for npm and for GitHub Actions.
 - Playwright 1.63.0 and axe-core 4.14.0 pinned as dev dependencies, so the browser checks run the same versions everywhere.
 
+### Changed
+- Change process and pull request template: screenshots go in the pull request description, not in the repository (B-17).
+
 ### Security
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
