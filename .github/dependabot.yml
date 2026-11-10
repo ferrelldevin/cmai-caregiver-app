@@ -11,6 +11,10 @@ updates:
       npm-minor-and-patch:
         update-types: ["minor", "patch"]
     open-pull-requests-limit: 5
+    # Recharts is removed by plan step 4.4, so a major upgrade of it is wasted work until then.
+    ignore:
+      - dependency-name: "recharts"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
