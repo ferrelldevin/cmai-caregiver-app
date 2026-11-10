@@ -89,7 +89,8 @@ export function orderForCaregiver<T extends Pick<Patient, "id">>(
 /** The caregiver logging now, as remembered on this phone (code only). */
 export function readLoggingCaregiver(): string | null {
   try {
-    return localStorage.getItem(STORE_KEY);
+    const id = localStorage.getItem(STORE_KEY);
+    return id && CAREGIVER_CODE.test(id) ? id : null;
   } catch {
     return null;
   }

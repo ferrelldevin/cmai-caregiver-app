@@ -64,6 +64,11 @@ describe("caregiver profiles", () => {
     expect(cg.readLoggingCaregiver()).toBe("C-02");
   });
 
+  it("ignores a remembered value that is not a caregiver code", () => {
+    store.set("cmai-caregiver", "<b>Jane Doe</b>");
+    expect(cg.readLoggingCaregiver()).toBeNull();
+  });
+
   it("an edit records the editor's code, which may differ from the logger's", async () => {
     cg.chooseLoggingCaregiver("C-01");
     const id = await db.observations.add({ patientId: "P-01", itemId: 1, at: T, loggedAt: T, ...madeHere() });
