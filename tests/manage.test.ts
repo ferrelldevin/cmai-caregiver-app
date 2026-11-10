@@ -157,7 +157,7 @@ describe("restore checks every entry (F-31)", () => {
 
   it("checks reviews, check-ins and change history the same way", () => {
     const good = {
-      key: "P-01|1|7",
+      key: `P-01|${T0}|7`,
       patientId: "P-01",
       windowStart: T0,
       itemId: 7,
@@ -176,11 +176,15 @@ describe("restore checks every entry (F-31)", () => {
           { ...good, derived: "2" },
           { ...good, itemId: 30 },
           { ...good, patientId: "a name" },
+          { ...good, key: `P-02|${T0}|7` },
+          { ...good, key: `P-01|${T0}|8` },
         ],
         checkins: [
-          { key: "k", patientId: "P-01", day: T0, at: T0 },
-          { key: "k", patientId: "P-01", day: "x", at: T0 },
+          { key: `P-01|${T0}`, patientId: "P-01", day: T0, at: T0 },
+          { key: `P-01|${T0}`, patientId: "P-01", day: "x", at: T0 },
           { key: "", patientId: "P-01", day: T0, at: T0 },
+          { key: `P-02|${T0}`, patientId: "P-01", day: T0, at: T0 },
+          { key: `P-01|${T0 + DAY}`, patientId: "P-01", day: T0, at: T0 },
         ],
         changes: [
           {
@@ -203,7 +207,7 @@ describe("restore checks every entry (F-31)", () => {
     expect(b.changes).toHaveLength(2);
     expect(b.changes[0].to).toEqual({ approx: true });
     expect(b.changes[1]).not.toHaveProperty("to");
-    expect(b.skipped).toBe(5 + 2 + 2);
+    expect(b.skipped).toBe(7 + 4 + 2);
   });
 
   it("rejects logs with a bad id, flag or demo mark", () => {
@@ -233,8 +237,10 @@ describe("restore checks every entry (F-31)", () => {
       JSON.stringify({
         patients: [],
         observations: [],
-        reviews: [{ key: "k", patientId: "P-55", windowStart: T0, itemId: 7, choice: 8, derived: 2, reviewedAt: T0 }],
-        checkins: [{ key: "k", patientId: "P-55", day: T0, at: T0 }],
+        reviews: [
+          { key: `P-55|${T0}|7`, patientId: "P-55", windowStart: T0, itemId: 7, choice: 8, derived: 2, reviewedAt: T0 },
+        ],
+        checkins: [{ key: `P-55|${T0}`, patientId: "P-55", day: T0, at: T0 }],
         changes: [{ observationId: 1, patientId: "P-55", action: "edit", at: T0 }],
       }),
     );
@@ -319,8 +325,8 @@ describe("restore checks version 4 fields (F-44, plan 5.1)", () => {
         patients,
         observations: [],
         checkins: [
-          { key: "k1", patientId: "P-01", day: T, at: T, by: "C-01", deviceId: UID },
-          { key: "k2", patientId: "P-01", day: T, at: T, by: "nurse" },
+          { key: `P-01|${T}`, patientId: "P-01", day: T, at: T, by: "C-01", deviceId: UID },
+          { key: `P-01|${T}`, patientId: "P-01", day: T, at: T, by: "nurse" },
         ],
         changes: [
           { observationId: 1, patientId: "P-01", action: "edit", at: T, by: "C-01" },
