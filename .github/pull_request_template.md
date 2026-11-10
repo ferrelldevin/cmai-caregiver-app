@@ -19,7 +19,7 @@
 - [ ] `npm test`, `npm run lint`, `npm run typecheck` and `npm run build`
 - [ ] End-to-end flow, including the offline reload
 - [ ] axe WCAG 2.2 AA, 0 violations in 4 modes
-- [ ] Before and after screenshots
+- [ ] Before and after screenshots, in this description, not committed
 - [ ] Real phone (if install, offline, storage, gestures or keyboard changed)
 
 ## Recorded

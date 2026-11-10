@@ -158,6 +158,7 @@ Implemented on a review branch: one selected period scopes totals, behaviors, st
 |---|---|---|---|
 | 2026-11-10 | F-30: patient switcher builds its list from the current patients, not the last database answer (`src/ui/patientRows.ts`). No rating, field or export changed | Claude (build plan step 1.1; audit A-01, A-02) | Lane A, no sign-off needed. Devin to merge |
 | 2026-11-10 | Dependabot groups minor and patch npm updates; majors arrive alone (build plan 2.1, audit B-02). Config only | Claude | Lane A. Devin to merge |
+| 2026-11-10 | Screenshots go in the pull request description, not the repository (build plan 2.9, audit B-17). Docs only; existing files left alone | Claude | Lane A. Devin to merge |
 | 2026-11-10 | F-34: CSV cells starting with = + - @ tab or return get a leading apostrophe. Export content otherwise unchanged (build plan 1.6, audit A-07) | Claude | Lane A. Devin to merge |
 | 2026-10-27 | README "How this was built" corrected: the AI agent wrote the scoring spec and test cases; Devin set the requirements and study rules and reviewed every change | Claude (cloud), on Devin's ask | n/a (docs only, no scoring change) |
 | 2026-10-27 | Accessible names match visible text (F-22): patient banner drops its custom label on every tab; "At log" button label starts with its visible words. No scoring change | Claude (cloud), from the PC check run | Pending (Devin) |

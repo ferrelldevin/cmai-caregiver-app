@@ -36,7 +36,7 @@ Before building, list what the change looks like in each of these. The PR checkl
 - CI runs `npm run checks` on every pull request, so a PR can't merge with a failing browser check once the main-branch ruleset requires it.
 - `npm run checks` runs every check in `e2e/` and the axe audit in all four modes in one go and writes one report; `npm run checks:report` also pushes it to the `checks-report` branch so a cloud session can read it.
 - axe-core WCAG 2.2 AA shows 0 violations in all four modes (`docs/audits/axe-run.cjs`).
-- Before and after screenshots, on a phone size, in light and dark.
+- Before and after screenshots, on a phone size, in light and dark. They go in the pull request description, not in the repository.
 - A real phone check when the change touches install, offline, storage, gestures or the keyboard.
 - `npm run check:docs` passes: every rule in the scoring spec still names a check that exists, and every relative link, `file:line` reference and register ID resolves.
 - The screenshot comparison passes, or its baselines in `e2e/screenshots/` are updated on purpose in the same PR (see `e2e/README.md`).
@@ -49,7 +49,7 @@ Before building, list what the change looks like in each of these. The PR checkl
 - A release bumps `version` in `package.json` and adds its CHANGELOG section in the same PR; the merge tags it `v<version>`.
 
 ## 7. Ship
-- A draft PR using the template, with the screenshots attached. CI must be green.
+- A draft PR using the template, with the screenshots in the description, not committed. CI must be green.
 - Devin marks it ready and merges. The Pages deploy runs on merge; confirm it went live.
 
 ## Definition of done
