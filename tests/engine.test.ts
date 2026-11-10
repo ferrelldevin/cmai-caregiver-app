@@ -144,3 +144,16 @@ describe("meaningful change between periods (spec section 6)", () => {
     expect(meaningfulChanges([9, 5, 4])).toEqual([null, null, null]);
   });
 });
+
+describe("summarize with nothing rated", () => {
+  it("gives zero sums and means, and no agitation, when a group has no ratings at all", () => {
+    const s = summarize({});
+    expect(s.total).toBe(0);
+    expect(s.itemsInTotal).toBe(0);
+    for (const g of ["aggressive", "physical", "verbal"] as const) {
+      expect(s.factors[g]).toEqual({ sum: 0, n: 0, mean: 0 });
+      expect(s.agitated[g]).toBe(false);
+    }
+    expect(s.agitatedAny).toBe(false);
+  });
+});
