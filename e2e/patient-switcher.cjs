@@ -21,6 +21,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await sheet().waitFor();
   const rows = sheet().getByRole("button", { name: /^P-/ });
   ok(await rows.count() === 2, "sheet lists both patients");
+  // The rows show codes at once and add period, day and last log when the database answers (about 10 ms
+  // later here, longer on a CI runner), so wait for the details before reading them.
+  await rows.nth(0).filter({ hasText: "Last log" }).waitFor({ timeout: 5000 }).catch(() => {});
   const first = await rows.nth(0).textContent();
   ok(/Period \d+ · day \d+ of 14/.test(first) && /Last log /.test(first), "rows show period, day and last log: " + first);
   ok((await rows.nth(0).getAttribute("aria-current")) === "true", "current patient is marked");
@@ -53,12 +56,24 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   }
   await banner().click(); await sheet().waitFor();
   const search = sheet().getByRole("searchbox", { name: "Find a patient by code" });
+  // The 8th patient comes in with the last Add's refresh, which can land after the sheet opens.
+  await search.waitFor({ timeout: 5000 }).catch(() => {});
   ok(await search.isVisible(), "search shows with 8 patients");
+  // After typing, wait up to 3 s for the list to filter, then read the sheet once so the check and its
+  // message agree. A failure prints the rows and the search box: a box that reads "" means the query was reset.
+  const seen = async () => {
+    const labels = await rows.allTextContents();
+    return { n: labels.length, text: `${labels.length} rows [${labels.map((t) => t.slice(0, 12)).join(", ")}], search box "${await search.inputValue()}"` };
+  };
   await search.fill("03");
-  ok(await sheet().getByRole("button", { name: /^P-/ }).count() === 1, "search filters to P-03");
+  await p.waitForFunction(() => document.querySelectorAll("dialog[open] .sheet-row").length === 1, null, { timeout: 3000 }).catch(() => {});
+  const s03 = await seen();
+  ok(s03.n === 1, "search filters to P-03" + (s03.n === 1 ? "" : " (saw " + s03.text + ")"));
   await shot("sw-04-search");
   await search.fill("zz");
-  ok(await sheet().getByText('No patient code contains "zz".').isVisible(), "empty search result explains itself");
+  const empty = sheet().getByText('No patient code contains "zz".');
+  await empty.waitFor({ timeout: 3000 }).catch(() => {});
+  ok(await empty.isVisible(), "empty search result explains itself" + ((await empty.isVisible()) ? "" : " (saw " + (await seen()).text + ")"));
   await sheet().getByRole("button", { name: "Manage patients" }).click();
   ok(p.url().endsWith("#/data") && !(await sheet().isVisible()), "Manage patients opens the Data hub");
   // Dark + desktop look
