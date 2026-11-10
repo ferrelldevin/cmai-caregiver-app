@@ -345,7 +345,7 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
           <span className="snackbar-text">
             <b className="snackbar-title">
               <span className="sr">{toast.kind === "logged" ? "Logged: " : "Deleted: "}</span>
-              {ITEMS[toast.obs.itemId - 1].name}
+              {SHORT_NAMES[toast.obs.itemId]}
             </b>
             <span className="snackbar-meta">
               {toast.kind === "deleted" && "Deleted · "}
