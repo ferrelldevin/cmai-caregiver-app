@@ -142,3 +142,4 @@ Newest first. Every rule change and every sign-off goes here, with who and when.
 | 2026-10-22 | Meaningful-change marker (2+ points, or 1 point held) | Devin (research map) | Pending (D-10) |
 | 2026-10-22 | Item definitions reworded; MIT + NOTICE | Devin (permissions audit) | Pending (P-01, P-05) |
 | 2026-10-21 | `cmai-count-rule-1`: count bands and rating-7 rule | Devin | Pending (D-01, D-02) |
+| 2026-11-10 | B-04, B-10, B-16: every action in `pages.yml` pinned to a commit SHA (same major as before), runs on `main` never cancelled, 15-minute job limit, CI now fails if `docs/test-cases.json` is out of date and runs the agreement script's self-test. No app code changed | Claude (build plan step 2.4) | Lane A, no sign-off needed. Devin to merge |
