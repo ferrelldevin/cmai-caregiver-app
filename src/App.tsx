@@ -9,9 +9,14 @@ import { patientPosition } from "./data/patients";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
 import { CaregiverPage, WhoSheet } from "./ui/CaregiverScreen";
+import { SignInScreen } from "./ui/SignInScreen";
+import { endSession, readSession, startSession } from "./data/session";
 import { activeCaregivers, chooseLoggingCaregiver, myResidents, readLoggingCaregiver } from "./data/caregivers";
 import type { Caregiver } from "./data/db";
 import { study } from "./study/settings";
+
+// The PIN needs caregivers to sign in as (plan 5.3).
+const PIN_ON = study.pin && study.caregiverProfiles;
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
@@ -87,13 +92,17 @@ export default function App() {
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
   const [caregiversVersion, setCaregiversVersion] = useState(0);
   const [loggingAs, setLoggingAs] = useState<string | null>(() => {
-    const saved = study.caregiverProfiles ? readLoggingCaregiver() : null;
+    // With the PIN on, only a sign-in from this shift counts (plan 5.3).
+    const saved = !study.caregiverProfiles ? null : PIN_ON ? (readSession()?.id ?? null) : readLoggingCaregiver();
     chooseLoggingCaregiver(saved);
     return saved;
   });
   const [choosingWho, setChoosingWho] = useState(false);
   const [choosingWhoByKey, setChoosingWhoByKey] = useState(false);
   const [mine, setMine] = useState<string[]>([]);
+  const [caregiversLoaded, setCaregiversLoaded] = useState(!PIN_ON);
+  // With the PIN on: whose keypad is open (null: the list), and whether going back is allowed.
+  const [signingIn, setSigningIn] = useState<{ id: string | null } | null>(null);
   useEffect(() => {
     if (!study.caregiverProfiles) return;
     let live = true;
@@ -101,6 +110,7 @@ export default function App() {
       .then((list) => {
         if (!live) return;
         setCaregivers(list);
+        setCaregiversLoaded(true);
         // A caregiver removed since, or never on this phone, is not logging.
         if (loggingAs && !list.some((c) => c.id === loggingAs)) logAs(null);
       })
@@ -113,7 +123,34 @@ export default function App() {
   function logAs(id: string | null) {
     chooseLoggingCaregiver(id);
     setLoggingAs(id);
+    if (PIN_ON && !id) endSession();
   }
+  /** Switching to another caregiver: straight away, or through their PIN with the PIN on. */
+  function requestLogAs(id: string | null) {
+    if (!PIN_ON || !id) return logAs(id);
+    setSigningIn({ id });
+  }
+  function signedIn(id: string) {
+    startSession(id);
+    logAs(id);
+    setSigningIn(null);
+    setCaregiversVersion((v) => v + 1);
+    const c = caregivers.find((x) => x.id === id);
+    setNotice(`${c?.initials ?? id} is logging`);
+  }
+  // A shift lasts 12 hours: checked each minute and whenever the app comes back to the front.
+  useEffect(() => {
+    if (!PIN_ON || !loggingAs) return;
+    const check = () => {
+      if (readSession()?.id !== loggingAs) logAs(null);
+    };
+    const t = setInterval(check, 60_000);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [loggingAs]);
   const me = caregivers.find((c) => c.id === loggingAs);
   const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
 
@@ -174,6 +211,19 @@ export default function App() {
 
   const pos = current ? patientPosition(current.anchor, Date.now()) : null;
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
+
+  // With the PIN on and caregivers on the phone, nothing of the app shows until someone signs in.
+  if (PIN_ON && !caregiversLoaded) return null;
+  if (PIN_ON && caregivers.length > 0 && (!loggingAs || signingIn)) {
+    return (
+      <SignInScreen
+        caregivers={caregivers}
+        start={signingIn?.id ?? null}
+        onCancel={loggingAs ? () => setSigningIn(null) : undefined}
+        onSignedIn={signedIn}
+      />
+    );
+  }
 
   return (
     <div className="app">
@@ -296,7 +346,7 @@ export default function App() {
                         caregivers={caregivers}
                         loggingAs={loggingAs}
                         patients={patients}
-                        onLogAs={logAs}
+                        onLogAs={requestLogAs}
                         onChange={() => setCaregiversVersion((v) => v + 1)}
                       />
                     ),
@@ -353,10 +403,19 @@ export default function App() {
           onPick={(id) => {
             setChoosingWho(false);
             if (id === loggingAs) return;
+            if (PIN_ON) return requestLogAs(id);
             logAs(id);
             const c = caregivers.find((x) => x.id === id);
             setNotice(`${c?.initials ?? id} is logging`);
           }}
+          onSignOut={
+            PIN_ON
+              ? () => {
+                  setChoosingWho(false);
+                  logAs(null);
+                }
+              : undefined
+          }
           onManage={() => {
             setChoosingWho(false);
             go({ tab: "data", page: "caregivers" });

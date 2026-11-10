@@ -1,6 +1,7 @@
 // Caregiver profiles (R2, plan 5.2) on the LAB build: codes and initials, who is logging,
 // "by" on every new record, My residents first in the switcher, and axe on each new screen in
 // four display modes. The caregiver build never shows any of it (checked by every other e2e script).
+// The lab build has the PIN on too (plan 5.3): this script sets PINs with pinIn(); e2e/sign-in.cjs checks the PIN itself.
 // usage: node e2e/caregivers.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
 const { chromium } = require("playwright");
 const fs = require("fs");
@@ -8,6 +9,24 @@ const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8"
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
+
+// Types a PIN on the keypad and waits for the next screen (the keypad listens to the keyboard).
+async function pinIn(p, pin, next) {
+  await p.keyboard.type(pin);
+  if (next) await p.getByRole("heading", { name: next }).waitFor();
+}
+// Sets the setup PIN, then (after the first caregiver is added) that caregiver's PIN.
+async function setupPin(p) {
+  await p.getByRole("heading", { name: "Choose a setup PIN" }).waitFor();
+  await pinIn(p, "246810", "Enter the setup PIN again");
+  await pinIn(p, "246810", "Add the first caregiver");
+}
+async function newPin(p, initials, pin) {
+  await p.getByRole("heading", { name: `Choose a PIN for ${initials}` }).waitFor();
+  await pinIn(p, pin, "Enter it again");
+  await pinIn(p, pin);
+  await p.locator(".cg-chip", { hasText: initials }).waitFor();
+}
 
 async function axe(p, name) {
   await p.waitForTimeout(350);
@@ -50,7 +69,8 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   const chip = p.locator(".cg-chip");
   ok((await chip.textContent()).includes("Who?"), "the chip asks Who? when nobody is logging");
   await chip.click();
-  await p.getByRole("heading", { name: "Add the first caregiver" }).waitFor(); ok(true, "the chip opens Add the first caregiver");
+  await setupPin(p);
+  ok(true, "the chip opens the setup PIN, then Add the first caregiver");
   await axe(p, "caregivers page, empty");
 
   // Initials only.
@@ -60,7 +80,8 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   await field.fill("J"); await p.keyboard.press("Enter");
   await p.getByRole("alert").filter({ hasText: "Initials only" }).waitFor(); ok(true, "one letter is refused");
   await field.fill("jm"); await p.keyboard.press("Enter");
-  await p.getByText("Added JM as C-01.").waitFor(); ok(true, "JM is C-01");
+  await newPin(p, "JM", "2580");
+  await p.getByText("C-01 · logging now").waitFor(); ok(true, "JM is C-01, sets a PIN, and is logging");
   await field.fill("ab"); await p.keyboard.press("Enter");
   await p.getByText("Added AB as C-02.").waitFor(); ok(true, "AB is C-02");
   ok((await chip.textContent()).includes("JM"), "the first caregiver added is the one logging");
@@ -75,7 +96,8 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   await who.waitFor(); ok(true, "the chip opens Who is logging?");
   await axe(p, "Who is logging? sheet");
   await who.getByRole("button", { name: /^AB/ }).click();
-  await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching says who is logging now");
+  await newPin(p, "AB", "3691");
+  await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching (through AB's new PIN) says who is logging now");
   ok((await chip.textContent()).includes("AB"), "the chip shows AB");
   await p.waitForTimeout(700);
   await p.getByRole("button", { name: /^8 Kicking/ }).click(); await p.locator(".snackbar", { hasText: "Kicking" }).waitFor();
@@ -127,8 +149,10 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
     await q.getByRole("button", { name: "Add a patient" }).click();
     await q.getByLabel("New patient code").fill("P-01"); await q.keyboard.press("Enter");
     await q.locator(".cg-chip").click();
+    await setupPin(q);
     await q.getByLabel("Caregiver initials").fill("JM"); await q.keyboard.press("Enter");
-    await q.getByText("Added JM as C-01.").waitFor();
+    await newPin(q, "JM", "2580");
+    await q.getByText("C-01 · logging now").waitFor();
     await axe(q, `caregivers page, ${name}`);
     await q.locator("nav.tabs button", { hasText: "Log" }).click();
     await q.locator(".cg-chip").click();

@@ -26,7 +26,10 @@ const CHECKS = [
   { name: "sheet", file: "e2e/sheet.cjs" },
   { name: "accessibility", file: "docs/audits/axe-run.cjs", out: "axe-wcag22aa.json" },
 ];
-const LAB_CHECKS = [{ name: "lab: caregivers", file: "e2e/caregivers.cjs" }];
+const LAB_CHECKS = [
+  { name: "lab: caregivers", file: "e2e/caregivers.cjs" },
+  { name: "lab: sign-in", file: "e2e/sign-in.cjs" },
+];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");
 const OUT = path.join(os.tmpdir(), "cmai-e2e");
