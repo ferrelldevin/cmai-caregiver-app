@@ -59,7 +59,7 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   await p.getByRole("heading", { name: "Welcome to CMAI Tracker" }).waitFor();
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  const hit = p.getByRole("button", { name: /^7 Hitting/ });
+  const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
   await hit.waitFor();
 
   // No caregiver yet: the app works as before, and the chip leads to adding one.
@@ -90,7 +90,11 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   // A log carries who made it; switching is one tap from the chip and never asked for.
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   await hit.click(); await p.locator(".snackbar").waitFor();
-  ok((await p.locator(".recent-list").textContent()).includes("by JM"), "recent logs say by JM");
+  // Today lists the log with who made it (F-27 moved recent logs there).
+  await p.locator(".today-count").click();
+  await p.locator(".acc-head", { hasText: "Hitting" }).click();
+  ok((await p.locator(".acc-body").textContent()).includes("by JM"), "Today says the log was by JM");
+  await p.locator("nav.tabs button", { hasText: "Log" }).click();
   await chip.click();
   const who = p.getByRole("dialog", { name: "Who is logging?" });
   await who.waitFor(); ok(true, "the chip opens Who is logging?");
@@ -100,13 +104,16 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching (through AB's new PIN) says who is logging now");
   ok((await chip.textContent()).includes("AB"), "the chip shows AB");
   await p.waitForTimeout(700);
-  await p.getByRole("button", { name: /^8 Kicking/ }).click(); await p.locator(".snackbar", { hasText: "Kicking" }).waitFor();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Kicking/ }).click(); await p.locator(".snackbar", { hasText: "Kicking" }).waitFor();
   let data = await stored(p);
   const byItem = (id) => data.observations.find((o) => o.itemId === id && o.by);
   ok(byItem(7).by === "C-01" && byItem(8).by === "C-02", "the log after switching carries C-02; the earlier one keeps C-01");
 
-  // An edit records the editor, who may not be the logger.
-  await p.getByRole("button", { name: /^Edit Hitting/ }).first().click();
+  // An edit records the editor, who may not be the logger. Logs are fixed on Today.
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
+  const hitRow = p.locator(".acc-head", { hasText: "Hitting" });
+  if ((await hitRow.getAttribute("aria-expanded")) !== "true") await hitRow.click();
+  await p.locator(".acc-body li").first().getByRole("button", { name: /^Edit/ }).click();
   const sheet = p.getByRole("dialog", { name: /^Hitting/ });
   await sheet.waitFor();
   await sheet.getByRole("button", { name: "Mealtime" }).click();
