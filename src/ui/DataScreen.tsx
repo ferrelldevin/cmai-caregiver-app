@@ -3,10 +3,10 @@
 // ratings are worked out (iOS Settings pattern; design note docs/design/notes/001-navigation.md).
 
 import { useEffect, useRef, useState } from "react";
-import { db, localMidnight, type Patient } from "../data/db";
+import { ARCHIVE_REASONS, db, isActive, localMidnight, type Patient } from "../data/db";
 import { loadDemoData } from "../data/seed";
 import { buildExport, download } from "../data/exporter";
-import { deletePatient, removeDemoData, restoreBackup } from "../data/manage";
+import { deletePatient, removeDemoData, restoreBackup, wouldArchive } from "../data/manage";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
 import { STUDY_MODE } from "../study/settings";
 import { ago, shortDate } from "./format";
@@ -49,8 +49,9 @@ const readLastExport = () => {
 };
 
 /** The next unused code in the P-NN series, offered as the example in the add field. */
-function nextCode(patients: Patient[]) {
-  const used = new Set(patients.map((p) => p.id));
+function nextCode(patients: Patient[], archived: string[]) {
+  // An archived patient's code is never given to someone new (D-20).
+  const used = new Set([...patients.map((p) => p.id), ...archived]);
   for (let n = 1; n < 1000; n++) {
     const id = `P-${String(n).padStart(2, "0")}`;
     if (!used.has(id)) return id;
@@ -78,13 +79,34 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
   useEffect(() => setMsg(null), [page]);
   const [persisted, setPersisted] = useState<boolean | null>(null);
   // Deleting asks in a sheet; viaKeyboard decides where focus starts (F-14 rule).
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; viaKeyboard: boolean } | null>(null);
+  // archive: the patient has real logs and archiving is on, so "delete" keeps everything (D-20).
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; viaKeyboard: boolean; archive: boolean } | null>(
+    null,
+  );
+  const [archiveWhy, setArchiveWhy] = useState<{ reason: string | null; note: string }>({ reason: null, note: "" });
+  const archiveReady = !!archiveWhy.reason && (archiveWhy.reason !== "Other" || !!archiveWhy.note.trim());
   const [lastExport, setLastExport] = useState(readLastExport);
   const [, setInstallTick] = useState(0);
   const codeInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const hasDemo = patients.some((p) => p.demo);
-  const suggested = nextCode(patients);
+  const [archivedCodes, setArchivedCodes] = useState<string[]>([]);
+  // Patients a delete would archive (D-20), worked out ahead so the confirm sheet opens on the tap.
+  const [archivable, setArchivable] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const codes = await db.patients.filter((p) => !isActive(p)).primaryKeys();
+      const flags = await Promise.all(patients.map((p) => wouldArchive(p.id)));
+      if (!live) return;
+      setArchivedCodes(codes);
+      setArchivable(new Set(patients.filter((_, i) => flags[i]).map((p) => p.id)));
+    })().catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [patients]);
+  const suggested = nextCode(patients, archivedCodes);
   const firstRun = patients.length === 0;
 
   useEffect(() => {
@@ -116,8 +138,10 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
       codeInput.current?.focus();
       return;
     }
-    if (await db.patients.get(id))
-      return say("patients", `${id} already exists. Pick it from the list below.`, "error");
+    const existing = await db.patients.get(id);
+    if (existing && !isActive(existing))
+      return say("patients", `${id} was archived, and a code is never reused. Use another code.`, "error");
+    if (existing) return say("patients", `${id} already exists. Pick it from the list below.`, "error");
     await db.patients.add({ id, anchor: localMidnight(Date.now()) });
     setCode("");
     say("patients", `Added ${id}. Day 1 of its first 14-day period is today.`);
@@ -139,9 +163,24 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
   }
 
   async function remove(id: string) {
-    await deletePatient(id);
+    const why = archiveWhy.reason ? { reason: archiveWhy.reason, note: archiveWhy.note } : undefined;
+    let done: "erased" | "archived";
+    try {
+      done = await deletePatient(id, why);
+    } catch (e) {
+      // A log was added after the sheet opened, so this patient is now archived, which needs a reason.
+      setConfirmDelete(null);
+      say("patients", e instanceof Error ? e.message : String(e), "error");
+      onChange();
+      return;
+    }
     setConfirmDelete(null);
-    say("patients", `Deleted ${id} and all of its logs, reviews and check-ins.`);
+    say(
+      "patients",
+      done === "archived"
+        ? `Archived ${id}. Its logs stay on this phone and in backups.`
+        : `Deleted ${id} and all of its logs, reviews and check-ins.`,
+    );
     onChange();
   }
 
@@ -470,7 +509,8 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
                     aria-label={`Delete ${p.id}`}
                     onClick={(e) => {
                       setMsg(null);
-                      setConfirmDelete({ id: p.id, viaKeyboard: e.detail === 0 });
+                      setArchiveWhy({ reason: null, note: "" });
+                      setConfirmDelete({ id: p.id, viaKeyboard: e.detail === 0, archive: archivable.has(p.id) });
                     }}
                   >
                     Delete
@@ -485,7 +525,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
           viaKeyboard={confirmDelete?.viaKeyboard ?? false}
           keyboardFocus=".confirm-cancel"
           className="confirm-sheet"
-          title={confirmDelete ? `Delete ${confirmDelete.id}?` : ""}
+          title={confirmDelete ? `${confirmDelete.archive ? "Remove" : "Delete"} ${confirmDelete.id}?` : ""}
           headerClose={false}
           footer={
             confirmDelete && (
@@ -493,15 +533,59 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
                 <button className="ghost confirm-cancel" onClick={() => setConfirmDelete(null)}>
                   Cancel
                 </button>
-                <button className="danger" onClick={() => remove(confirmDelete.id)}>
-                  Delete {confirmDelete.id}
+                <button
+                  className="danger"
+                  disabled={confirmDelete.archive && !archiveReady}
+                  onClick={() => remove(confirmDelete.id)}
+                >
+                  {confirmDelete.archive ? "Remove" : "Delete"} {confirmDelete.id}
                 </button>
               </>
             )
           }
           onClose={() => setConfirmDelete(null)}
         >
-          {confirmDelete && (
+          {confirmDelete?.archive && (
+            <div className="sheet-scroll">
+              <p>
+                {confirmDelete.id} has logs, so it is archived, not erased. Every log stays on this phone and in
+                backups, and {confirmDelete.id} leaves the lists. Its code is not used again.
+              </p>
+              <section className="form-group" aria-labelledby="archive-why">
+                <h3 className="form-label" id="archive-why">
+                  Why are you removing {confirmDelete.id}?
+                </h3>
+                <div className="choice-grid">
+                  {ARCHIVE_REASONS.map((r) => (
+                    <button
+                      key={r}
+                      className="choice"
+                      aria-pressed={archiveWhy.reason === r}
+                      onClick={() => setArchiveWhy((w) => ({ ...w, reason: r }))}
+                    >
+                      <span>{r}</span>
+                      {archiveWhy.reason === r && <Icon name="check" size={18} />}
+                    </button>
+                  ))}
+                </div>
+                {archiveWhy.reason === "Other" && (
+                  <label className="other-note">
+                    <span>What happened?</span>
+                    <input
+                      type="text"
+                      value={archiveWhy.note}
+                      maxLength={120}
+                      placeholder="A few words, no names"
+                      autoComplete="off"
+                      enterKeyHint="done"
+                      onChange={(e) => setArchiveWhy((w) => ({ ...w, note: e.target.value }))}
+                    />
+                  </label>
+                )}
+              </section>
+            </div>
+          )}
+          {confirmDelete && !confirmDelete.archive && (
             <div className="sheet-scroll">
               <p>This removes all of its logs, reviews and check-ins from this phone. It cannot be undone.</p>
               {confirmDelete.id === current && <p className="muted">{confirmDelete.id} is the patient open now.</p>}

@@ -8,7 +8,8 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { GROUP_LABELS, ITEMS, type FactorGroup } from "../scoring/items";
 import { DAY_MS } from "../scoring/engine";
-import { checkInKey, db, localMidnight, type CheckIn, type StoredObservation } from "../data/db";
+import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
+import { utcOffsetMin } from "../data/ids";
 import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../data/logs";
 import { dayAndTime, timeOfDay } from "./format";
 import { Icon } from "./Icon";
@@ -67,7 +68,7 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
     // A double tap on the same card within 0.6 s is almost always one event.
     if (lastTap.current && lastTap.current.itemId === itemId && t - lastTap.current.t < 600) return;
     lastTap.current = { itemId, t };
-    const obs = { patientId, itemId, at: t, loggedAt: t };
+    const obs = { patientId, itemId, at: t, loggedAt: t, ...madeHere(), tzOffsetMin: utcOffsetMin(t) };
     const id = await db.observations.add(obs);
     navigator.vibrate?.(15);
     setFlash(itemId);
@@ -80,7 +81,7 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
   async function toggleCheckIn() {
     const key = checkInKey(patientId, todayStart);
     if (checkedIn) await db.checkins.delete(key);
-    else await db.checkins.put({ key, patientId, day: todayStart, at: Date.now() });
+    else await db.checkins.put({ key, patientId, day: todayStart, at: Date.now(), ...madeHere() });
     onChange();
   }
 

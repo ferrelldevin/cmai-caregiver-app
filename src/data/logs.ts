@@ -2,7 +2,7 @@
 // change history in the same transaction, so the history and the log can't disagree.
 // A delete only marks the log (soft delete); scoring skips marked logs (design note 007).
 
-import { db, type LogChange, type StoredObservation } from "./db";
+import { db, madeHere, type LogChange, type StoredObservation } from "./db";
 
 /** Why a log was removed. A pick list, so reasons can be counted and no names get typed. */
 export const DELETE_REASONS = ["Tapped by mistake", "Wrong behavior", "Wrong patient", "Logged twice", "Other"] as const;
@@ -72,5 +72,5 @@ export async function editLog(obs: Saved, change: Partial<StoredObservation>, no
 const clean = (o?: Partial<StoredObservation>) => o && Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
 function record({ from, to, ...c }: LogChange) {
-  return db.changes.add({ ...c, ...(from ? { from: clean(from) } : {}), ...(to ? { to: clean(to) } : {}) });
+  return db.changes.add({ ...c, ...madeHere(), ...(from ? { from: clean(from) } : {}), ...(to ? { to: clean(to) } : {}) });
 }
