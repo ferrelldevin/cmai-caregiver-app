@@ -8,13 +8,13 @@ This file lists everything in the app that still needs a decision, approval or i
 
 | Gate | When | Who owns it |
 |---|---|---|
-| **G0: Interview demo** | Now. The app has to work properly for the hands-on interview. | Devin |
-| **G1: Lab adoption** | After Devin joins the lab, and only if the lab decides to use this app. | Professor Gupta and the lab |
+| **G0: Interview demo** | Done (interview, October 2026). | Devin |
+| **G1: Lab adoption** | Lab adoption: Dr. Gupta says in writing that the lab will use the app. | Professor Gupta and the lab |
 | **G2: Real-world use** | Before any real caregiver logs a real resident. | The lab, the ODU IRB, and the CMAI copyright holder |
 
 Nothing at G1 or G2 blocks the interview demo. Until an item is signed off, the app uses the default in the "In this build" column. That default is labeled in the app or the docs, so no one mistakes it for an approved rule.
 
-**Status.** `Open` (no one has acted on it yet), `Default in build` (works now, waiting on sign-off), `Done` (finished, with evidence linked), `Deferred` (deliberately parked until a gate).
+**Status.** `Open` (no one has acted on it yet), `Default in build` (works now, waiting on sign-off), `Done` (finished, with evidence linked), `Deferred` (deliberately parked until a gate), `Proposed` (written down with a suggested answer, not settled), `In review` (a pull request is open for it).
 
 **Changing a scoring rule.** A change gets a new rule version (`RULE_VERSION` in `src/scoring/engine.ts`, now `cmai-count-rule-2`). The new version is logged under "Decision log" below, and the hand-scored cases in `docs/test-cases.json` are updated. Old exports keep the label of the rule that scored them.
 
@@ -36,6 +36,17 @@ Nothing at G1 or G2 blocks the interview demo. Until an item is signed off, the 
 | D-12 | Never scale counts up to make up for missed logs | Not scaled | Robustness proposal 5 | Lab | G1 | Default in build |
 | D-13 | Back-dated logs (approximate times) in rating-7 clusters: count them, or count only exact times | Counted like any other log | F-03; spec section 3 | Lab | G1 | Default in build |
 | D-14 | Can a person change the app's rating? | No. Ratings come from live logs only; the day-14 review screen is removed; old review records are kept but never read for scores. A blind caregiver CMAI at day 14 is designed (spec §5), not built | Devin, meeting with Dr. Gupta 2026-10-27; design note 007 | Lab (Dr. Gupta) | G1 | Pending |
+| D-15 | Open question from the thread "Compare app to proposed five-screen flow" (2026-11-04): what "Total score" means and whether it goes first (conflicts with D-08). Full wording to be restored | See the comparison page | none | Dr. Gupta | G1 | Open |
+| D-16 | Open question from the same thread: what a daily report scores. Full wording to be restored | See the comparison page | none | Dr. Gupta | G1 | Open |
+| D-17 | Group average (1 to 7) shown on Two weeks. Research usually reports group sums | Not built. Proposed in note 008 and marked open when it is | `docs/design/notes/008-mockup-to-app.md` | Dr. Gupta | G1 | Open |
+| D-18 | Pattern card thresholds (20 or more logs, 1.5 times the share, 30-minute pairs) are a guess until the lab sets them | Not built. Proposed as named constants, worded "often", never "because" | `docs/design/notes/008-mockup-to-app.md`; build plan 4.3 | Dr. Gupta | G1 | Open |
+| D-19 | A log dated before the patient's first day, and which start date wins when a backup is merged onto a phone that already has that patient | Since step 1.3 a log before the first day is refused, and a restored one is skipped and counted | Audit A-04; build plan 1.3 (PR #50) | Dr. Gupta | G1 | Open |
+| D-20 | Can a patient be deleted once real logging starts, or only archived with a reason | Deleted for good after a confirm, history erased. Proposed: archive with a reason (build plan 5.1) | Audit A-09 | Dr. Gupta | G1 | Open |
+| D-21 | When is a finished period's rating final? Proposed: 24 hours after the period ends, and the export says so | Recomputed on every export | Audit A-10 | Dr. Gupta | G1 | Open |
+| D-22 | Time zone and clock: record the phone's UTC offset on each log; what to do when a phone changes zone | Local time of the phone, offset not stored | Audit A-14, N-03 | Dr. Gupta | G1 | Open |
+| D-23 | Export format 2 and the label file for sensor work: every time given in UTC and local with offset, format and app version in every file | Format 1 only. Proposed in build plan 5.10 (lane B, switched off) | Build plan 5.10; scan section 3 (inference) | Dr. Gupta | G1 | Proposed |
+| D-24 | Do caregivers see the app's ratings during the study? Assumed no, so the comparison with the caregiver's own CMAI stays blind | Caregivers see ratings today. Lab build hides them behind one setting | Build plan 5.0, 5.4, 4.3; Cohen-Mansfield and Libin 2004, DOI 10.1002/gps.1171 (abstract level) | Dr. Gupta | G1 | Proposed |
+| D-25 | How a watch (a span when someone was with the resident) starts and ends | Not built. Assumed: starts on "I'm here" or first log; ends on tap, switch, sign-out or 4 hours (build plan 5.6, lane B) | Build plan 5.6; Iaboni 2022, DOI 10.1002/dad2.12305 | Dr. Gupta | G1 | Proposed |
 
 ## P. Permissions and compliance
 
@@ -47,6 +58,11 @@ Nothing at G1 or G2 blocks the interview demo. Until an item is signed off, the 
 | P-04 | HIPAA and data handling if data come from a clinic or nursing home | Data stays on the device; patients are codes; export is manual | `README.md` Privacy | Lab, partner site (e.g. EVMS) | G2 | Deferred |
 | P-05 | Code license and ownership: MIT now, but work done as an RA may fall under ODU's intellectual property policy | MIT, © Devin Ferrell | `LICENSE` | Professor Gupta / ODU policy | G1 | Open |
 | P-06 | Usability sessions (SUS, think-aloud) if results are used beyond the lab | Materials written, no sessions run | `docs/usability/` | ODU IRB, for a determination | G1 | Deferred |
+| P-08 | Regulatory status: research tool, not a medical device | App small print says so; no sign-off | Audit N-07 | Lab | G1 | Open |
+| P-09 | Languages and reading level the app must support | English only | Audit N-05 | Lab | G1 | Open |
+| P-10 | Whose phones the study runs on: the lab's or the caregivers' own. If their own, a written rule for what happens to the data when a caregiver leaves | Not decided. No real data on any phone (P-03) | Build plan Stage 6 | Lab, with P-03 and P-04 | G2 | Open |
+| P-11 | Free-text notes: keep, limit or remove | Kept, 120 characters, with "no names" beside the field. The data dictionary marks them "check before sharing" | Build plan 5.0 | Lab, with P-03 | G2 | Open |
+| P-12 | The wording "This app tells no one": a log is a record for the study, not an alert; for an injury or an emergency, do what your workplace says | Added to the welcome list and the About page in step 1.10 (PR #56). Reading level about grade 3 | Build plan 1.10 | Dr. Gupta | G1 | Proposed |
 
 ## V. Validation and verification
 
@@ -63,9 +79,13 @@ Each check is done by someone or something other than the author.
 | V-07 | Other platform builds pass the same `docs/test-cases.json` | Same ratings on every case | `docs/test-cases.json` | Other candidates' apps | G1 | Open |
 | V-08 | Literature recall against a published review | Misses reported | Möhler 2023 Cochrane: 0 of 11 caught (map was scoped to the app's questions) | Published review | G1 | Done (a gap, reported) |
 | V-09 | Five-person usability test with SUS | SUS 68+ (industry average) | `docs/usability/` | Caregivers or nurses | G1 | Deferred (P-06) |
-| V-12 | Scores by period: 5-second test and first-click test with a nurse or caregiver. Show a finished period for 5 seconds, then ask "What is the total, and which behavior got worse?" First-click tasks: find Kicking's rating and count; open another period; open History | Correct answer after 5 seconds; first click right on each task | Script in `docs/design/scores-period-verification.md`; no session run yet | A nurse or caregiver | G0 | Open |
-| V-11 | Back-swipe on a real iPhone Home Screen app: from a Data page (such as Display), swipe back | Returns to the Data hub, and a second swipe does not reopen the page | `e2e/navigation.cjs` passes in Chromium. Devin, 2026-10-23, on his iPhone: "When swiping page navigates to the previous page". Returning to the previous page is confirmed; that a second swipe does not reopen the Data page was not itemized (covered in Chromium only) | Devin | G0 | Passed (2026-10-23) |
 | V-10 | End-to-end check of the production build in headless Chromium at phone size: load demo data, log, undo, Scores, Day-14 review, export, reload, then reload offline | Every step works and the console has no errors | Run on 2026-10-23 | Script | G0 | Done |
+| V-11 | Back-swipe on a real iPhone Home Screen app: from a Data page (such as Display), swipe back | Returns to the Data hub, and a second swipe does not reopen the page | `e2e/navigation.cjs` passes in Chromium. Devin, 2026-10-23, on his iPhone: "When swiping page navigates to the previous page". Returning to the previous page is confirmed; that a second swipe does not reopen the Data page was not itemized (covered in Chromium only) | Devin | G0 | Passed (2026-10-23) |
+| V-12 | Scores by period: 5-second test and first-click test with a nurse or caregiver. Show a finished period for 5 seconds, then ask "What is the total, and which behavior got worse?" First-click tasks: find Kicking's rating and count; open another period; open History | Correct answer after 5 seconds; first click right on each task | Script in `docs/design/scores-period-verification.md`; no session run yet | A nurse or caregiver | G0 | Open |
+| V-13 | Manual accessibility pass on an iPhone with VoiceOver and the largest text size. Log, undo, switch patient, open Score, read a rating, open Settings, download a backup | Each failure becomes its own fix | Build plan 2.10. Not yet done. Add the date and what failed here when it is | Devin | G1 | Open |
+| V-14 | Property tests for the scoring rule: order, adding or removing a log, count bands, the 60-minute edge, the 7-day threshold, behaviors independent, across a clock change | All pass at 1,000 random cases each | `tests/engine.properties.test.ts`; build plan 2.11 (PR #59) | Tools | G0 | In review |
+| V-15 | First-click test for Log on one page: name a behavior, record where the first tap lands and how long it takes, 8 behaviors, both layouts | Tabs are not faster and no less accurate, or round 3 stays | Build plan 4.6 | Devin, Shanmei | G1 | Open |
+| V-16 | Internal pilot with made-up data: 7 days of logging from a script of made-up events | Kill rules in build plan 3.6 not triggered | Build plan 3.6 | Devin | G1 | Open |
 
 ## F. Proposed features
 
@@ -94,6 +114,38 @@ Each one waits on a lab decision or on V-01. Severity comes from the heuristic r
 | F-19 | Sheets sit above the on-screen keyboard and keep the focused field in view | Devin's iPhone test, 2026-10-26: choosing Other opened the keyboard but the note field was hidden behind it (note 003 follow-up) | none | Verified on iPhone (2026-10-26) |
 | F-21 | Delete a log with a reason and a confirm; the log is kept, marked deleted, and skipped in scoring; every edit, delete and undo goes in a change history | Devin, 2026-10-27: deletions must be accountable for the study | D-14 | Merged in PR #17 (2026-10-27), design note 007 |
 | F-22 | Screen-reader names match the visible words: the patient banner says its own text plus "Choose patient" on every tab; the "At log" time button is named "At log, when I logged it" | Checks run on Devin's PC, 2026-10-27: axe 4.14 flagged `label-content-name-mismatch` on 48 screens (the banner) and on the log details sheet | none | Merged in PR #22 (2026-10-27); axe 4.14: 0 violations in 72 scans |
+| F-23 | Open question from the same thread: a shorter Log screen (the Log screen was 5.3 phone screens tall). Full wording to be restored | Reserved | none | G1 |
+| F-24 | Open question from the same thread: a Settings tab (Data is the tab today). Full wording to be restored | Reserved | none | G1 |
+| F-25 | Shell: compact resident bar with color badge; floating bar with Log, Score and Settings (Data renamed Settings) | Mockup round 3, phase 1 | none | G0 |
+| F-26 | Log: behavior icons, 3-across left-aligned tiles, count top right, most-logged row, group tabs | Mockup round 3, phase 2 | F-25 | G0 |
+| F-27 | Report, Today: logs by hour, behaviors you can open, Remove asks for a reason | Mockup round 3, phase 3 | F-25 | G0 |
+| F-28 | Report, Two weeks: charts, behavior groups, the table, patterns, CSV export | Mockup round 3, phase 4 | F-27, D-17, D-18 | G0 |
+| F-29 | Score: the mockup's row style and "vs last" arrows, behaviors first per D-08 | Mockup round 3, phase 5 | F-28 | G0 |
+| F-30 | Patient switcher builds its list from the current patients, not the last database answer | Stops a stale list after adding patients (audit A-01, A-02). In review: PR #43 | none | G0 |
+| F-31 | Restoring a backup checks every entry and skips bad ones, counting them | A damaged or hand-edited file must not put impossible dates or codes in the data (audit A-03). In review: PR #47 | none | G0 |
+| F-32 | A log cannot be dated before the patient's first day | Keeps every log inside a period (audit A-04). In review: PR #50 | F-31, D-19 | G0 |
+| F-33 | A failed save shows a clear message, and a crash shows one plain screen | Silent failure looks like success (audit A-05, A-06). In review: PR #52 | none | G0 |
+| F-34 | CSV exports cannot run as spreadsheet formulas | A text cell starting with =, +, - or @ can run in Excel (OWASP CSV injection). In review: PR #48 | none | G0 |
+| F-35 | The app moves to the new day at midnight and when it is reopened | A phone left open overnight logged to yesterday (audit A-11). In review: PR #53 | none | G0 |
+| F-36 | A reminder to download a backup when the last one is old | Logs are only on the phone until backed up (audit A-12). In review: PR #54 | none | G0 |
+| F-37 | One "What counts as each behavior?" sheet in place of an info button on each tile | 29 small targets next to 29 large ones (Part 8, U4). Build plan 4.1 | F-26 | G1 |
+| F-38 | Watching hours: record when someone was with the resident, so "nothing logged" can be told from "nobody was watching" | Sensor studies' "not agitated" class includes anything staff did not see (Iaboni 2022, DOI 10.1002/dad2.12305; Khan 2021, arXiv 2104.09305, preprint). That the app can fix this is an inference. Build plan 5.6, lane B, switched off | D-25, D-11 | G1 |
+| F-39 | Optional "it stopped" tap, giving a log an end time | Sensor models need a start and an end (Iaboni 2022). Build plan 5.7, lane B, switched off | F-44 | G1 |
+| F-40 | Clock check screen in lab view: how far the phone's clock is from a reference the caregiver reads out | Event times must line up with sensor time. Build plan 5.8, lane A, shown only when lab view is on | F-48 | G1 |
+| F-41 | Three more "just before" chips on the confirmation | Triggers differ by person (Bankole 2020, DOI 10.1177/1533317520906686). Build plan 5.9, lane B, switched off | F-48 | G1 |
+| F-42 | Pattern card names its evidence in lab view: episodes cluster by time of day, triggers differ by person | Abedi 2025 (preprint, arXiv 2506.06306); Bankole 2020. Supports an existing screen and adds nothing to build. Build plan 4.3 | D-18 | G1 |
+| F-43 | Alert check: could the app's logs feed an alert. Design note only | Needs data to leave the phone, which is on the Stop list. Build plan 7.1 | P-03, P-04 | G2 |
+| F-44 | Database version 4: fields and tables for caregivers, watches, end times, archive | Needed by the lane B features. Build plan 5.1, switched off | F-48, D-20, D-22 | G1 |
+| F-45 | Caregiver profiles: who made each log | Build plan 5.2 (R2), lane B, switched off | F-44 | G1 |
+| F-46 | On-phone PIN, 4 digits, once per shift | Build plan 5.3 (R1), lane B, switched off. Uses the threat model from step 3.3 | F-45, P-10 | G1 |
+| F-47 | Blind day-14 CMAI: the caregiver fills a full CMAI for the period without seeing the app's ratings | Compares the app with the caregiver's own rating (D-14). Build plan 5.4, lane B, switched off | D-24, D-06 | G1 |
+| F-48 | Study settings: one place where every lane B feature has a switch, fixed when the app is built | A caregiver cannot turn anything on. Build plan 5.0 | none | G1 |
+| F-49 | Tabs: Log, Today, Two weeks, Settings | Mockup round 4. Build plan 4.0, 4.2 to 4.4 | F-25 | G1 |
+| F-50 | Log on one page with jump links | With group tabs 20 of 29 behaviors are behind a tab at any moment (Part 8, U2). Build plan 4.6 | F-49, V-15 | G1 |
+| F-51 | "When did it happen" chips on the confirmation | Caregivers log after the event, so the worst behaviors get the latest times (Part 8, U5). Build plan 4.7 | F-49 | G1 |
+| F-52 | Not used. The number is skipped in the build plan and kept here so it is not reused | none | none | G1 |
+| F-53 | Ask the phone to keep the app's data | Browsers may clear a site's data under storage pressure (audit A-13). In review: PR #55 | none | G0 |
+| F-54 | Copyable diagnostics: the last 30 errors, no patient codes, nothing sent anywhere | When a caregiver says "it did not save", nobody can see why. In review: PR #60 | F-33 | G0 |
 
 ## Decision log
 
