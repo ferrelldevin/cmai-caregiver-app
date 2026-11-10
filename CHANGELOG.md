@@ -26,6 +26,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
 
 ### Changed
+- Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
 - Change process and pull request template: screenshots go in the pull request description, not in the repository (B-17).
 
 ### Security
@@ -43,6 +44,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
 ### Fixed
+- The patient switcher lists the current patients the first time it opens after patients are added or deleted. Before, it could show the previous list, and search said "No patient code contains …" for a patient that existed (F-30).
 - The scoring spec said the Total card lists the behaviors marked as changed; since F-20 each behavior row says how it moved instead. The spec now says so, and F-20 has its own register row.
 - A sheet reopened straight after Cancel could close itself: the browser's late "close" event from the first closing shut the new one. Found as an intermittent CI timeout in the `flows` check.
 - `NOTICE` said "[requested on DATE / granted on DATE]"; it now says permission has not been requested yet (register P-01).
