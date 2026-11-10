@@ -20,6 +20,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Security
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
+### Fixed
+- The patient switcher lists the current patients the first time it opens after patients are added or deleted. Before, it could show the previous list, and search said "No patient code contains …" for a patient that existed (F-30).
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
