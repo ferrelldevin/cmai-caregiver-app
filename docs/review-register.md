@@ -142,3 +142,4 @@ Newest first. Every rule change and every sign-off goes here, with who and when.
 | 2026-10-22 | Meaningful-change marker (2+ points, or 1 point held) | Devin (research map) | Pending (D-10) |
 | 2026-10-22 | Item definitions reworded; MIT + NOTICE | Devin (permissions audit) | Pending (P-01, P-05) |
 | 2026-10-21 | `cmai-count-rule-1`: count bands and rating-7 rule | Devin | Pending (D-01, D-02) |
+| 2026-11-10 | V-14: property tests for the scoring rule (`tests/engine.properties.test.ts`, fast-check, 1,000 random cases per property, in an ordinary period and one with a clock change). No change under `src/`; no property failed, so the rule behaves as the spec says for these inputs | Claude (build plan step 2.11) | Lane A. Checked by mutation: changing a band edge, the 60-minute edge or the 7-day threshold in the engine makes the tests fail |

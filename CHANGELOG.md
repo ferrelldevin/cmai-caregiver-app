@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- Property tests for the scoring rule (fast-check): order of logs, adding or removing a log, the count bands, the 60-minute cluster edge, the 7-day threshold, and behaviors not affecting each other, across a clock change. No change to the rule.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.
