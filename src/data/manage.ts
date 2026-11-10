@@ -7,7 +7,9 @@
 import { study } from "../study/settings";
 import {
   ARCHIVE_REASONS,
+  checkInKey,
   db,
+  reviewKey,
   type Assignment,
   type Caregiver,
   type CaregiverRating,
@@ -160,6 +162,8 @@ export function parseBackup(raw: string, now = Date.now()) {
       return null;
     if (!int(r.choice) || r.choice < 1 || r.choice > 9 || typeof r.derived !== "number" || !Number.isFinite(r.derived))
       return null;
+    // The key is how a review is found again; one that names another patient or window would file it there.
+    if (r.key !== reviewKey(r.patientId, r.windowStart, r.itemId)) return null;
     return {
       key: r.key,
       patientId: r.patientId,
@@ -180,6 +184,7 @@ export function parseBackup(raw: string, now = Date.now()) {
       !inRange(c.at)
     )
       return null;
+    if (c.key !== checkInKey(c.patientId, c.day)) return null; // the same for a check-in
     const made = cleanMade(c);
     if (!made) return null;
     return { key: c.key, patientId: c.patientId, day: c.day, at: c.at, ...made };
