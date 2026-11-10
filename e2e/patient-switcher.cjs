@@ -48,11 +48,11 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.waitForTimeout(4300);
   ok((await p.locator(".switch-notice").textContent()).trim() === "", "confirmation clears after 4 seconds");
   // Search appears with 8+ patients
-  await p.locator("nav.tabs button", { hasText: /data/i }).click();
+  await p.locator("nav.tabs button", { hasText: /settings/i }).click();
   for (const n of ["P-01", "P-02", "P-03", "P-04", "P-05", "P-06"]) {
     await p.getByRole("textbox", { name: "New patient code" }).fill(n);
     await p.getByRole("button", { name: "Add", exact: true }).click();
-    await p.locator("nav.tabs button", { hasText: /data/i }).click();
+    await p.locator("nav.tabs button", { hasText: /settings/i }).click();
   }
   await banner().click(); await sheet().waitFor();
   const search = sheet().getByRole("searchbox", { name: "Find a patient by code" });

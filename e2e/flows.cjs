@@ -24,7 +24,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByLabel("New patient code").fill("p-07"); await p.keyboard.press("Enter");
   await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor(); ok((await p.locator(".pt-id b").textContent()) === "P-07", "Enter adds P-07 and opens Log with P-07 in the banner");
   // empty states
-  await p.locator("nav.tabs button", { hasText: "Scores" }).click();
+  await p.locator("nav.tabs button", { hasText: "Score" }).click();
   await p.getByText("No logs yet for this patient.").waitFor(); ok(true, "Scores empty state");
   await p.screenshot({ path: `${OUT}/flow-01-scores-empty.png` });
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
@@ -93,11 +93,11 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(!(await sheet.isVisible()), "Esc closes the sheet");
   await p.mouse.click(10, 300);
   // data: demo, export, restore, delete patient
-  await p.locator("nav.tabs button", { hasText: "Data" }).click();
+  await p.locator("nav.tabs button", { hasText: "Settings" }).click();
   await p.getByRole("link", { name: /^Demo data/ }).click();
   await p.getByRole("button", { name: "Load demo data" }).click();
   await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor();
-  await p.locator("nav.tabs button", { hasText: "Data" }).click();
+  await p.locator("nav.tabs button", { hasText: "Settings" }).click();
   await p.getByRole("link", { name: /^Backup and export/ }).click();
   const dl = p.waitForEvent("download");
   await p.getByRole("button", { name: "Download backup" }).click();
@@ -106,7 +106,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByText(/Last export: today/).waitFor(); ok(true, "last export shown");
   const dl2 = p.waitForEvent("download"); await p.getByRole("button", { name: "Logs CSV" }).click(); ok((await dl2).suggestedFilename().endsWith(".csv"), "logs CSV downloads");
   const before = JSON.parse(fs.readFileSync(path, "utf8")).observations.length;
-  await p.getByRole("button", { name: "Data", exact: true }).click();
+  await p.getByRole("button", { name: "Settings", exact: true }).click();
   await p.getByRole("link", { name: /Last export today/ }).waitFor(); ok(true, "hub row shows last export");
   const rows = await p.locator(".patient-list li").count();
   await p.getByRole("button", { name: "Delete P-07" }).click();
@@ -154,7 +154,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   ok((await p.locator(".recent-list li").first().textContent()).includes("Mealtime"), "restored P-07 log keeps details");
   // offline reload
-  await p.locator("nav.tabs button", { hasText: "Scores" }).click();
+  await p.locator("nav.tabs button", { hasText: "Score" }).click();
   await p.reload(); await p.waitForTimeout(1500);
   await ctx.setOffline(true); await p.reload(); await p.getByRole("heading", { name: /^Period \d+ scores/ }).waitFor({ timeout: 8000 });
   ok(true, "reload offline works, and stays on Scores");

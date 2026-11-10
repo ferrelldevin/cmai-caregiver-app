@@ -675,7 +675,7 @@ function Choice<T extends string>({
 function DisplaySettings() {
   const [theme, setTheme] = useState(getThemePref);
   const [contrast, setContrast] = useState(getContrastPref);
-  // The header button changes the theme too; keep these radios in step with it.
+  // Match phone can change the theme from outside; keep these radios in step with it.
   useEffect(
     () =>
       onDisplayChange(() => {
