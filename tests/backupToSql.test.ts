@@ -6,7 +6,6 @@ import Dexie from "dexie";
 // @ts-expect-error node:sqlite ships with Node 22 but this repo has no @types/node
 import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
-// @ts-expect-error plain JavaScript module with JSDoc types
 import {
   BEFORE_OPTIONS as SQL_BEFORE,
   DELETE_REASONS as SQL_REASONS,
