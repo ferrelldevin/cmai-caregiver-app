@@ -37,6 +37,8 @@ jobs:
         run: npm run gen:cases && git diff --exit-code docs/test-cases.json
       - name: The agreement script's own check
         run: python3 docs/agreement/analyze.py --selftest
+      - name: Critical vulnerabilities in any dependency, including test tools
+        run: npm audit --audit-level=critical
       - name: Known vulnerabilities in the app's own dependencies
         run: npm audit --omit=dev --audit-level=high
       - run: npm run build
