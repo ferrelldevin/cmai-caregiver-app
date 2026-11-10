@@ -61,6 +61,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("button", { name: "Settings", exact: true }).click(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data"), "on-page Back button returns to the hub");
   await p.getByRole("link", { name: /How ratings/ }).click(); await p.waitForTimeout(300);
+  ok(/Data on this phone: (kept|may be cleared)/.test(await p.locator("main").textContent()), "About says whether the phone keeps the data (F-53)");
   await tab(/^Log$/); await p.waitForTimeout(500);
   ok(p.url().endsWith("#/log"), "switching tab from a Data page goes to Log");
   await p.goBack(); await p.waitForTimeout(400);

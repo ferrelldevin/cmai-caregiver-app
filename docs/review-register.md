@@ -105,6 +105,7 @@ Implemented on a review branch: one selected period scopes totals, behaviors, st
 
 | Date | Change | By | Approved by |
 |---|---|---|---|
+| 2026-11-10 | F-53: ask the browser to keep the app's data (`navigator.storage.persist`); About page shows the answer. Nothing stored (build plan 1.9). Stacked on #54 | Claude | Lane A. Devin to merge |
 | 2026-11-10 | F-36: backup reminder line on the Log screen. Kill rule: remove it if it nags in use (build plan 1.8, audit N-01). Stacked on the shell PR #41 | Claude | Lane A. Devin to merge and try |
 | 2026-11-10 | F-35: data refreshes at local midnight and on return to the app (`src/App.tsx`). Stacked on the shell PR #41. No rating, field or export change (build plan 1.7, audit A-11) | Claude | Lane A. Devin to merge |
 | 2026-10-27 | README "How this was built" corrected: the AI agent wrote the scoring spec and test cases; Devin set the requirements and study rules and reviewed every change | Claude (cloud), on Devin's ask | n/a (docs only, no scoring change) |
