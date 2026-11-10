@@ -54,3 +54,30 @@ Before building, list what the change looks like in each of these. The PR checkl
 
 ## Definition of done
 The problem is recorded, the shape is written down, every state above is handled, every check in step 5 passed, the register and docs are updated, and the change is live.
+
+## Lanes
+
+The full rules are in [build-plan.md](build-plan.md), section 1.3. In short, every step of the plan is in one lane.
+
+| Lane | What it covers | May start | How it ships |
+|---|---|---|---|
+| **A. Build now** | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown | Now | Draft pull request. Devin merges |
+| **B. Build on assumed approval** | Anything that adds or changes a stored field, adds sign-in or caregiver identity, changes what is collected, or adds to what an export contains | Now | Draft pull request, behind a study setting that is off in the caregiver build. The register row says "Built on assumed approval. Sign-off pending", with the assumed answer |
+| **Stop** | A real person or real participant data. Sending anything to Dr. Gupta or outside the lab. A server, account or approval the lab has not provided. Merging and GitHub settings | Only the part marked "can be done now" | Write the design or the draft. Do not fake the missing piece |
+
+**The four-part test for lane A.** All four must be true:
+
+1. Ratings for `docs/test-cases.json` are unchanged.
+2. No new field or table in `src/data/db.ts`, and no new value collected from a caregiver.
+3. Nothing leaves the phone that did not before.
+4. `git revert` of the pull request puts the app back exactly.
+
+If 2 or 3 is false, the work is lane B. If 1 is false, stop: a scoring change needs a new `RULE_VERSION`.
+
+**Rules for lane B.**
+
+1. Behind a setting that is off in the caregiver build, so the app looks and behaves exactly as before.
+2. Every new stored field goes into one database version (version 4). No version 5 without a new step in the plan.
+3. The pull request says how to undo it. A database upgrade cannot be taken back on a phone: say what a phone needs after a revert (export, clear the app, restore).
+4. The register row comes first, in the same pull request, with the assumed answer in plain words and what would change if Dr. Gupta picks another option.
+5. Nothing is settled. If Dr. Gupta later says no, the feature is removed or changed in one pull request and the row records it.
