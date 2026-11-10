@@ -105,6 +105,7 @@ Implemented on a review branch: one selected period scopes totals, behaviors, st
 
 | Date | Change | By | Approved by |
 |---|---|---|---|
+| 2026-11-10 | F-35: data refreshes at local midnight and on return to the app (`src/App.tsx`). Stacked on the shell PR #41. No rating, field or export change (build plan 1.7, audit A-11) | Claude | Lane A. Devin to merge |
 | 2026-10-27 | README "How this was built" corrected: the AI agent wrote the scoring spec and test cases; Devin set the requirements and study rules and reviewed every change | Claude (cloud), on Devin's ask | n/a (docs only, no scoring change) |
 | 2026-10-27 | Accessible names match visible text (F-22): patient banner drops its custom label on every tab; "At log" button label starts with its visible words. No scoring change | Claude (cloud), from the PC check run | Pending (Devin) |
 | 2026-10-26 | F-20 additions after comparing two builds (note 006): change since last period on each behavior row (D-10 rule), period in the URL `#/scores/p<n>`, arrow buttons so period chips fit, in-progress hint on earlier periods, History follows "show all". Claude build PR #15 closed in favour of this layout | Devin (chose the layout) | n/a (no scoring change) |

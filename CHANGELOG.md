@@ -20,6 +20,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Security
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
+### Fixed
+- "Today" stays right when the app is left open: the count and Today lists refresh at midnight and when the phone returns to the app. Before, a log made after midnight could be counted against yesterday until a reload (F-35).
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
