@@ -17,6 +17,7 @@
     "checks:report": "node scripts/run-checks.mjs --push",
     "gen:cases": "node scripts/make-test-cases.mjs",
     "lint": "eslint .",
+    "check:docs": "node scripts/check-docs.mjs",
     "typecheck": "tsc -b",
     "prepare": "lefthook install",
     "storybook": "storybook dev -p 6006",
@@ -50,7 +51,7 @@
     "storybook": "10.6.5",
     "typescript": "5.8.3",
     "typescript-eslint": "8.72.0",
-    "vite": "6.3.5",
+    "vite": "6.4.5",
     "vite-plugin-pwa": "1.0.0",
     "vitest": "3.2.4"
   }
