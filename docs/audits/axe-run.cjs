@@ -29,12 +29,16 @@ async function scan(page, name, results) {
     await page.goto(URL);
     await scan(page, "Welcome (first run)", results);
     await page.getByRole("button", { name: "Try demo data" }).click();
-    await page.getByRole("button", { name: /^7 Hitting/ }).waitFor();
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
     await scan(page, "Log", results);
-    await page.getByRole("button", { name: /^What does not count/ }).first().click();
-    await page.getByRole("button", { name: /^7 Hitting/ }).click();
+    await page.getByRole("button", { name: "What counts as each behavior?" }).click();
+    await page.getByRole("dialog", { name: "What counts as each behavior" }).waitFor();
+    await scan(page, "What counts as each behavior (sheet)", results);
+    await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
     await page.locator(".snackbar").waitFor();
-    await scan(page, "Log (after a tap: confirmation, exclusion open)", results);
+    await scan(page, "Log (after a tap: confirmation)", results);
     await page.locator(".snackbar").getByRole("button", { name: "Edit" }).click();
     await page.getByRole("dialog", { name: /^Hitting/ }).waitFor();
     await scan(page, "Log details sheet (from the confirmation)", results);
@@ -54,7 +58,7 @@ async function scan(page, name, results) {
     // top so the result does not depend on scroll position.
     await page.evaluate(() => window.scrollTo(0, 0));
     await scan(page, "Log (checked in: nothing to log today)", results);
-    await page.getByRole("button", { name: /^7 Hitting/ }).click(); // makes sure there is a recent log to edit
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); // makes sure there is a recent log to edit
     await page.getByRole("button", { name: /^Edit / }).first().click();
     await page.getByRole("dialog").waitFor();
     await scan(page, "Log details sheet (from Recent logs)", results);

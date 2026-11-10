@@ -6,6 +6,10 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ## [Unreleased]
 
+### Changed
+- Log screen from the round 3 mockup (F-26): behavior tiles 3 across with icons and today's count, group tabs, and a "Most logged for this resident" row.
+- What counts as each behavior moved off the buttons into one sheet, opened under the tiles or by holding a tile (F-37).
+
 ### Added
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.

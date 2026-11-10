@@ -17,7 +17,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));
   await p.goto(URL);
   await p.getByRole("button", { name: "Try demo data" }).click();
-  const item = p.getByRole("button", { name: /^16 Trying/ });
+  await p.getByRole("tab", { name: "Physical" }).tap();
+  const item = p.getByRole("tabpanel").getByRole("button", { name: /^Trying to leave/ });
+  // Scroll a little first, so the check below can see the page held at that spot.
+  await p.evaluate(() => window.scrollTo(0, 200)); await p.waitForTimeout(100);
   await item.scrollIntoViewIfNeeded(); await item.tap();
   await p.locator(".snackbar").getByRole("button", { name: "Edit" }).tap();
   const sheet = p.getByRole("dialog", { name: /^Trying/ });
