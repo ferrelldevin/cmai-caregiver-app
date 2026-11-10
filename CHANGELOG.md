@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- `docs/process/release.md`: how to cut a release and how to undo a bad deploy. The deploy job now checks that the live page shows the commit it just deployed.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.
@@ -16,15 +17,35 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Content-Security-Policy meta tag in the built app: scripts only from the app's own files plus the inline theme script, allowed by a hash worked out at build time.
 - Dependabot: one grouped update PR a month for npm and for GitHub Actions.
 - Playwright 1.63.0 and axe-core 4.14.0 pinned as dev dependencies, so the browser checks run the same versions everywhere.
+- `npm run check:docs`, run in CI: every rule in the scoring spec names the check that tests it, and the run fails if that check is renamed or removed; relative links, `file:line` references and register IDs must all resolve.
+- Screenshot comparison (`e2e/screenshots.cjs`): Log, Scores, Data and Display at phone size, light and dark, compared with saved baselines; differences fail the check and save a diff image.
+- Database upgrade test from version 2, and a test that fails when a new schema version has no upgrade test.
+- Test that a phone restored from a backup shows the same ratings as the phone that made it.
+- Backups name the app version and build commit next to the rule version; the "How ratings are worked out" page shows the build too.
+- A version bump in `package.json` merged to main is tagged `v<version>` automatically.
+- `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
+
+### Changed
+- Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
 
 ### Security
+- Vitest and its coverage tool upgraded to 5.1.0 and Vite to 6.4.6: the 3 critical and 1 high advisories in the test tools are gone. CI also fails on any critical advisory in any dependency.
+- GitHub Actions in `pages.yml` are pinned to full commit SHAs, so a moved tag cannot change what runs. Runs on `main` are never cancelled, and every job stops after 15 minutes.
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 - CSV export: a note that starts with `=`, `+`, `-`, `@`, a tab or a return gets a leading apostrophe, so Excel and Sheets show it as text instead of running it as a formula (F-34). A leading `'` in a note column means the note began with one of those characters.
+
+### Changed
+- A new CI job, Dependency review, fails a pull request that adds a dependency with a known high-severity advisory.
+- React 19. The app looks and behaves the same.
+- Build tools upgraded: Vite 8, the React plugin 6 and the PWA plugin 2. The app and its offline behavior are unchanged.
+- CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
 ### Fixed
+- The patient switcher lists the current patients the first time it opens after patients are added or deleted. Before, it could show the previous list, and search said "No patient code contains …" for a patient that existed (F-30).
+- The scoring spec said the Total card lists the behaviors marked as changed; since F-20 each behavior row says how it moved instead. The spec now says so, and F-20 has its own register row.
 - A sheet reopened straight after Cancel could close itself: the browser's late "close" event from the first closing shut the new one. Found as an intermittent CI timeout in the `flows` check.
 - `NOTICE` said "[requested on DATE / granted on DATE]"; it now says permission has not been requested yet (register P-01).
 

@@ -3,6 +3,7 @@
 // scores.csv: one row per patient, window, and behavior: the app's rating from live logs only.
 // JSON also holds the "nothing to log today" check-ins, the change history, and any day-14
 // reviews from before scores were locked (D-14); scores.csv has unlogged_days per window.
+// Every JSON backup names the app version and build commit that made it, next to the rule version.
 
 import { RULE_VERSION, scoreAllWindows, unloggedDays } from "../scoring/engine";
 import { ITEMS } from "../scoring/items";
@@ -94,6 +95,8 @@ export async function buildExport(now = Date.now()) {
     json: JSON.stringify(
       {
         exportedAt: new Date(now).toISOString(),
+        appVersion: __APP_VERSION__,
+        build: __BUILD_COMMIT__,
         ruleVersion: RULE_VERSION,
         patients,
         observations,

@@ -55,6 +55,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
     await p.locator("nav.tabs button", { hasText: /data/i }).click();
   }
   await banner().click(); await sheet().waitFor();
+  // Read the row count in the same call that sees the dialog open: the list must be current from the first paint.
+  const firstPaint = await p.evaluate(() => document.querySelectorAll("dialog[open] .sheet-row").length);
+  ok(firstPaint === 8, "sheet lists all 8 patients on first paint (saw " + firstPaint + ")");
   const search = sheet().getByRole("searchbox", { name: "Find a patient by code" });
   // The 8th patient comes in with the last Add's refresh, which can land after the sheet opens.
   await search.waitFor({ timeout: 5000 }).catch(() => {});
