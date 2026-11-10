@@ -145,3 +145,4 @@ Newest first. Every rule change and every sign-off goes here, with who and when.
 | 2026-10-22 | Meaningful-change marker (2+ points, or 1 point held) | Devin (research map) | Pending (D-10) |
 | 2026-10-22 | Item definitions reworded; MIT + NOTICE | Devin (permissions audit) | Pending (P-01, P-05) |
 | 2026-10-21 | `cmai-count-rule-1`: count bands and rating-7 rule | Devin | Pending (D-01, D-02) |
+| 2026-11-10 | F-54: the last 30 errors are kept on the phone (`cmai-diagnostics` in localStorage: time, error name, message cut at any patient-code-like text and at 200 characters, screen name only, app version). About page has Copy diagnostics and the line "Nothing is sent anywhere. Copying is up to you." No database change; nothing leaves the phone | Claude (build plan step 2.13) | Lane A, no sign-off needed. Stacked on step 1.4 (save failure). The plan's "build" is left out: the app has a version but no build number, and adding one would make builds differ |
