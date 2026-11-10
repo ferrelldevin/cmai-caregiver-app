@@ -32,6 +32,7 @@ const LAB_CHECKS = [
   { name: "lab: blind rating", file: "e2e/blind-rating.cjs" },
   { name: "lab: clock", file: "e2e/clock.cjs" },
   { name: "lab: before chips", file: "e2e/before-chips.cjs" },
+  { name: "lab: protected backup", file: "e2e/protect-backup.cjs" },
 ];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");

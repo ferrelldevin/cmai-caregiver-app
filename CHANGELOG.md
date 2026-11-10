@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- Passphrase-protected backup, lab build only (F-10): Export asks for a passphrase of 12 or more characters and encrypts the backup, with the CSVs inside. Restore opens it, offline too.
 - Export format 2, lab build only (D-23): more columns at the end of each CSV (unique ID, phone, caregiver, local time with offset), and three new files: labels, caregiver ratings and watches.
 - Three more "just before" choices, lab build only (F-41): Too hot or too cold, Slept badly last night, Seemed unwell.
 - Clock check, lab view only (F-40): Settings > Clock check shows the phone's time to the tenth of a second, the UTC offset and the device ID, to film beside a wristband or camera. Stores nothing.
@@ -26,6 +27,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Playwright 1.63.0 and axe-core 4.14.0 pinned as dev dependencies, so the browser checks run the same versions everywhere.
 
 ### Security
+- The backup message no longer suggests email or a cloud drive; it says to keep the file where the study team said (A-12).
 - CSV cells that start with =, +, -, @ get a leading ' so a spreadsheet cannot run them as formulas (F-34).
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 

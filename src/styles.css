@@ -2482,3 +2482,14 @@ table.cmp td {
   font-weight: 600;
   margin: 0;
 }
+
+/* Passphrase for a protected backup (F-10, plan 5.11). */
+.pass-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+.pass-form input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
