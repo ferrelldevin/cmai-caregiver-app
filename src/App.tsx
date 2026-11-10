@@ -10,6 +10,8 @@ import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
 import { CaregiverPage, WhoSheet } from "./ui/CaregiverScreen";
 import { SignInScreen } from "./ui/SignInScreen";
+import { RatingScreen } from "./ui/RatingScreen";
+import { ratingsDue as findRatingsDue } from "./data/caregiverRatings";
 import { endSession, readSession, startSession } from "./data/session";
 import { activeCaregivers, chooseLoggingCaregiver, myResidents, readLoggingCaregiver } from "./data/caregivers";
 import type { Caregiver } from "./data/db";
@@ -152,6 +154,20 @@ export default function App() {
     };
   }, [loggingAs]);
   const me = caregivers.find((c) => c.id === loggingAs);
+  // Two-week ratings the caregiver logging now still owes for the open resident (F-47, plan 5.4).
+  const RATING_ON = study.blindCmai && study.caregiverProfiles;
+  const [due, setDue] = useState<number[]>([]);
+  const duePatient = patients.find((p) => p.id === patientId);
+  useEffect(() => {
+    if (!RATING_ON || !duePatient || !loggingAs) return setDue([]);
+    let live = true;
+    findRatingsDue(duePatient, loggingAs, Date.now())
+      .then((d) => live && setDue(d))
+      .catch(() => live && setDue([]));
+    return () => {
+      live = false;
+    };
+  }, [RATING_ON, duePatient, loggingAs, observations, route.rating]);
   const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
 
   // The section bars pin just under the patient banner, so they need its height.
@@ -315,7 +331,11 @@ export default function App() {
 
       <main ref={mainRef} tabIndex={-1} aria-busy={!everLoaded}>
         <h1 className="sr">
-          {shown === "data" && route.page ? PAGE_TITLES[route.page] : TABS.find((t) => t.id === shown)!.title}
+          {route.rating && RATING_ON
+            ? "Two-week rating"
+            : shown === "data" && route.page
+              ? PAGE_TITLES[route.page]
+              : TABS.find((t) => t.id === shown)!.title}
           {current ? `, ${current.id}` : ""}
         </h1>
         {!everLoaded ? (
@@ -354,6 +374,22 @@ export default function App() {
                 : undefined
             }
           />
+        ) : shown === "log" && route.rating && RATING_ON ? (
+          (() => {
+            const p = patients.find((x) => x.id === route.rating!.patientId);
+            if (!p || !me)
+              return <p className="msg">{!p ? "No such resident on this phone." : "Choose who is logging first."}</p>;
+            return (
+              <RatingScreen
+                key={`${p.id}-${route.rating!.period}-${me.id}`}
+                patient={p}
+                period={route.rating!.period}
+                by={me.id}
+                byInitials={me.initials}
+                onDone={() => go({ tab: "log", page: null })}
+              />
+            );
+          })()
         ) : shown === "log" ? (
           <LogScreen
             patientId={patientId!}
@@ -361,6 +397,12 @@ export default function App() {
             checkins={checkins}
             onChange={refresh}
             initialsOf={study.caregiverProfiles ? initialsOf : undefined}
+            ratingsDue={due}
+            onRate={
+              RATING_ON
+                ? (n) => go({ tab: "log", page: null, rating: { patientId: patientId!, period: n } })
+                : undefined
+            }
           />
         ) : loaded && !error ? (
           <ScoresScreen

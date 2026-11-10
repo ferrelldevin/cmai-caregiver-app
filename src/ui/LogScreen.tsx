@@ -36,9 +36,12 @@ interface Props {
   onChange: () => void;
   /** Caregiver code to initials, when caregiver profiles are on (R2): recent logs say who logged them. */
   initialsOf?: Record<string, string>;
+  /** Periods whose two-week rating the caregiver logging now still has to give (F-47). Never a blocker. */
+  ratingsDue?: number[];
+  onRate?: (period: number) => void;
 }
 
-export function LogScreen({ patientId, observations, checkins, onChange, initialsOf }: Props) {
+export function LogScreen({ patientId, observations, checkins, onChange, initialsOf, ratingsDue = [], onRate }: Props) {
   const [openInfo, setOpenInfo] = useState<number | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
@@ -124,6 +127,12 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
         <p className="screen-title" aria-hidden>Log a behavior</p>{/* the screen heading is the h1 in App */}
         <p className="today-count">{loggedToday ? <><b>{loggedToday}</b> logged today</> : "Nothing logged yet today"}</p>
       </div>
+      {onRate && ratingsDue.length > 0 && (
+        <div className="due-line">
+          <p>Two-week rating due for {patientId}{ratingsDue.length > 1 ? ` (period ${ratingsDue[0]})` : ""}</p>
+          <button className="small" onClick={() => onRate(ratingsDue[0])}>Rate</button>
+        </div>
+      )}
       <p className="hint">Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is one stretch of it.</p>
       <SectionNav label="Jump to a group" sections={sections} />
       {GROUP_ORDER.map((g) => (
