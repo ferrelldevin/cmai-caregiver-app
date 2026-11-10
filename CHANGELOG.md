@@ -19,6 +19,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Security
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
+- CSV export: a note that starts with `=`, `+`, `-`, `@`, a tab or a return gets a leading apostrophe, so Excel and Sheets show it as text instead of running it as a formula (F-34). A leading `'` in a note column means the note began with one of those characters.
 
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
