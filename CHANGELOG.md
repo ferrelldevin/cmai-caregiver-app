@@ -22,6 +22,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
 ### Changed
+- A new CI job, Dependency review, fails a pull request that adds a dependency with a known high-severity advisory.
 - CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
 ### Removed
