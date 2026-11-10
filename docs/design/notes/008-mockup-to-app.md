@@ -33,6 +33,8 @@ Not built, because a decision is still open. The mockup shows these, but the app
 3. **Phases in parallel threads.** Faster in calendar time, but the shell (phase 1) touches every screen, so later phases would conflict with it until it merges.
 
 ## Decision (proposed)
+
+The order and acceptance criteria now live in docs/process/build-plan.md, Stage 4.
 Option 2. Phase 1 first, then phases 2 to 5 one at a time (or in parallel once phase 1 is merged).
 
 | Phase | Pull request | Register | Size |

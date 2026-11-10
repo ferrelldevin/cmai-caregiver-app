@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
@@ -41,13 +42,38 @@ function contentSecurityPolicy(): Plugin {
   };
 }
 
+// The commit a build came from, shown on the "How ratings are worked out" page and saved in every
+// backup, so a result can be traced to the exact code that produced it. CI sets GITHUB_SHA.
+function buildCommit() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7);
+  try {
+    return execFileSync("git", ["rev-parse", "--short=7", "HEAD"], { encoding: "utf8" }).trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+// A <meta name="build"> with the same short commit, so the deploy job can fetch the live page and
+// fail if what is served is not the commit it just deployed (build plan step 2.7).
+function buildStamp(): Plugin {
+  return {
+    name: "cmai-build-stamp",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler: (html) => html.replace(/(<meta charset="UTF-8" \/>)/, `$1\n    <meta name="build" content="${buildCommit()}" />`),
+    },
+  };
+}
+
 // base: "./" lets the build run from any folder, including GitHub Pages.
 export default defineConfig({
   base: "./",
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  define: { __APP_VERSION__: JSON.stringify(pkg.version), __BUILD_COMMIT__: JSON.stringify(buildCommit()) },
   plugins: [
     react(),
     contentSecurityPolicy(),
+    buildStamp(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
