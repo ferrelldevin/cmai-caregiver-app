@@ -11,6 +11,9 @@ import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
 import { CaregiverPage, WhoSheet } from "./ui/CaregiverScreen";
 import { SignInScreen } from "./ui/SignInScreen";
+import { closeIfTimedOut, endWatch, resumeWatch, touch } from "./data/watches";
+import { timeOfDay } from "./ui/format";
+import type { Watch } from "./data/db";
 import { RatingScreen } from "./ui/RatingScreen";
 import { ratingsDue as findRatingsDue } from "./data/caregiverRatings";
 import { endSession, readSession, startSession } from "./data/session";
@@ -126,6 +129,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reload on a change, not on every pick
   }, [caregiversVersion]);
   function logAs(id: string | null) {
+    // A caregiver's open watch ends when someone else logs here, or nobody does (D-25).
+    // endWatch reads who is logging before its first await, so it ends the outgoing one's.
+    if (study.watchingHours && id !== loggingAs) void endWatch(id ? "switch" : "signout");
     chooseLoggingCaregiver(id);
     setLoggingAs(id);
     if (PIN_ON && !id) endSession();
@@ -143,6 +149,34 @@ export default function App() {
     const c = caregivers.find((x) => x.id === id);
     setNotice(`${c?.initials ?? id} is logging`);
   }
+  // Watching hours (F-38): every tap keeps a watch alive; 4 hours without one ends it at the last
+  // tap, and the app asks once whether the caregiver is still there.
+  const [stillWith, setStillWith] = useState<Watch | null>(null);
+  useEffect(() => {
+    if (!study.watchingHours) return;
+    const onTap = () => touch();
+    window.addEventListener("pointerdown", onTap, true);
+    window.addEventListener("keydown", onTap, true);
+    return () => {
+      window.removeEventListener("pointerdown", onTap, true);
+      window.removeEventListener("keydown", onTap, true);
+    };
+  }, []);
+  useEffect(() => {
+    if (!study.watchingHours) return;
+    let live = true;
+    const check = () =>
+      closeIfTimedOut()
+        .then((w) => live && w && setStillWith(w))
+        .catch(() => {});
+    check();
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      live = false;
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [loggingAs]);
+
   // A shift lasts 12 hours: checked each minute and whenever the app comes back to the front.
   useEffect(() => {
     if (!PIN_ON || !loggingAs) return;
@@ -155,6 +189,7 @@ export default function App() {
       clearInterval(t);
       document.removeEventListener("visibilitychange", check);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- logAs only reads state set alongside loggingAs
   }, [loggingAs]);
   const me = caregivers.find((c) => c.id === loggingAs);
   // Two-week ratings the caregiver logging now still owes for the open resident (F-47, plan 5.4).
@@ -208,6 +243,7 @@ export default function App() {
   function pickPatient(id: string) {
     setChoosing(false);
     if (id === patientId) return;
+    if (study.watchingHours) void endWatch("switch");
     setPatientId(id);
     // A period number belongs to one patient: Scores reopens on this patient's own choice.
     if (route.tab === "scores") go(scoresRoute(id));
@@ -333,6 +369,30 @@ export default function App() {
       )}
 
       <main ref={mainRef} tabIndex={-1} aria-busy={!everLoaded}>
+        {stillWith && (
+          <section className="card still-with" role="alert" aria-labelledby="still-h">
+            <h2 id="still-h">
+              Still with {stillWith.patientId} since {timeOfDay(stillWith.start)}?
+            </h2>
+            <p className="muted">
+              Nobody has tapped the app for 4 hours, so the watch stopped at {timeOfDay(stillWith.end!)}.
+            </p>
+            <div className="row wrap">
+              <button
+                onClick={async () => {
+                  await resumeWatch(stillWith.uid);
+                  setStillWith(null);
+                  refresh();
+                }}
+              >
+                Yes, still here
+              </button>
+              <button className="ghost" onClick={() => setStillWith(null)}>
+                No, I left about then
+              </button>
+            </div>
+          </section>
+        )}
         <h1 className="sr">
           {route.rating && RATING_ON
             ? "Two-week rating"

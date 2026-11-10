@@ -9,6 +9,9 @@ import { useEffect, useState, type MouseEvent } from "react";
 import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
 import { deleteLog, editLog, restoreLog } from "../data/logs";
 import { dayLogs, logsByHour } from "../scoring/day";
+import { watchedMinutesByHour } from "../scoring/coverage";
+import { watchesFor } from "../data/watches";
+import { study } from "../study/settings";
 import { ITEMS } from "../scoring/items";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
@@ -51,6 +54,23 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
     setDeleted(null);
     setOpen(null);
   }, [patientId]);
+
+  // Watching hours (F-38, plan 5.6): a band on the same 24-hour scale as the bars.
+  const [watched, setWatched] = useState<number[] | null>(null);
+  useEffect(() => {
+    if (!study.watchingHours) return;
+    let live = true;
+    watchesFor(patientId, today).then((ws) => live && setWatched(watchedMinutesByHour(ws, today, Date.now())));
+    return () => {
+      live = false;
+    };
+  }, [patientId, today, observations]);
+  const watchedLabel = watched
+    ? watched
+        .map((m, h) => (m ? `${hourLabel(h)}: ${m} min` : ""))
+        .filter(Boolean)
+        .join(", ") || "none yet"
+    : "";
 
   useEffect(() => {
     if (!deleted) return;
@@ -152,6 +172,15 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
                 </span>
               ))}
             </div>
+            {watched && (
+              <>
+                <div className="watch-band" role="img" aria-label={`Watched today, by hour: ${watchedLabel}.`}>
+                  {watched.map((m, h) => (
+                    <span key={h} style={{ opacity: m ? 0.25 + (0.75 * m) / 60 : 0 }} />
+                  ))}
+                </div>
+              </>
+            )}
             <div className="hours-axis" aria-hidden>
               <small>12a</small>
               <small>6a</small>
@@ -159,6 +188,12 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
               <small>6p</small>
               <small>12a</small>
             </div>
+            {watched && (
+              <p className="muted small-print watch-note">
+                The band shows when someone was marked as watching. A gap with no bar means nobody was watching, not
+                that it was calm.
+              </p>
+            )}
           </section>
 
           <ul className="acc">

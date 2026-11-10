@@ -13,6 +13,9 @@ import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring
 import { mostLogged } from "./mostLogged";
 import { db, localMidnight, madeHere, type StoredObservation } from "../data/db";
 import { utcOffsetMin } from "../data/ids";
+import { endWatch, openWatch, startWatch } from "../data/watches";
+import { study } from "../study/settings";
+import type { Watch } from "../data/db";
 import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
@@ -62,6 +65,24 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
     return () => window.clearTimeout(t);
   }, [toast, held]);
 
+  // Watching hours (F-38, plan 5.6): the strip says whether someone is marked as with this resident.
+  const [watch, setWatch] = useState<Watch | null>(null);
+  const [watchVersion, setWatchVersion] = useState(0);
+  useEffect(() => {
+    if (!study.watchingHours) return;
+    let live = true;
+    openWatch().then((w) => live && setWatch(w && w.patientId === patientId ? w : null));
+    return () => {
+      live = false;
+    };
+  }, [patientId, watchVersion]);
+  async function toggleWatch() {
+    if (watch) await endWatch("tap");
+    else await startWatch(patientId, "tap");
+    setWatchVersion((v) => v + 1);
+    onChange();
+  }
+
   // Switching resident closes anything that belonged to the last one.
   useEffect(() => {
     setToast(null);
@@ -76,6 +97,11 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
     lastTap.current = { itemId, t };
     const obs = { patientId, itemId, at: t, loggedAt: t, ...madeHere(), tzOffsetMin: utcOffsetMin(t) };
     const id = await db.observations.add(obs);
+    // A log with no watch open starts one (D-25): logging never requires a watch.
+    if (study.watchingHours && !watch) {
+      await startWatch(patientId, "log", t);
+      setWatchVersion((v) => v + 1);
+    }
     navigator.vibrate?.(15);
     setFlash(itemId);
     window.setTimeout(() => setFlash((f) => (f === itemId ? null : f)), 900);
@@ -210,6 +236,22 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
           </p>
           <button className="small" onClick={() => onRate(ratingsDue[0])}>
             Rate
+          </button>
+        </div>
+      )}
+      {study.watchingHours && (
+        <div className={watch ? "watch-strip on" : "watch-strip"}>
+          <p>
+            {watch ? (
+              <>
+                With {patientId} since <b>{timeOfDay(watch.start)}</b>
+              </>
+            ) : (
+              `Not marked as with ${patientId}`
+            )}
+          </p>
+          <button className={watch ? "ghost small" : "small"} onClick={toggleWatch}>
+            {watch ? "I've left" : "I'm here"}
           </button>
         </div>
       )}
