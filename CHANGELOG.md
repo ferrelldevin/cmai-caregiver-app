@@ -32,6 +32,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 - A new CI job, Dependency review, fails a pull request that adds a dependency with a known high-severity advisory.
+- React 19. The app looks and behaves the same.
 - Build tools upgraded: Vite 8, the React plugin 6 and the PWA plugin 2. The app and its offline behavior are unchanged.
 - CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
