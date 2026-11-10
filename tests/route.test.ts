@@ -34,6 +34,20 @@ describe("routes", () => {
   });
 });
 
+describe("Two weeks period in the URL (F-28)", () => {
+  it("reads the tab and a period", () => {
+    expect(parseRoute("#/twoweeks")).toEqual({ tab: "twoweeks", page: null });
+    expect(parseRoute("#/twoweeks/p2")).toEqual({ tab: "twoweeks", page: null, period: 2 });
+  });
+  it("drops a period it cannot read", () => {
+    for (const h of ["#/twoweeks/p0", "#/twoweeks/2", "#/twoweeks/backup"])
+      expect(parseRoute(h)).toEqual({ tab: "twoweeks", page: null });
+  });
+  it("writes what it reads", () => {
+    for (const h of ["#/twoweeks", "#/twoweeks/p4"]) expect(routeHash(parseRoute(h)!)).toBe(h);
+  });
+});
+
 describe("Scores period in the URL", () => {
   it("reads a period", () => {
     expect(parseRoute("#/scores/p3")).toEqual({ tab: "scores", page: null, period: 3 });

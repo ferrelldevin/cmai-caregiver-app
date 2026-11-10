@@ -1,6 +1,6 @@
 # 008. Building the round 3 mockup into the app
 
-2026-11-07 · Register: F-25 to F-29, D-17, D-18 (proposed here; D-15, D-16, F-23 and F-24 are already taken by the 2026-11-04 flow comparison) · Status: phase 1 built (2026-11-07); phase 2 (Log) and phase 3 (Today tab) built 2026-11-10 to build plan v5 steps 4.1 and 4.2
+2026-11-07 · Register: F-25 to F-29, D-17, D-18 (proposed here; D-15, D-16, F-23 and F-24 are already taken by the 2026-11-04 flow comparison) · Status: phase 1 built (2026-11-07); phase 2 (Log), phase 3 (Today tab) and phase 4 (Two weeks tab) built 2026-11-10 to build plan v5 steps 4.1 to 4.3; the per-period CSV is a link to Backup and export for now
 
 ## Problem
 On 2026-11-07 Devin approved the round 3 mockup as the direction for the app ("start the development of this in full, with the options we have right now"). The mockup (Storybook, PR #37) shows five steps: login, log, score, report, settings. The app today has three tabs (Log, Scores, Data) and no report screen. Requirements R3 to R5 in `cmai-mobile-plan.md` are only partly met, and R4 (daily report) is missing.

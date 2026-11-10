@@ -20,6 +20,7 @@ const CHECKS = [
   { name: "patient-switcher", file: "e2e/patient-switcher.cjs" },
   { name: "sheet", file: "e2e/sheet.cjs" },
   { name: "today", file: "e2e/today.cjs" },
+  { name: "twoweeks", file: "e2e/twoweeks.cjs" },
   { name: "accessibility", file: "docs/audits/axe-run.cjs", out: "axe-wcag22aa.json" },
 ];
 const REPORT_BRANCH = "checks-report";

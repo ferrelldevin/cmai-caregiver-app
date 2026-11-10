@@ -9,6 +9,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Changed
 - Log screen from the round 3 mockup (F-26): behavior tiles 3 across with icons and today's count, group tabs, and a "Most logged for this resident" row.
 - What counts as each behavior moved off the buttons into one sheet, opened under the tiles or by holding a tile (F-37).
+- New Two weeks tab (F-28): one 14-day period with the answer first, each behavior against last period, logs per day, time of day, behavior groups (Open: D-17) and patterns to look into (Open: D-18), drawn without a chart library. A fifth tab until Score folds into it.
 - New Today tab (F-27): today's logs by hour and by behavior, where a log is fixed or removed. Recent logs and "Nothing to log today" moved there from Log.
 
 ### Added

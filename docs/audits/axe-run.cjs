@@ -76,6 +76,13 @@ async function scan(page, name, results) {
     await scan(page, "Scores", results);
     await page.getByRole("button", { name: "Show all 29 behaviors" }).click();
     await scan(page, "Scores (all 29 behaviors)", results);
+    // Two weeks (F-28): a finished period, then the one in progress.
+    await page.getByRole("button", { name: "Two weeks", exact: true }).click();
+    await page.getByRole("heading", { name: "This period", exact: true }).waitFor();
+    await scan(page, "Two weeks (finished period)", results);
+    await page.getByRole("button", { name: "Later period" }).click();
+    await page.getByRole("heading", { name: "So far this period" }).waitFor();
+    await scan(page, "Two weeks (period in progress)", results);
     // The Day-14 review screen was removed when ratings were locked (D-14, PR #17).
     await page.getByRole("button", { name: "Settings" }).click();
     await scan(page, "Patients & data (with patients)", results);
