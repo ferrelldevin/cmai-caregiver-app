@@ -154,6 +154,27 @@ describe("scores are the app's own", () => {
   });
 });
 
+describe("editing a log's time", () => {
+  it("refuses a time before the patient's first day and stores nothing", async () => {
+    const T0 = Date.UTC(2026, 0, 1);
+    await db.patients.put({ id: "P-01", anchor: T0 });
+    const o = await add({ patientId: "P-01", itemId: 7, at: T0 + 5000, loggedAt: T0 + 5000 });
+    await expect(editLog(o, { at: T0 - 60_000 }, T0 + 9000)).rejects.toThrow(
+      /first day in the app is .*can't be earlier/,
+    );
+    expect((await db.observations.get(o.id))?.at).toBe(T0 + 5000);
+    expect(await db.changes.count()).toBe(0);
+  });
+
+  it("allows a time exactly on the first day", async () => {
+    const T0 = Date.UTC(2026, 0, 1);
+    await db.patients.put({ id: "P-01", anchor: T0 });
+    const o = await add({ patientId: "P-01", itemId: 7, at: T0 + 5000, loggedAt: T0 + 5000 });
+    await editLog(o, { at: T0 }, T0 + 9000);
+    expect((await db.observations.get(o.id))?.at).toBe(T0);
+  });
+});
+
 describe("backup and restore", () => {
   it("brings a deleted log back deleted, with its history pointing at the new id", async () => {
     // A backup only restores dates from 2020 on, so this test lives at a realistic date.

@@ -50,6 +50,12 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await sheet.getByRole("button", { name: "Mealtime" }).click();
   ok((await sheet.getByRole("button", { name: "Mealtime" }).getAttribute("aria-pressed")) === "true", "before chip selected");
   await p.screenshot({ path: `${OUT}/flow-02-log-sheet.png` });
+  // P-07 was added today, so a clock time later than now means yesterday: before the patient's first day (F-32)
+  const timeBefore = await sheet.locator('input[type="time"]').inputValue();
+  await sheet.locator('input[type="time"]').fill("23:59");
+  await sheet.getByRole("alert").filter({ hasText: "first day in the app is" }).waitFor({ timeout: 5000 });
+  ok(true, "a time before the patient's first day is refused with a message");
+  ok((await sheet.locator('input[type="time"]').inputValue()) === timeBefore, "the old time stays");
   await sheet.getByRole("button", { name: "Done" }).click();
   ok(!(await sheet.isVisible()), "Done closes the sheet");
   // recent logs
