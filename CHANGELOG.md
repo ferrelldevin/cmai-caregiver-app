@@ -25,6 +25,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - A version bump in `package.json` merged to main is tagged `v<version>` automatically.
 - `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
 
+### Changed
+- Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
+
 ### Security
 - Vitest and its coverage tool upgraded to 5.1.0 and Vite to 6.4.6: the 3 critical and 1 high advisories in the test tools are gone. CI also fails on any critical advisory in any dependency.
 - GitHub Actions in `pages.yml` are pinned to full commit SHAs, so a moved tag cannot change what runs. Runs on `main` are never cancelled, and every job stops after 15 minutes.
