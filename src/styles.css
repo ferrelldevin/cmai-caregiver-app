@@ -2468,3 +2468,17 @@ table.cmp td {
 [data-contrast="high"] .rate-btn {
   border-color: var(--text);
 }
+
+/* Clock check (F-40, plan 5.8): tabular figures, so the digits never shift sideways. */
+.clock-time {
+  font-size: clamp(2.6rem, 14vw, 4rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  margin: var(--s3) 0 0;
+}
+.clock-date {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+}

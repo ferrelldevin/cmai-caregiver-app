@@ -46,4 +46,9 @@ describe("pages behind a study switch", () => {
   it("the caregivers page does not exist in the caregiver build (R2 switched off)", () => {
     expect(parseRoute("#/data/caregivers")).toEqual({ tab: "data", page: null });
   });
+
+  it("the clock check and the rating form do not exist in the caregiver build", () => {
+    expect(parseRoute("#/data/clock")).toEqual({ tab: "data", page: null });
+    expect(parseRoute("#/rating/P-01/p1")).toBeNull();
+  });
 });

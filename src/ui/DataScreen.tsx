@@ -8,7 +8,8 @@ import { loadDemoData } from "../data/seed";
 import { buildExport, download } from "../data/exporter";
 import { deletePatient, removeDemoData, restoreBackup, wouldArchive } from "../data/manage";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
-import { STUDY_MODE } from "../study/settings";
+import { study, STUDY_MODE } from "../study/settings";
+import { ClockScreen } from "./ClockScreen";
 import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
@@ -271,6 +272,7 @@ export function DataScreen({
           {/* the screen heading is the h1 in App */}
         </div>
         {page === "caregivers" && caregivers?.page}
+        {page === "clock" && study.labView && <ClockScreen />}
         {page === "backup" && (
           <section className="card backup" aria-label="Backup and export">
             <h3 className="form-label">Backup</h3>
@@ -435,6 +437,9 @@ export function DataScreen({
     },
     ...(caregivers
       ? [{ page: "caregivers" as const, icon: "user" as const, title: "Caregivers", status: caregivers.status }]
+      : []),
+    ...(study.labView
+      ? [{ page: "clock" as const, icon: "clock" as const, title: "Clock check", status: "Lab: pair logs with a wristband" }]
       : []),
     { page: "demo", icon: "chart", title: "Demo data", status: hasDemo ? "Loaded" : "Not loaded", hide: firstRun },
     { page: "about", icon: "info", title: "How ratings are worked out", status: `Rule ${RULE_VERSION}` },
