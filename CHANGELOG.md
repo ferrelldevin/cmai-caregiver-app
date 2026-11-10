@@ -27,6 +27,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 - Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
+- Change process and pull request template: screenshots go in the pull request description, not in the repository (B-17).
 
 ### Security
 - Vitest and its coverage tool upgraded to 5.1.0 and Vite to 6.4.6: the 3 critical and 1 high advisories in the test tools are gone. CI also fails on any critical advisory in any dependency.
