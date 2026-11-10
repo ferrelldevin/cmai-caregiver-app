@@ -33,6 +33,8 @@ npm run preview   # serve the build at http://localhost:4173
 npm run storybook # design mockup of the five-step flow at http://localhost:6006
 ```
 
+**Study mode.** Features built before Dr. Gupta's sign-off ship switched off. Every switch is in `src/study/settings.ts` (register F-48), and the mode is fixed when the app is built, so nobody can turn a feature on from a phone. `npm run build` and `npm run dev` make the caregiver build, which is what GitHub Pages serves. To try the features awaiting sign-off, start the lab build. In Git Bash: `VITE_STUDY_MODE=lab npm run dev`. In PowerShell: `$env:VITE_STUDY_MODE="lab"; npm run dev`, then `Remove-Item Env:VITE_STUDY_MODE` when done. Settings > About says which mode is running.
+
 The pre-commit hook formats (Prettier) and lints the files you stage, and scans them for secrets if [gitleaks](https://github.com/gitleaks/gitleaks) is installed. Existing files are formatted when they are next edited, not all at once.
 
 Checks and deploy (`.github/workflows/pages.yml`): every pull request runs lint, type check, unit tests with coverage floors, `npm audit`, the build, and every browser check plus the axe audit (`npm run checks`). A push to `main` runs the same and, if all pass, publishes to GitHub Pages. Dependabot proposes dependency updates once a month (`.github/dependabot.yml`).
