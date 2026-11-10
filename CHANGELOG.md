@@ -23,6 +23,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 
 ### Changed
+- Build tools upgraded: Vite 8, the React plugin 6 and the PWA plugin 2. The app and its offline behavior are unchanged.
 - CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
 ### Removed
