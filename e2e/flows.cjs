@@ -24,9 +24,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByLabel("New patient code").fill("p-07"); await p.keyboard.press("Enter");
   await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor(); ok((await p.locator(".pt-id b").textContent()) === "P-07", "Enter adds P-07 and opens Log with P-07 in the banner");
   // empty states
-  await p.locator("nav.tabs button", { hasText: "Score" }).click();
-  await p.getByText("No logs yet for this patient.").waitFor(); ok(true, "Scores empty state");
-  await p.screenshot({ path: `${OUT}/flow-01-scores-empty.png` });
+  await p.locator("nav.tabs button", { hasText: "Two weeks" }).click();
+  await p.getByText("No logs yet for this patient.").waitFor(); ok(true, "Two weeks empty state");
+  await p.screenshot({ path: `${OUT}/flow-01-twoweeks-empty.png` });
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // log, double tap guard
   const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
@@ -163,10 +163,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.locator(".acc-head", { hasText: "Hitting" }).click();
   ok((await p.locator(".acc-body li").first().textContent()).includes("Mealtime"), "restored P-07 log keeps details");
   // offline reload
-  await p.locator("nav.tabs button", { hasText: "Score" }).click();
+  await p.locator("nav.tabs button", { hasText: "Two weeks" }).click();
   await p.reload(); await p.waitForTimeout(1500);
-  await ctx.setOffline(true); await p.reload(); await p.getByRole("heading", { name: /^Period \d+ scores/ }).waitFor({ timeout: 8000 });
-  ok(true, "reload offline works, and stays on Scores");
+  await ctx.setOffline(true); await p.reload(); await p.locator(".pnav-label", { hasText: /Period \d+ ·/ }).waitFor({ timeout: 8000 });
+  ok(true, "reload offline works, and stays on Two weeks");
   await ctx.setOffline(false);
   ok(errs.length === 0, "no console errors " + JSON.stringify(errs));
   await b.close();

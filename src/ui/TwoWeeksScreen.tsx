@@ -1,22 +1,25 @@
-// Two weeks tab (F-28, build plan v5 step 4.3; round 3 mockup "Report, two weeks", in the
-// round 4 order: the answer first). One CMAI period: what stood out, each behavior this
-// period against last, logs per day, time of day, behavior groups and patterns. Every figure
+// Two weeks tab (F-28, build plan v5 steps 4.3 and 4.4; round 3 mockup "Report, two weeks", in
+// the round 4 order: the answer first). One CMAI period: what stood out, each behavior this
+// period against last, logs per day, time of day, behavior groups with the agitated marks,
+// patterns, and History of finished periods. Score folded in here (F-29): the total is
+// secondary, in the chip beside the title (D-08), and behaviors come first. Every figure
 // comes from a tested pure function (src/scoring/period.ts, patterns.ts, engine.ts). Charts
 // are plain HTML and CSS, each with a text alternative. Ratings come from the count rule and
 // nobody can change them (D-14). The period in progress is "so far" and is left out of
 // comparisons (D-10). Unlogged days are unknown, never zero (D-11).
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CheckIn, StoredObservation } from "../data/db";
-import { addDays, RATING_LABELS } from "../scoring/engine";
+import { addDays, meaningfulChanges, RATING_LABELS } from "../scoring/engine";
 import { GROUP_LABELS, ITEMS, type FactorGroup } from "../scoring/items";
 import { groupLogCounts, itemCounts, periodDays, timeOfDayGrid } from "../scoring/period";
 import { busiestBlock, pairsTogether, PAIR_MINUTES } from "../scoring/patterns";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
+import { shortDate } from "./format";
 import { SHORT_NAMES } from "./behavior-names";
 import { Icon } from "./Icon";
 import { OpenLabel } from "./OpenLabel";
-import { changeSince, selectedPeriod } from "./scoreView";
+import { changeSince, periodBehaviors, selectedPeriod } from "./scoreView";
 import type { ScoredWindow } from "./useCmaiData";
 
 const FACTORS = ["aggressive", "physical", "verbal"] as const;
@@ -78,6 +81,10 @@ export function TwoWeeksScreen({
   const sel = windows[selected];
   const prev = selected > 0 ? windows[selected - 1] : null;
   const now = Date.now();
+  const [showAll, setShowAll] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  // A comparison belongs to the period it was opened from.
+  useEffect(() => setHistoryOpen(false), [selected]);
 
   const figures = useMemo(() => {
     if (!sel) return null;
@@ -117,18 +124,18 @@ export function TwoWeeksScreen({
   const { windowStart, windowEnd } = sel.score;
   const lastDay = addDays(windowEnd, -1);
   const dayOf = Math.min(14, figures.days.findIndex((d) => d.state === "today") + 1 || 14);
-  const rows = ITEMS.filter(
-    (i) => (figures.counts[i.id] ?? 0) > 0 || sel.ratings[i.id] > 1 || (figures.lastCounts[i.id] ?? 0) > 0,
-  ).sort(
+  // This period's behaviors only, as Score showed them; "Show all 29" brings back the rest.
+  const rows = periodBehaviors(sel, showAll).sort(
     (a, b) =>
       sel.ratings[b.id] - sel.ratings[a.id] ||
       (figures.counts[b.id] ?? 0) - (figures.counts[a.id] ?? 0) ||
       (figures.lastCounts[b.id] ?? 0) - (figures.lastCounts[a.id] ?? 0),
   );
-  const notLogged = ITEMS.length - rows.length;
-  const moves = new Map(rows.map((i) => [i.id, changeSince(windows, selected, i.id)]));
-  const down = rows.filter((i) => moves.get(i.id)?.change === "down");
-  const up = rows.filter((i) => moves.get(i.id)?.change === "up");
+  const notLogged = ITEMS.length - periodBehaviors(sel, false).length;
+  // Over all 29, so a behavior that dropped out of this period's list still counts as lower.
+  const moves = new Map(ITEMS.map((i) => [i.id, changeSince(windows, selected, i.id)]));
+  const down = ITEMS.filter((i) => moves.get(i.id)?.change === "down");
+  const up = ITEMS.filter((i) => moves.get(i.id)?.change === "up");
   const mostLogged = rows
     .filter((i) => (figures.counts[i.id] ?? 0) > 0)
     .sort((a, b) => (figures.counts[b.id] ?? 0) - (figures.counts[a.id] ?? 0) || a.id - b.id)
@@ -138,9 +145,31 @@ export function TwoWeeksScreen({
   const bins = heatBins(heatMax);
   const shownDays = figures.days.filter((d) => d.state !== "future");
   const names = (items: typeof rows) => items.map((i) => SHORT_NAMES[i.id]).join(", ");
+  const finished = windows.filter((w) => !w.score.provisional);
+  const history = new Map(ITEMS.map((i) => [i.id, meaningfulChanges(finished.map((w) => w.ratings[i.id]))]));
+  const current = windows[windows.length - 1];
 
   return (
     <div className="twoweeks">
+      {/* The total is secondary (manual p.5, D-08): a chip beside the title, not a headline. */}
+      <div className="tw-head" id="tw-total">
+        <p className="screen-title" aria-hidden>
+          Two weeks
+        </p>
+        <p className={inProgress ? "total-chip so-far" : "total-chip"}>
+          Total score <span className="sr">(secondary)</span>
+          <b className="score-total-value">{sel.summary.total}</b>
+          {inProgress ? " so far" : ""}
+          {prev ? ` · last ${prev.summary.total}` : ""}
+        </p>
+        <p className="tw-coverage">
+          {sel.summary.itemsInTotal} of 29 ratings · app-derived{inProgress ? " · so far" : ""}.{" "}
+          {sel.elapsed - sel.unlogged} of {sel.elapsed} ended days recorded
+          {sel.unlogged > 0 ? `; ${sel.unlogged} unlogged days are unknown, so scores may read low` : ""}
+          {sel.elapsed === 0 ? "; today has not ended yet" : ""}.
+        </p>
+      </div>
+
       {/* Period: earlier and later, the dates, and where today is in it. */}
       <div className="pnav" role="group" aria-label="Choose a two-week period">
         <button
@@ -157,6 +186,10 @@ export function TwoWeeksScreen({
           </b>
           <small>
             Period {selected + 1} · {inProgress ? `day ${dayOf} of 14, so far` : "ended"}
+            {/* The banner shows today's period; say so when this page shows an earlier one. */}
+            {selected < windows.length - 1 && current.score.provisional && (
+              <> · period {windows.length} is in progress</>
+            )}
           </small>
         </p>
         <button
@@ -209,12 +242,12 @@ export function TwoWeeksScreen({
       </section>
 
       {/* What Score showed: each behavior, this period against last. */}
-      <section className="card" aria-labelledby="tw-table">
+      <section className="card" id="tw-behaviors" aria-labelledby="tw-table">
         <h2 className="card-h" id="tw-table">
           Behaviors, this period vs last
         </h2>
         {rows.length === 0 ? (
-          <p className="muted">No behaviors logged in this period or the one before.</p>
+          <p className="muted">No behaviors logged in this period.</p>
         ) : (
           <table className="rtable">
             <caption className="sr">
@@ -257,22 +290,17 @@ export function TwoWeeksScreen({
                     {/* 5.0: the one place a "ratings visible to caregivers" switch would hide this column. */}
                     <td>
                       <Rating r={sel.ratings[item.id]} provisional={inProgress} />
+                      <span className="sr">, {RATING_LABELS[sel.ratings[item.id]]}. App-derived from logs</span>
                     </td>
                     <td className="td-num">{figures.counts[item.id] ?? 0}</td>
                     <td className="td-num td-last">{prev ? (figures.lastCounts[item.id] ?? 0) : "–"}</td>
-                    <td>
-                      {move.change ? (
-                        <span className={`move ${move.change}`} aria-label={move.text}>
-                          {move.change === "up" ? "↑" : "↓"}
-                        </span>
-                      ) : (
-                        <span
-                          className="move same"
-                          aria-label={inProgress ? "Not compared until the period ends" : move.text}
-                        >
-                          –
-                        </span>
-                      )}
+                    <td className="td-move">
+                      <span className={`move ${move.change ?? "same"}`} aria-hidden>
+                        {move.change === "up" ? "↑" : move.change === "down" ? "↓" : "–"}
+                      </span>
+                      <span className="sr">
+                        {inProgress && prev ? `Not compared until the period ends (${move.text})` : move.text}
+                      </span>
                     </td>
                   </tr>
                 );
@@ -280,11 +308,36 @@ export function TwoWeeksScreen({
             </tbody>
           </table>
         )}
-        <p className="more">+ {notLogged} not logged in either period (rated 1)</p>
+        {!showAll && <p className="more">+ {notLogged} not logged (rated 1)</p>}
+        <button className="ghost" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
+          {showAll ? "Show logged behaviors" : "Show all 29 behaviors"}
+        </button>
         <p className="card-sub">
           Change compares finished periods only{inProgress ? "; this one is still in progress" : ""}. Ratings come from
           the logs and nobody can change them.
         </p>
+        <details className="score-explanation">
+          <summary>How to read these scores</summary>
+          <p>
+            Recorded days have a behavior log or a quiet-day check-in. Unlogged days are unknown, not zero. Today is not
+            counted until it ends.
+          </p>
+          {sel.summary.specialCodes.length > 0 && (
+            <p>
+              Excluded from total and group averages:{" "}
+              {sel.summary.specialCodes.map((c) => `#${c.itemId}: ${RATING_LABELS[c.code]}`).join("; ")}.
+            </p>
+          )}
+          <p>
+            These CMAI-based (app-derived) ratings come from the count rule alone, not a CMAI interview. Counts are
+            logged occurrences in this period; deleted logs are not counted. Nobody can change a rating by hand, so it
+            can be compared fairly with a caregiver's own rating.
+          </p>
+          <p>
+            The total is secondary: the manual (p.5) advises reading individual behaviors. A lower total does not by
+            itself show an effect of treatment.
+          </p>
+        </details>
       </section>
 
       <section className="card" aria-labelledby="tw-day">
@@ -381,7 +434,8 @@ export function TwoWeeksScreen({
           Behavior groups
         </h2>
         <p className="card-sub">
-          The manual's nursing-home groups (p.7). Each square is one behavior's rating (1 to 7).
+          The manual's nursing-home groups (p.7). Each square is one behavior's rating (1 to 7). The mark says whether
+          the group meets the manual's agitated rule (p.5 to 6){inProgress ? ", so far" : ""}.
         </p>
         <ul className="groups">
           {FACTORS.map((g) => {
@@ -405,11 +459,15 @@ export function TwoWeeksScreen({
                 <span className="groups-logs muted">
                   {figures.groups[g]} logs{prev ? ` · ${figures.lastGroups[g]} last period` : ""}
                 </span>
+                <span className={sel.summary.agitated[g] ? "groups-status warn" : "groups-status ok"}>
+                  <Icon name={sel.summary.agitated[g] ? "alert" : "check"} size={16} />
+                  {sel.summary.agitated[g] ? "Meets agitated rule" : "Below threshold"}
+                </span>
                 <div className="groups-avg">
-                  <b aria-label={`Average rating ${f.n ? f.mean.toFixed(1) : "not available"}`}>
-                    {f.n ? f.mean.toFixed(1) : "–"}
+                  <b aria-label={`Average rating ${f.n ? f.mean.toFixed(2) : "not available"}`}>
+                    {f.n ? f.mean.toFixed(2) : "–"}
                   </b>
-                  {lastF && <span className="muted">last {lastF.n ? lastF.mean.toFixed(1) : "–"}</span>}
+                  {lastF && <span className="muted">last {lastF.n ? lastF.mean.toFixed(2) : "–"}</span>}
                 </div>
               </li>
             );
@@ -450,6 +508,99 @@ export function TwoWeeksScreen({
           The thresholds (20 logs, 1.5 times an even share, 3 pairs within 30 minutes) are a first guess. Episodes
           cluster by time of day (Abedi 2025, preprint) and triggers differ by person (Bankole 2020).
         </OpenLabel>
+      </section>
+
+      <section className="card" id="tw-history" aria-labelledby="tw-hist">
+        <h2 className="card-h" id="tw-hist">
+          History
+        </h2>
+        <details open={historyOpen} onToggle={(e) => setHistoryOpen(e.currentTarget.open)}>
+          <summary>Compare finished periods ({finished.length})</summary>
+          {historyOpen &&
+            (finished.length < 2 ? (
+              <p>At least two finished periods are needed to compare. A period in progress is left out.</p>
+            ) : (
+              <>
+                <p className="card-sub">
+                  Finished periods only; unlogged days stay unknown. Separate from period {selected + 1} above.
+                </p>
+                <div className="heat-wrap">
+                  <table className="heat">
+                    <caption>Behavior ratings across finished periods</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Behavior</th>
+                        {finished.map((w, i) => (
+                          <th key={w.score.windowStart} scope="col">
+                            P{i + 1}
+                            <span className="sub">{shortDate(w.score.windowStart)}</span>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="unlogged-row">
+                        <th scope="row">Unlogged days</th>
+                        {finished.map((w) => (
+                          <td key={w.score.windowStart}>{w.unlogged}</td>
+                        ))}
+                      </tr>
+                      {ITEMS.filter((item) => showAll || finished.some((w) => w.ratings[item.id] > 1)).map((item) => (
+                        <tr key={item.id}>
+                          <th scope="row">{SHORT_NAMES[item.id]}</th>
+                          {finished.map((w, i) => {
+                            const change = history.get(item.id)?.[i];
+                            return (
+                              <td key={w.score.windowStart} className={`r${w.ratings[item.id]}`}>
+                                {w.ratings[item.id]}
+                                {change && (
+                                  <span
+                                    className="chg"
+                                    aria-label={change === "up" ? "changed, more often" : "changed, less often"}
+                                  >
+                                    {change === "up" ? "↑" : "↓"}
+                                  </span>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="card-sub">
+                  Arrows mark a 2-point change, or 1 point the same way over two finished periods in a row. Codes 8 and
+                  9 are never compared.
+                </p>
+                <table className="rtable history-groups">
+                  <caption>Group averages and totals, finished periods</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Period</th>
+                      {FACTORS.map((g) => (
+                        <th key={g} scope="col">
+                          {groupName(g)}
+                        </th>
+                      ))}
+                      <th scope="col">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {finished.map((w, i) => (
+                      <tr key={w.score.windowStart}>
+                        <th scope="row">P{i + 1}</th>
+                        {FACTORS.map((g) => (
+                          <td key={g}>{w.summary.factors[g].n ? w.summary.factors[g].mean.toFixed(2) : "–"}</td>
+                        ))}
+                        <td>{w.summary.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            ))}
+        </details>
       </section>
 
       <button className="ghost wide" onClick={onExport}>

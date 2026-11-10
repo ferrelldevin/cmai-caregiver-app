@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
-import { ScoresScreen } from "./ui/ScoresScreen";
 import { TodayScreen } from "./ui/TodayScreen";
 import { TwoWeeksScreen } from "./ui/TwoWeeksScreen";
 import { Icon, type IconName } from "./ui/Icon";
@@ -13,9 +12,7 @@ import { useRoute, type DataPage, type Tab } from "./ui/route";
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
-  { id: "scores", label: "Score", title: "Score", icon: "chart" },
   { id: "today", label: "Today", title: "Today", icon: "today" },
-  // Fifth tab only until step 4.4 folds Score into Two weeks.
   { id: "twoweeks", label: "Two weeks", title: "Two weeks", icon: "twoweeks" },
   { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
@@ -40,10 +37,7 @@ export default function App() {
   const [patientId, setPatientId] = useState<string | null>(readSaved);
   const { route, go, back } = useRoute(() => ({ tab: readSaved() ? "log" : "data", page: null }));
   const tab = route.tab;
-  // The Scores period chosen for each patient, so leaving Scores and coming back keeps it.
-  const scoresPeriod = useRef<Record<string, number>>({});
-  if (route.tab === "scores" && route.period && patientId) scoresPeriod.current[patientId] = route.period;
-  // The same for Two weeks, kept apart until step 4.4 makes them one tab.
+  // The period chosen on Two weeks for each patient, so leaving and coming back keeps it.
   const weeksPeriod = useRef<Record<string, number>>({});
   if (route.tab === "twoweeks" && route.period && patientId) weeksPeriod.current[patientId] = route.period;
   const weeksRoute = (id: string | null) => ({
@@ -51,13 +45,7 @@ export default function App() {
     page: null,
     period: id ? weeksPeriod.current[id] : undefined,
   });
-  const scoresRoute = (id: string | null) => ({
-    tab: "scores" as const,
-    page: null,
-    period: id ? scoresPeriod.current[id] : undefined,
-  });
-  const setTab = (t: Tab) =>
-    go(t === "scores" ? scoresRoute(patientId) : t === "twoweeks" ? weeksRoute(patientId) : { tab: t, page: null });
+  const setTab = (t: Tab) => go(t === "twoweeks" ? weeksRoute(patientId) : { tab: t, page: null });
   const { patients, observations, checkins, windows, refresh, loaded, everLoaded, error } = useCmaiData(patientId);
   const mainRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -119,8 +107,7 @@ export default function App() {
     setChoosing(false);
     if (id === patientId) return;
     setPatientId(id);
-    // A period number belongs to one patient: Scores reopens on this patient's own choice.
-    if (route.tab === "scores") go(scoresRoute(id));
+    // A period number belongs to one patient: Two weeks reopens on this patient's own choice.
     if (route.tab === "twoweeks") go(weeksRoute(id));
     setNotice(`Now on ${id}`);
     setSwitched(true);
@@ -170,7 +157,7 @@ export default function App() {
               <b>{current.id}</b>
               {current.demo && <span className="tag">demo</span>}
               <span className="pt-meta">
-                {tab === "scores" ? "Current: " : ""}
+                {tab === "twoweeks" ? "Current: " : ""}
                 {periodLine}
               </span>
             </span>
@@ -229,7 +216,7 @@ export default function App() {
           />
         ) : shown === "today" ? (
           <TodayScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
-        ) : shown === "twoweeks" && loaded && !error ? (
+        ) : loaded && !error ? (
           <TwoWeeksScreen
             key={patientId}
             windows={windows}
@@ -241,20 +228,9 @@ export default function App() {
             onLog={() => setTab("log")}
             onExport={() => go({ tab: "data", page: "backup" })}
           />
-        ) : loaded && !error ? (
-          <ScoresScreen
-            key={patientId}
-            patientId={patientId!}
-            windows={windows}
-            observations={observations}
-            hasActivity={observations.length > 0 || checkins.length > 0}
-            period={route.period}
-            onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
-            onLog={() => setTab("log")}
-          />
         ) : (
           <div className="loading" role="status">
-            {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
+            {error ? "Two weeks is unavailable while saved data cannot be read." : "Loading…"}
           </div>
         )}
       </main>
