@@ -19,14 +19,16 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("button", { name: "Try demo data" }).click();
   await p.getByRole("tab", { name: "Physical" }).tap();
   const item = p.getByRole("tabpanel").getByRole("button", { name: /^Trying to leave/ });
-  // Scroll a little first, so the check below can see the page held at that spot.
-  await p.evaluate(() => window.scrollTo(0, 200)); await p.waitForTimeout(100);
   await item.scrollIntoViewIfNeeded(); await item.tap();
+  // Scroll down before opening the sheet, so the check below can see the page held at that spot.
+  // The Log screen can now fit one phone screen, so give the page room to scroll first.
+  await p.evaluate(() => { document.querySelector("main").style.paddingBottom = "800px"; window.scrollTo(0, 300); }); await p.waitForTimeout(100);
+  ok(await p.evaluate(() => window.scrollY > 0), "the page is scrolled before the sheet opens");
   await p.locator(".snackbar").getByRole("button", { name: "Edit" }).tap();
   const sheet = p.getByRole("dialog", { name: /^Trying/ });
   await sheet.waitFor(); await p.waitForTimeout(300);
   const before = await p.evaluate(() => ({ y: -parseFloat(document.body.style.top || "0"), top: document.body.style.top, pos: document.body.style.position }));
-  ok(before.pos === "fixed" && before.top.startsWith("-"), "page is held in place while the sheet is open");
+  ok(before.pos === "fixed" && before.top.startsWith("-"), "page is held in place while the sheet is open ");
 
   // Drag on the footer: the page must not move.
   const foot = await sheet.locator(".sheet-footer").boundingBox();
@@ -38,7 +40,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(Math.abs((await pageTop()) - t0) < 1, "dragging or wheeling over the footer does not scroll the page behind");
   ok(await sheet.isVisible(), "an upward drag does not close the sheet");
 
-  // Other: a note field appears, saves, and shows in Recent logs.
+  // Other: a note field appears, saves, and shows on Today.
   await sheet.getByRole("button", { name: "Other" }).tap();
   const note = sheet.getByLabel("What happened?");
   ok(await note.isVisible(), "choosing Other shows a note field");
@@ -75,8 +77,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const after = await p.evaluate(() => ({ y: window.scrollY, pos: document.body.style.position }));
   ok(after.pos === "" && Math.abs(after.y - before.y) < 2, `page unlocked at the same place (${before.y} → ${after.y})`);
   await p.waitForTimeout(400);
-  const recent = p.locator(".recent-list li").first();
-  ok((await recent.textContent()).includes("Other (fire alarm test)"), "the note was saved and shows in Recent logs");
+  await p.locator("nav.tabs button", { hasText: "Today" }).tap();
+  await p.locator(".acc-head", { hasText: "Trying to leave" }).tap();
+  const recent = p.locator(".acc-body li").first();
+  ok((await recent.textContent()).includes("Other (fire alarm test)"), "the note was saved and shows on Today");
 
   // Flick: a fast short drag on the grab handle closes too.
   await recent.getByRole("button", { name: /Edit/ }).tap(); await sheet.waitFor(); await p.waitForTimeout(300);

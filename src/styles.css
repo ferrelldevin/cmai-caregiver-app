@@ -1128,13 +1128,17 @@ input[type="checkbox"] {
   transform: none;
 }
 .tile-icon {
-  grid-column: 1;
-  grid-row: 1;
   color: var(--accent-ink);
 }
-.tile-count {
+.tile-btn > .tile-icon {
+  grid-column: 1;
+  grid-row: 1;
+}
+.tile-btn > .tile-count {
   grid-column: 2;
   grid-row: 1;
+}
+.tile-count {
   min-width: 24px;
   height: 24px;
   padding: 0 6px;
@@ -1234,37 +1238,198 @@ input[type="checkbox"] {
   }
 }
 
-.recent {
-  margin-top: var(--s5);
-}
-.recent-list {
-  list-style: none;
-  padding: 0;
-  margin: var(--s2) 0;
-}
-.recent-list li {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--s2);
-  padding: var(--s3) 0;
-  border-top: 1px solid var(--rule);
-}
-.recent-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1 1 200px;
-  min-width: 0;
-}
-.recent-time {
-  font-variant-numeric: tabular-nums;
+/* Log: today's count opens the Today tab (F-27). */
+button.today-count {
+  background: transparent;
+  border: 0;
+  padding: 0 0 0 var(--s2);
+  min-height: 44px;
+  gap: 4px;
   color: var(--text-muted);
+  font-weight: 400;
+}
+button.today-count:active {
+  transform: none;
+}
+.today-count-chev {
+  transform: rotate(-90deg);
+}
+
+/* Today tab (F-27, build plan v5 4.2), from the round 3 mockup's "Report, today". */
+.today-date {
+  margin: 0;
   font-size: var(--fs-sm);
 }
-.checkin {
-  margin-top: var(--s4);
+.open-label {
+  margin: var(--s2) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--attn);
+  background: var(--attn-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s2);
+  margin: var(--s4) 0 0;
+}
+.stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: var(--s2) var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+.stats dt {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.stats dd {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.stats dd.stat-time {
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+.card-h {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  margin: 0 0 var(--s2);
+}
+.card h2.card-h {
+  font-size: var(--fs-sm);
+}
+.hours {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 2px;
+  align-items: end;
+  height: 76px;
+}
+.hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 100%;
+}
+.hour small {
+  font-size: calc(var(--fs-xs) - 3px);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hour i {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  background: var(--r5);
+}
+.hour.now i {
+  background: var(--accent-ink);
+}
+.hour.future i {
+  background: var(--grid);
+}
+.hours-axis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 0;
+  font-size: calc(var(--fs-xs) - 2px);
+  color: var(--text-muted);
+  border-top: 1px solid var(--rule);
+  padding-top: 2px;
+}
+.hours-axis small:last-child {
+  text-align: right;
+  width: 0;
+  direction: rtl;
+}
+.acc {
+  list-style: none;
+  margin: var(--s4) 0 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+.acc > li + li {
+  border-top: 1px solid var(--rule);
+}
+.acc-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto 16px;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 52px;
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-weight: 400;
+}
+@media (hover: hover) {
+  .acc-head:hover {
+    background: var(--hover);
+  }
+}
+.acc-head:active {
+  transform: none;
+  background: var(--press);
+}
+.acc-last {
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+.acc-chev {
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+.acc-chev.open {
+  transform: rotate(180deg);
+}
+.acc-body {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--s3) var(--s2) calc(var(--s3) + 22px + var(--s2));
+}
+.acc-body li {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 52px;
+  border-top: 1px dashed var(--rule);
+}
+.acc-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.acc-before {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-xs);
+}
+.today-empty button {
+  margin-top: var(--s2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .acc-chev {
+    transition: none;
+  }
 }
 
 /* Snackbar: the short confirmation after a log or delete, on the inverse surface (design note 003). */
@@ -2009,7 +2174,7 @@ button.text-danger {
 [data-contrast="high"] .pt-switch {
   border-width: 2px;
 }
-[data-contrast="high"] .recent-list li,
+[data-contrast="high"] .acc > li + li,
 [data-contrast="high"] .patient-list li {
   border-top-color: var(--rule);
 }

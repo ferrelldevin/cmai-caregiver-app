@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
 import { ScoresScreen } from "./ui/ScoresScreen";
+import { TodayScreen } from "./ui/TodayScreen";
 import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
@@ -23,6 +24,7 @@ const PIN_ON = study.pin && study.caregiverProfiles;
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
   { id: "scores", label: "Score", title: "Score", icon: "chart" },
+  { id: "today", label: "Today", title: "Today", icon: "today" },
   { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
 
@@ -395,15 +397,22 @@ export default function App() {
           <LogScreen
             patientId={patientId!}
             observations={observations}
-            checkins={checkins}
             onChange={refresh}
-            initialsOf={study.caregiverProfiles ? initialsOf : undefined}
+            onToday={() => setTab("today")}
             ratingsDue={due}
             onRate={
               RATING_ON
                 ? (n) => go({ tab: "log", page: null, rating: { patientId: patientId!, period: n } })
                 : undefined
             }
+          />
+        ) : shown === "today" ? (
+          <TodayScreen
+            patientId={patientId!}
+            observations={observations}
+            checkins={checkins}
+            onChange={refresh}
+            initialsOf={study.caregiverProfiles ? initialsOf : undefined}
           />
         ) : loaded && !error ? (
           <ScoresScreen

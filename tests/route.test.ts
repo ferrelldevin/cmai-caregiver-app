@@ -24,7 +24,13 @@ describe("routes", () => {
   });
 
   it("writes what it reads", () => {
-    for (const h of ["#/log", "#/data", "#/data/display", "#/data/about"]) expect(routeHash(parseRoute(h)!)).toBe(h);
+    for (const h of ["#/log", "#/today", "#/data", "#/data/display", "#/data/about"])
+      expect(routeHash(parseRoute(h)!)).toBe(h);
+  });
+
+  it("reads the Today tab (F-27)", () => {
+    expect(parseRoute("#/today")).toEqual({ tab: "today", page: null });
+    expect(parseRoute("#/today/extra")).toEqual({ tab: "today", page: null });
   });
 });
 

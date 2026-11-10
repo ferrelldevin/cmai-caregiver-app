@@ -9,6 +9,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Changed
 - Log screen from the round 3 mockup (F-26): behavior tiles 3 across with icons and today's count, group tabs, and a "Most logged for this resident" row.
 - What counts as each behavior moved off the buttons into one sheet, opened under the tiles or by holding a tile (F-37).
+- New Today tab (F-27): today's logs by hour and by behavior, where a log is fixed or removed. Recent logs and "Nothing to log today" moved there from Log.
 
 ### Added
 - Passphrase-protected backup, lab build only (F-10): Export asks for a passphrase of 12 or more characters and encrypts the backup, with the CSVs inside. Restore opens it, offline too.
