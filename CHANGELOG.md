@@ -23,6 +23,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Fixed
 - "Today" stays right when the app is left open: the count and Today lists refresh at midnight and when the phone returns to the app. Before, a log made after midnight could be counted against yesterday until a reload (F-35).
 
+### Added
+- A quiet line on the Log screen, "Last backup: never. Back up" (or the days since), for a real patient with logs when the last export is over a week old. It opens the backup page. Hidden for demo patients. Reads the existing last-export value; stores nothing new (F-36).
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 

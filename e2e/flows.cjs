@@ -92,6 +92,13 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.keyboard.press("Escape");
   ok(!(await sheet.isVisible()), "Esc closes the sheet");
   await p.mouse.click(10, 300);
+  // A real patient with logs and no export gets the quiet backup line, and it opens the backup page (F-36)
+  const reminder = p.locator(".backup-reminder");
+  await reminder.waitFor();
+  ok((await reminder.textContent()).includes("Last backup: never."), "real patient with logs and no export: backup line shows");
+  await reminder.getByRole("button", { name: "Back up" }).click();
+  await p.getByRole("button", { name: "Download backup" }).waitFor(); ok(true, "the backup line opens the backup page");
+  await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // data: demo, export, restore, delete patient
   await p.locator("nav.tabs button", { hasText: "Settings" }).click();
   await p.getByRole("link", { name: /^Demo data/ }).click();
