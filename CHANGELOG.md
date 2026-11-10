@@ -28,6 +28,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Fixed
 - Restore from backup checks every entry. A file with a name where a patient code belongs, a half item number, or a log for an unknown patient no longer gets into storage (where it made Export throw). Only the named fields are copied. The message says how many entries were left out (F-31).
+- Restore leaves out a review or "Nothing to log today" check-in whose key names a different patient, window or day than its own fields. Before, such an entry was stored under the key and could stand in for another patient's review.
 
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
