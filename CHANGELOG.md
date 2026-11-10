@@ -27,6 +27,10 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - Moving a log's time to before the patient's first day is refused with a message, and the old time stays. Before, the log silently dropped out of every period (F-32).
 - Restore tells the caregiver how many restored logs are dated before the patient's first day on this phone and so are not counted. Which start date wins is still an open question (D-19).
 
+### Fixed
+- A save that fails (full phone, blocked storage) now says "That did not save. Check the phone has free space, then try again." and shows no "Logged" confirmation. Before, the tap looked as if it had worked or did nothing (F-33).
+- A crash anywhere in the app shows "Something went wrong. Your saved logs are safe." with a Reload button, instead of a blank page. An unhandled save failure shows an alert.
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 

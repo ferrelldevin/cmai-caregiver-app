@@ -19,6 +19,9 @@ type Saved = StoredObservation & { id: number };
 const EDITABLE = ["at", "approx", "before", "beforeNote"] as const;
 const EDIT_MERGE_MS = 5 * 60_000;
 
+/** A change the caregiver can fix, with a message to show as it is (not a storage failure). */
+export class LogTimeError extends Error {}
+
 /** Throws when the reason is missing, or is "Other" without a note. */
 export async function deleteLog(obs: Saved, reason: string, note?: string, now = Date.now()) {
   const trimmed = note?.trim() || undefined;
@@ -60,7 +63,7 @@ export async function editLog(obs: Saved, change: Partial<StoredObservation>, no
         day: "numeric",
         year: "numeric",
       });
-      throw new Error(`This patient's first day in the app is ${day}. A log can't be earlier than that.`);
+      throw new LogTimeError(`This patient's first day in the app is ${day}. A log can't be earlier than that.`);
     }
     const from: Partial<StoredObservation> = {};
     const to: Partial<StoredObservation> = {};
