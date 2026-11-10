@@ -37,7 +37,7 @@ Not collected: names, rooms, dates of birth, diagnoses, photos, audio, location.
 ## 5. Keeping and deleting
 
 - **Assumed** (P-04): keep study data for as long as the IRB approval and ODU's records rules require; Dr. Gupta sets the number of years. Not known to us today.
-- A phone leaving the study (end of study, broken, reassigned): download a backup, restore it on a lab device and check the counts match, then delete each patient in Settings and remove the app. Note: deleting a patient also erases that patient's change history on the phone (audit A-09), so the backup must be checked first. D-20 asks whether deleting should become archiving.
+- A phone leaving the study (end of study, broken, reassigned): download a backup, restore it on a lab device and check the counts match, then delete each patient on the Data tab and remove the app. Note: deleting a patient also erases that patient's change history on the phone (audit A-09), so the backup must be checked first. D-20 asks whether deleting should become archiving.
 - A lost phone: tell Dr. Gupta the same day; the last backup is the record from then on.
 
 ## 6. If real data shows up in the wrong place

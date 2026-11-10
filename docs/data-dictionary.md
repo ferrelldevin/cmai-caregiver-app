@@ -17,9 +17,9 @@ Every example below is made-up demo data, made by running the real export code o
 
 | File | Made by | What it is |
 |---|---|---|
-| `cmai-backup-<date>.json` | Settings, Backup, "Download backup" | Everything on the phone. The only file that can be restored |
-| `cmai-observations-<date>.csv` | Settings, Backup, observations CSV | One row per log, deleted logs included |
-| `cmai-scores-<date>.csv` | Settings, Backup, scores CSV | One row per patient, period and behavior: the app's rating from live logs |
+| `cmai-backup-<date>.json` | Data tab (Settings once PR #41 merges), Backup and export, **Download backup** | Everything on the phone. The only file that can be restored |
+| `cmai-observations-<date>.csv` | Same page, **Logs CSV** | One row per log, deleted logs included |
+| `cmai-scores-<date>.csv` | Same page, **Scores CSV** | One row per patient, period and behavior: the app's rating from live logs |
 
 `<date>` is the **UTC** date of the export (`toISOString().slice(0, 10)` in `src/ui/DataScreen.tsx:129`), so an export made after 8 pm in New York in summer carries the next day's date.
 

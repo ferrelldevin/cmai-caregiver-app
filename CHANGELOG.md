@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- Lab readiness drafts for Dr. Gupta (build plan Stage 3): `docs/security/threat-model.md`, `docs/data-dictionary.md`, `docs/lab/data-management-plan.md`, `docs/lab/review-packet.md`, `CONTRIBUTING.md` and `docs/process/runbook.md`. Docs only; no app, scoring or export change.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.
