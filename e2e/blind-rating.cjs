@@ -35,7 +35,8 @@ async function setUp(p) {
   await pinIn(p, "246810", "Enter the setup PIN again");
   await pinIn(p, "246810", "Add the first caregiver");
   await p.getByLabel("Caregiver initials").fill("JM"); await p.keyboard.press("Enter");
-  await heading(p, "Choose a PIN for JM");
+  await heading(p, "Setup PIN"); // a first PIN needs the setup PIN
+  await pinIn(p, "246810", "Choose a PIN for JM");
   await pinIn(p, "2580", "Enter it again");
   await pinIn(p, "2580");
   await p.locator(".cg-chip", { hasText: "JM" }).waitFor();
