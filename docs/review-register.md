@@ -143,6 +143,7 @@ Each one waits on a lab decision or on V-01. Severity comes from the heuristic r
 | F-49 | Tabs: Log, Today, Two weeks, Settings | Mockup round 4. Build plan 4.0, 4.2 to 4.4 | F-25 | G1 |
 | F-50 | Log on one page with jump links | With group tabs 20 of 29 behaviors are behind a tab at any moment (Part 8, U2). Build plan 4.6 | F-49, V-15 | G1 |
 | F-51 | "When did it happen" chips on the confirmation | Caregivers log after the event, so the worst behaviors get the latest times (Part 8, U5). Build plan 4.7 | F-49 | G1 |
+| F-52 | Not used. The number is skipped in the build plan and kept here so it is not reused | none | none | G1 |
 | F-53 | Ask the phone to keep the app's data | Browsers may clear a site's data under storage pressure (audit A-13). In review: PR #55 | none | G0 |
 | F-54 | Copyable diagnostics: the last 30 errors, no patient codes, nothing sent anywhere | When a caregiver says "it did not save", nobody can see why. In review: PR #60 | F-33 | G0 |
 
