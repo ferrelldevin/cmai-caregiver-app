@@ -2,6 +2,8 @@
 
 Draft, 2026-11-10. Build plan step 3.4. Part 1 describes the three export files exactly as `main` at `b753f6f` writes them (`src/data/exporter.ts`, `src/data/db.ts`). Part 2 is the assumed design for format 2, which changes the exports and so is lane B: **assumed, sign-off pending** (D-22, D-23 *proposed*). Nothing here changes the app.
 
+Where these fields land in the lab's database (tables, keys, and how to load a backup) is in `docs/data/lab-database.md`; the schema is `docs/data/lab-schema.sql` (P-13 *proposed*).
+
 Every example below is made-up demo data, made by running the real export code on a demo patient in New York time (UTC−4 in October 2026).
 
 ## How to read times

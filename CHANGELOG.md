@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 - Lab readiness drafts for Dr. Gupta (build plan Stage 3): `docs/security/threat-model.md`, `docs/data-dictionary.md`, `docs/lab/data-management-plan.md`, `docs/lab/review-packet.md`, `CONTRIBUTING.md` and `docs/process/runbook.md`. Docs only; no app, scoring or export change.
+- Lab database frame: `docs/data/lab-schema.sql` (runs on SQLite and PostgreSQL), `docs/data/lab-database.md`, and `scripts/backup-to-sql.mjs`, which loads a backup file and its scores CSV into it. Tested in `tests/backupToSql.test.ts`. Reads files only; the app is unchanged.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.

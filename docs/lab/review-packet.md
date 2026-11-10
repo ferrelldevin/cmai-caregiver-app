@@ -110,6 +110,7 @@ Each of these is being built now (plan v5, Stage 5) behind a study setting that 
 | E3 | P-10, P-11, P-12 *proposed* | **P-10:** are study phones the lab's or the caregivers' own? **P-11:** keep the optional free-text notes (120 characters, "no names" beside them)? **P-12:** approve the wording "This app tells no one. A log is a record for the study. For an injury or an emergency, do what your workplace says." | P-10: not assumed, it decides the passkey and tablet questions. P-11: kept, and marked "check before sharing" in the data dictionary. P-12: built with this wording (plan 1.10) | |
 | E4 | P-03 | Does the IRB submission cover data about caregivers too: their codes, watching hours, and their day-14 ratings? | Yes, listed in the submission with A2 | |
 | E5 | (plan 3.9) | The study protocol and analysis plan draft: sample size, the pass mark (row F4), and whether to preregister | Drafted by Devin and Claude with blanks for your numbers; not registered or sent until you mark it | |
+| E6 | P-13 *proposed* | Which database does the lab keep study data in once it leaves the phones: one SQLite file on lab or ODU-managed storage, an ODU-managed PostgreSQL server, REDCap, or something the lab already uses? | One SQLite file now, a PostgreSQL server later. The frame is built for both and tested on both with made-up data: `docs/data/lab-schema.sql`, explained in `docs/data/lab-database.md`. REDCap would need a mapping, not built yet | |
 
 ## F. Permissions, people and studies (about 2 minutes)
 
