@@ -44,7 +44,7 @@ A plain count can't show "several times an hour", so rating 7 uses timing:
 - One tap = one occurrence.
 - **Continuous behaviors** (#1 pacing, #26 repetitious mannerisms, #29 general restlessness): one tap = one stretch of the behavior, not one step or one tap of a finger.
 - **Complex behaviors**: the manual says to split them into the simple behaviors they contain and log each (p.4, instruction 14).
-- Each button shows a short description in our own words and the manual page with the full definition (p.12 to 13). "Does not count" shows the manual's exclusions, also reworded. Example: spitting into a tissue is not #3. The manual's own wording is not reproduced in the app (see NOTICE).
+- A short description of each behavior in our own words, with the manual page that has the full definition (p.12 to 13), is in one sheet on the Log screen: "What counts as each behavior?" under the tiles, or hold a tile to open it at that behavior (F-37). Until 2026-11-10 it sat on each button. "Does not count" shows the manual's exclusions, also reworded. Example: spitting into a tissue is not #3. The manual's own wording is not reproduced in the app (see NOTICE).
 
 ## 5. The app's rating is locked, and codes 8 and 9
 
