@@ -2720,3 +2720,23 @@ table.cmp td {
 .watch-note {
   margin: var(--s2) 0 0;
 }
+
+/* "It stopped" (F-39): with three actions the confirmation takes two lines, so the behavior's name is never cut. */
+.snackbar.three {
+  grid-template-columns: auto minmax(0, 1fr);
+  row-gap: 0;
+}
+.snackbar.three .snackbar-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+}
+.ended-label {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+/* Clear sits beside the end time. */
+.ended-row {
+  gap: var(--s2);
+  align-items: center;
+}

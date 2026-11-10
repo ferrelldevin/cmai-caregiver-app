@@ -7,7 +7,7 @@
 
 import { useEffect, useState, type MouseEvent } from "react";
 import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
-import { deleteLog, editLog, restoreLog } from "../data/logs";
+import { deleteLog, editLog, restoreLog, stopLog } from "../data/logs";
 import { dayLogs, logsByHour } from "../scoring/day";
 import { watchedMinutesByHour } from "../scoring/coverage";
 import { watchesFor } from "../data/watches";
@@ -36,6 +36,7 @@ interface Props {
 export function TodayScreen({ patientId, observations, checkins, onChange, initialsOf }: Props) {
   const [open, setOpen] = useState<number | null>(null);
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
+  const [sheetError, setSheetError] = useState<string | null>(null);
   const [deleted, setDeleted] = useState<SavedObs | null>(null);
 
   const now = Date.now();
@@ -94,7 +95,21 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
   async function patch(change: Partial<StoredObservation>) {
     if (!editing) return;
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
-    await editLog(editing.obs, change);
+    try {
+      await editLog(editing.obs, change);
+      setSheetError(null);
+    } catch (e) {
+      // Refused (an end before the start, F-39): show what is stored, and say why.
+      const stored = await db.observations.get(editing.obs.id);
+      if (stored) setEditing({ ...editing, obs: { ...stored, id: editing.obs.id } });
+      setSheetError((e as Error).message);
+    }
+    onChange();
+  }
+
+  // "It stopped" (F-39): the end of a stretch, now. Optional and never scored.
+  async function stopped(o: SavedObs) {
+    await stopLog(o);
     onChange();
   }
 
@@ -226,11 +241,21 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
                           <span className="acc-time">
                             {timeOfDay(o.at)}
                             {o.approx ? " (about)" : ""}
+                            {study.stoppedTap && o.endedAt !== undefined ? ` to ${timeOfDay(o.endedAt)}` : ""}
                             {initialsOf && o.by ? ` · by ${initialsOf[o.by] ?? o.by}` : ""}
                           </span>
                           <span className="muted acc-before">
                             {o.before ? `before: ${o.before}${o.beforeNote ? ` (${o.beforeNote})` : ""}` : ""}
                           </span>
+                          {study.stoppedTap && ITEMS[itemId - 1].continuous && o.endedAt === undefined && (
+                            <button
+                              className="ghost small"
+                              aria-label={`It stopped: ${SHORT_NAMES[itemId]} from ${timeOfDay(o.at)}`}
+                              onClick={() => stopped(o as SavedObs)}
+                            >
+                              It stopped
+                            </button>
+                          )}
                           <button
                             className="ghost small"
                             aria-label={`Edit ${ITEMS[itemId - 1].name} at ${timeOfDay(o.at)}`}
@@ -277,7 +302,11 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
         viaKeyboard={editing?.viaKeyboard ?? false}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          setSheetError(null);
+        }}
+        error={sheetError}
       />
     </div>
   );

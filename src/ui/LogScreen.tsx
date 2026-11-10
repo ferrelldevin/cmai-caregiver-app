@@ -16,7 +16,7 @@ import { utcOffsetMin } from "../data/ids";
 import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
-import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../data/logs";
+import { deleteLog, editLog, restoreLog, stopLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
@@ -48,6 +48,7 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
+  const [sheetError, setSheetError] = useState<string | null>(null);
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
@@ -119,6 +120,15 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
     onChange();
   }
 
+  // "It stopped" (F-39): the end of a stretch, now. The confirmation stays, showing both times.
+  const stoppable = (t: Toast) => t.kind === "logged" && study.stoppedTap && !!ITEMS[t.obs.itemId - 1].continuous && t.obs.endedAt === undefined;
+  async function stopped(o: SavedObs) {
+    const now = Date.now();
+    await stopLog(o, now);
+    setToast({ kind: "logged", obs: { ...o, endedAt: now } });
+    onChange();
+  }
+
   function edit(o: SavedObs, e: MouseEvent) {
     setToast(null);
     setHeld(false);
@@ -129,7 +139,15 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
     if (!editing) return;
     // Show the change at once; the save follows.
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
-    await editLog(editing.obs, change);
+    try {
+      await editLog(editing.obs, change);
+      setSheetError(null);
+    } catch (e) {
+      // Refused (an end before the start, F-39): show what is stored, and say why.
+      const stored = await db.observations.get(editing.obs.id);
+      if (stored) setEditing({ ...editing, obs: { ...stored, id: editing.obs.id } });
+      setSheetError((e as Error).message);
+    }
     onChange();
   }
 
@@ -294,7 +312,7 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
 
       {toast && (
         <div
-          className="snackbar"
+          className={stoppable(toast) ? "snackbar three" : "snackbar"}
           role="status"
           onPointerEnter={() => setHeld(true)}
           onPointerLeave={() => setHeld(false)}
@@ -313,9 +331,15 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
               {toast.kind === "deleted" && "Deleted · "}
               {toast.obs.patientId} · {timeOfDay(toast.obs.at)}
               {toast.obs.approx ? " (about)" : ""}
+              {toast.obs.endedAt !== undefined ? ` to ${timeOfDay(toast.obs.endedAt)}` : ""}
             </span>
           </span>
           <span className="snackbar-actions">
+            {stoppable(toast) && (
+              <button className="snackbar-btn" onClick={() => stopped(toast.obs)}>
+                It stopped
+              </button>
+            )}
             {toast.kind === "logged" && (
               <button className="snackbar-btn" onClick={(e) => edit(toast.obs, e)}>
                 Edit
@@ -335,7 +359,11 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
         viaKeyboard={editing?.viaKeyboard ?? false}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          setSheetError(null);
+        }}
+        error={sheetError}
       />
     </div>
   );
