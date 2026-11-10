@@ -28,7 +28,9 @@ async function setUp(p) {
   await pinIn(p, "246810", "Enter the setup PIN again");
   await pinIn(p, "246810", "Add the first caregiver");
   await p.getByLabel("Caregiver initials").fill("JM"); await p.keyboard.press("Enter");
-  await heading(p, "Choose a PIN for JM");
+  // A first PIN needs the setup PIN, so nobody can claim a caregiver who has not signed in yet.
+  await heading(p, "Setup PIN");
+  await pinIn(p, "246810", "Choose a PIN for JM");
 }
 
 (async () => {
@@ -101,7 +103,12 @@ async function setUp(p) {
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   await p.locator(".cg-chip").click();
   await p.getByRole("dialog", { name: "Who is logging?" }).getByRole("button", { name: /^AB/ }).click();
-  await heading(p, "Choose a PIN for AB");
+  await heading(p, "Setup PIN");
+  ok((await p.locator(".signin .muted").first().textContent()).includes("AB has no PIN yet"), "a caregiver with no PIN yet cannot be claimed without the setup PIN");
+  await p.keyboard.type("135799");
+  await p.locator(".signin .msg.error").waitFor();
+  ok(await p.getByRole("heading", { name: "Setup PIN" }).isVisible(), "a wrong setup PIN does not open Choose a PIN");
+  await pinIn(p, "246810", "Choose a PIN for AB");
   await p.getByRole("button", { name: "Cancel" }).click();
   await p.locator(".cg-chip", { hasText: "JM" }).waitFor(); ok(true, "Cancel on a switch keeps JM signed in");
   await p.locator(".cg-chip").click();
@@ -111,6 +118,11 @@ async function setUp(p) {
   ok(await p.evaluate(() => localStorage.getItem("cmai-session")) === null, "Sign out forgets the shift");
   const stored = await p.evaluate(() => JSON.stringify(localStorage));
   ok(!stored.includes("2580") && !stored.includes("3691") && !stored.includes("246810"), "no PIN is kept in localStorage");
+  // After clear and restore the phone has caregivers but no setup PIN: it is chosen before anyone gets a PIN.
+  await p.evaluate(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const t = r.result.transaction("meta", "readwrite"); t.objectStore("meta").delete("setupPin"); t.oncomplete = () => { r.result.close(); res(); }; }; }));
+  await p.reload();
+  await heading(p, "Choose a setup PIN");
+  ok(await p.locator(".signin-list").count() === 0, "with no setup PIN, the caregiver list waits until one is chosen");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();
 
