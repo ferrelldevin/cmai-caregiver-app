@@ -1,6 +1,6 @@
 # Data dictionary: CMAI Tracker exports
 
-Draft, 2026-11-10. Build plan step 3.4. Part 1 describes the three export files exactly as `main` at `b753f6f` writes them (`src/data/exporter.ts`, `src/data/db.ts`). Part 2 is the assumed design for format 2, which changes the exports and so is lane B: **assumed, sign-off pending** (D-22, and the export questions in the review packet). Nothing here changes the app.
+Draft, 2026-11-10. Build plan step 3.4. Part 1 describes the three export files exactly as `main` at `b753f6f` writes them (`src/data/exporter.ts`, `src/data/db.ts`). Part 2 is the assumed design for format 2, which changes the exports and so is lane B: **assumed, sign-off pending** (D-22, D-23 *proposed*). Nothing here changes the app.
 
 Every example below is made-up demo data, made by running the real export code on a demo patient in New York time (UTC−4 in October 2026).
 
@@ -208,7 +208,7 @@ Item names are adapted from the CMAI (© 1991 Cohen-Mansfield) and are not under
 
 ## Part 2. Format 2 (assumed design, lane B)
 
-**Assumed, sign-off pending** (D-22 time zone; review packet decision on export format). The code change belongs to a build thread, in the same database version as R2 (plan step 5.1), so phones migrate once. Format 1 files stay readable: restore accepts both.
+**Assumed, sign-off pending** (D-22 time zone; D-23 export format 2, *proposed*). The code change belongs to a build thread, in the same database version as R2 (plan step 5.1), so phones migrate once. Format 1 files stay readable: restore accepts both.
 
 What changes, and why:
 
