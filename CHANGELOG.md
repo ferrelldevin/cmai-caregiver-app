@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- Size check in CI (`npm run check:size`): fails if the first script grows past 330 KB or any other script past 600 KB.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.

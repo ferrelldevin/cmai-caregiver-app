@@ -142,3 +142,4 @@ Newest first. Every rule change and every sign-off goes here, with who and when.
 | 2026-10-22 | Meaningful-change marker (2+ points, or 1 point held) | Devin (research map) | Pending (D-10) |
 | 2026-10-22 | Item definitions reworded; MIT + NOTICE | Devin (permissions audit) | Pending (P-01, P-05) |
 | 2026-10-21 | `cmai-count-rule-1`: count bands and rating-7 rule | Devin | Pending (D-01, D-02) |
+| 2026-11-10 | B-14: the Scores screen and the charts library load only when Scores is opened (the first script drops from 712 KB to 302 KB); `npm run check:size` fails the build if the entry script is over 330 KB or any other script over 600 KB. The Vite chunk warning limit is back to default. Scores still works offline after install (the chunk is in the precache list) | Claude (build plan step 2.8) | Lane A, no sign-off needed. Departure: the plan's 250 KB entry budget is below what React and Dexie take, so the budget is the measured 302 KB plus about 10% |
