@@ -1,0 +1,28 @@
+name: Bug report
+description: Something in the app does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Made-up data only.** Do not paste real resident names, codes, logs, exports or screenshots of real data. Use the demo data to show the problem.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open Log  2. Tap Pacing  3. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone or computer, browser, and whether the app was installed
+      placeholder: "iPhone 15, Safari, installed to Home Screen"
+    validations:
+      required: true

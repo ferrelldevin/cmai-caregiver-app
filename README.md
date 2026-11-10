@@ -2,6 +2,8 @@
 
 A progressive web app (PWA) for caregivers. Log each agitated behavior as it happens, and see Cohen-Mansfield Agitation Inventory (CMAI) scores for every 14-day period. Works offline and installs to a phone's Home Screen.
 
+Live app (demo data only): https://ferrelldevin.github.io/cmai-caregiver-app/
+
 Built by Devin Ferrell for the Hands-On Lab, Old Dominion University (hands-on interview, October 2026).
 
 ## What the lab asked for

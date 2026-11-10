@@ -9,7 +9,7 @@ authors:
     affiliation: "Old Dominion University"
 version: 0.2.0
 license: MIT
-repository-code: "https://github.com/ferrelldevin/cmai-tracker"
+repository-code: "https://github.com/ferrelldevin/cmai-caregiver-app"
 keywords:
   - CMAI
   - agitation

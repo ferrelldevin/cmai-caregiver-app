@@ -6,7 +6,11 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ## [Unreleased]
 
+### Changed
+- Repository renamed from `cmai-tracker` to `cmai-caregiver-app`. The live app moves to https://ferrelldevin.github.io/cmai-caregiver-app/ (GitHub Pages does not redirect the old address). The app name stays CMAI Tracker, and the on-phone database keeps its name, so data on Android and desktop carries over; an iPhone Home Screen copy needs Export, then Restore at the new address.
+
 ### Added
+- Issue forms for bug reports and change requests, each warning against real participant data.
 - `docs/process/release.md`: how to cut a release and how to undo a bad deploy. The deploy job now checks that the live page shows the commit it just deployed.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.

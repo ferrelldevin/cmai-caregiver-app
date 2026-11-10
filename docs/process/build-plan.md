@@ -125,7 +125,7 @@ A stop is for that step only. Report it, then take the next step that does not d
 
 | Thing | Place |
 |---|---|
-| Repo | `github.com/ferrelldevin/cmai-tracker`; on Devin's machines `C:\lab\cmai-tracker` |
+| Repo | `github.com/ferrelldevin/cmai-caregiver-app`; on Devin's machines `C:\lab\cmai-tracker` |
 | This plan | `plans/build-plan.md` in the project folder until step 0.7 moves it to `docs/process/build-plan.md` in the repo. After that the repo copy is the source. |
 | Scoring rule | `docs/scoring-spec.md`, checked by `docs/test-cases.json` and `tests/engine.test.ts` |
 | Open decisions | `docs/review-register.md` |
@@ -380,7 +380,7 @@ No new code except in 0.4, 0.7 and 0.8. Goal: `main` holds everything that is fi
 
 - **Why:** C-06.
 - **Where:** project folder only. No pull request.
-- **Do:** replace the contents of `README.md`, `scoring-spec.md`, `review-register.md` and `change-process.md` in the project folder with one line each: `The source is <path> in github.com/ferrelldevin/cmai-tracker. This copy was removed on <date> because copies drift.` Read each file again just before changing it.
+- **Do:** replace the contents of `README.md`, `scoring-spec.md`, `review-register.md` and `change-process.md` in the project folder with one line each: `The source is <path> in github.com/ferrelldevin/cmai-caregiver-app. This copy was removed on <date> because copies drift.` Read each file again just before changing it.
 - **Done when:** the four files are one line each.
 
 ---
