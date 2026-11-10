@@ -8,6 +8,10 @@ import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
+import { CaregiverPage, WhoSheet } from "./ui/CaregiverScreen";
+import { activeCaregivers, chooseLoggingCaregiver, myResidents, readLoggingCaregiver } from "./data/caregivers";
+import type { Caregiver } from "./data/db";
+import { study } from "./study/settings";
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
@@ -21,6 +25,7 @@ const PAGE_TITLES: Record<DataPage, string> = {
   safe: "Keep data safe",
   demo: "Demo data",
   about: "How ratings are worked out",
+  caregivers: "Caregivers",
 };
 
 const readSaved = () => {
@@ -76,6 +81,42 @@ export default function App() {
 
   const hasPatient = !!patientId && patients.some((p) => p.id === patientId);
 
+  // Caregiver profiles (R2, plan 5.2): only with the switch on. Who is logging is remembered on
+  // this phone; every new record carries their code. Nothing here ever stands between a caregiver
+  // and a tile: switching is a choice, never a prompt.
+  const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
+  const [caregiversVersion, setCaregiversVersion] = useState(0);
+  const [loggingAs, setLoggingAs] = useState<string | null>(() => {
+    const saved = study.caregiverProfiles ? readLoggingCaregiver() : null;
+    chooseLoggingCaregiver(saved);
+    return saved;
+  });
+  const [choosingWho, setChoosingWho] = useState(false);
+  const [choosingWhoByKey, setChoosingWhoByKey] = useState(false);
+  const [mine, setMine] = useState<string[]>([]);
+  useEffect(() => {
+    if (!study.caregiverProfiles) return;
+    let live = true;
+    activeCaregivers()
+      .then((list) => {
+        if (!live) return;
+        setCaregivers(list);
+        // A caregiver removed since, or never on this phone, is not logging.
+        if (loggingAs && !list.some((c) => c.id === loggingAs)) logAs(null);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload on a change, not on every pick
+  }, [caregiversVersion]);
+  function logAs(id: string | null) {
+    chooseLoggingCaregiver(id);
+    setLoggingAs(id);
+  }
+  const me = caregivers.find((c) => c.id === loggingAs);
+  const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
+
   // The section bars pin just under the patient banner, so they need its height.
   useEffect(() => {
     const el = pinRef.current;
@@ -100,6 +141,13 @@ export default function App() {
     }, 4000);
     return () => clearTimeout(t);
   }, [notice]);
+
+  async function openSwitcher(viaKeyboard: boolean) {
+    setChoosingByKey(viaKeyboard);
+    setChoosing(true);
+    if (study.caregiverProfiles && loggingAs) setMine(await myResidents(loggingAs).catch(() => []));
+    else setMine([]);
+  }
 
   function pickPatient(id: string) {
     setChoosing(false);
@@ -142,28 +190,61 @@ export default function App() {
 
       {hasPatient && current && (
         <div className="pin" ref={pinRef} data-res={residentColor(current.id)}>
-          <button
-            className={switched ? "pt-banner switched" : "pt-banner"}
-            aria-haspopup="dialog"
-            onClick={(e) => {
-              setChoosingByKey(e.detail === 0);
-              setChoosing(true);
-            }}
-          >
-            <PatientAvatar id={current.id} />
-            <span className="pt-id">
-              <b>{current.id}</b>
-              {current.demo && <span className="tag">demo</span>}
-              <span className="pt-meta">
-                {tab === "scores" ? "Current: " : ""}
-                {periodLine}
+          {study.caregiverProfiles ? (
+            <div className="pin-row">
+              <button
+                className={switched ? "pt-banner switched" : "pt-banner"}
+                aria-haspopup="dialog"
+                onClick={(e) => openSwitcher(e.detail === 0)}
+              >
+                <PatientAvatar id={current.id} />
+                <span className="pt-id">
+                  <b>{current.id}</b>
+                  {current.demo && <span className="tag">demo</span>}
+                  <span className="pt-meta">
+                    {tab === "scores" ? "Current: " : ""}
+                    {periodLine}
+                  </span>
+                </span>
+                <span className="pt-switch" aria-hidden>
+                  <Icon name="swap" size={18} /> {patients.length > 1 ? "Switch" : "Patients"}
+                </span>
+                <span className="sr">Choose patient</span>
+              </button>
+              <button
+                className={me ? "cg-chip" : "cg-chip none"}
+                aria-haspopup="dialog"
+                aria-label={me ? `${me.initials}, logging as ${me.id}. Switch caregiver` : "Who? Choose who is logging"}
+                onClick={(e) => {
+                  if (!caregivers.length) return go({ tab: "data", page: "caregivers" });
+                  setChoosingWhoByKey(e.detail === 0);
+                  setChoosingWho(true);
+                }}
+              >
+                {me ? me.initials : "Who?"}
+              </button>
+            </div>
+          ) : (
+            <button
+              className={switched ? "pt-banner switched" : "pt-banner"}
+              aria-haspopup="dialog"
+              onClick={(e) => openSwitcher(e.detail === 0)}
+            >
+              <PatientAvatar id={current.id} />
+              <span className="pt-id">
+                <b>{current.id}</b>
+                {current.demo && <span className="tag">demo</span>}
+                <span className="pt-meta">
+                  {tab === "scores" ? "Current: " : ""}
+                  {periodLine}
+                </span>
               </span>
-            </span>
-            <span className="pt-switch" aria-hidden>
-              <Icon name="swap" size={18} /> {patients.length > 1 ? "Switch" : "Patients"}
-            </span>
-            <span className="sr">Choose patient</span>
-          </button>
+              <span className="pt-switch" aria-hidden>
+                <Icon name="swap" size={18} /> {patients.length > 1 ? "Switch" : "Patients"}
+              </span>
+              <span className="sr">Choose patient</span>
+            </button>
+          )}
           <p className={notice ? "switch-notice on" : "switch-notice"} role="status">
             {notice && (
               <>
@@ -204,9 +285,33 @@ export default function App() {
               setTab("log");
             }}
             onChange={refresh}
+            caregivers={
+              study.caregiverProfiles
+                ? {
+                    status: caregivers.length
+                      ? `${caregivers.length} on this phone${me ? ` · ${me.initials} logging` : ""}`
+                      : "Add the first caregiver",
+                    page: (
+                      <CaregiverPage
+                        caregivers={caregivers}
+                        loggingAs={loggingAs}
+                        patients={patients}
+                        onLogAs={logAs}
+                        onChange={() => setCaregiversVersion((v) => v + 1)}
+                      />
+                    ),
+                  }
+                : undefined
+            }
           />
         ) : shown === "log" ? (
-          <LogScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
+          <LogScreen
+            patientId={patientId!}
+            observations={observations}
+            checkins={checkins}
+            onChange={refresh}
+            initialsOf={study.caregiverProfiles ? initialsOf : undefined}
+          />
         ) : loaded && !error ? (
           <ScoresScreen
             key={patientId}
@@ -230,6 +335,7 @@ export default function App() {
         open={choosing}
         patients={patients}
         current={hasPatient ? patientId : null}
+        mine={mine}
         onPick={pickPatient}
         onManage={() => {
           setChoosing(false);
@@ -237,6 +343,27 @@ export default function App() {
         }}
         onClose={() => setChoosing(false)}
       />
+
+      {study.caregiverProfiles && (
+        <WhoSheet
+          open={choosingWho}
+          viaKeyboard={choosingWhoByKey}
+          caregivers={caregivers}
+          loggingAs={loggingAs}
+          onPick={(id) => {
+            setChoosingWho(false);
+            if (id === loggingAs) return;
+            logAs(id);
+            const c = caregivers.find((x) => x.id === id);
+            setNotice(`${c?.initials ?? id} is logging`);
+          }}
+          onManage={() => {
+            setChoosingWho(false);
+            go({ tab: "data", page: "caregivers" });
+          }}
+          onClose={() => setChoosingWho(false)}
+        />
+      )}
 
       <nav className="tabs" aria-label="Screens">
         <div className="tabs-inner">

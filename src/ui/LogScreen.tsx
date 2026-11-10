@@ -34,9 +34,11 @@ interface Props {
   observations: StoredObservation[];
   checkins: CheckIn[];
   onChange: () => void;
+  /** Caregiver code to initials, when caregiver profiles are on (R2): recent logs say who logged them. */
+  initialsOf?: Record<string, string>;
 }
 
-export function LogScreen({ patientId, observations, checkins, onChange }: Props) {
+export function LogScreen({ patientId, observations, checkins, onChange, initialsOf }: Props) {
   const [openInfo, setOpenInfo] = useState<number | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
@@ -171,7 +173,7 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
               {recent.slice(0, showAllRecent ? undefined : RECENT_SHOWN).map((o) => (
                 <li key={o.id}>
                   <div className="recent-main">
-                    <span className="recent-time">{o.at < todayStart ? dayAndTime(o.at) : timeOfDay(o.at)}{o.approx ? " (about)" : ""}</span>
+                    <span className="recent-time">{o.at < todayStart ? dayAndTime(o.at) : timeOfDay(o.at)}{o.approx ? " (about)" : ""}{initialsOf && o.by ? ` · by ${initialsOf[o.by] ?? o.by}` : ""}</span>
                     <span><b>{ITEMS[o.itemId - 1].name}</b>{o.before ? <span className="muted"> · before: {o.before}{o.beforeNote ? ` (${o.beforeNote})` : ""}</span> : null}</span>
                   </div>
                   <button className="ghost small" aria-label={`Edit ${ITEMS[o.itemId - 1].name} at ${timeOfDay(o.at)}`} onClick={(e) => edit(o as SavedObs, e)}>Edit</button>

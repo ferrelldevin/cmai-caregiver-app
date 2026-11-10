@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import type { Patient } from "../data/db";
 import { patientSummaries, type PatientSummary } from "../data/patients";
+import { orderForCaregiver } from "../data/caregivers";
 import { lastSeen } from "./format";
 import { Icon } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
@@ -17,12 +18,14 @@ interface Props {
   viaKeyboard: boolean;
   patients: Patient[];
   current: string | null;
+  /** "My residents" for the caregiver logging now (R2): listed first, in their order. Empty: one list. */
+  mine?: string[];
   onPick: (id: string) => void;
   onManage: () => void;
   onClose: () => void;
 }
 
-export function PatientSheet({ open, viaKeyboard, patients, current, onPick, onManage, onClose }: Props) {
+export function PatientSheet({ open, viaKeyboard, patients, current, mine = [], onPick, onManage, onClose }: Props) {
   const [rows, setRows] = useState<PatientSummary[] | null>(null);
   const [query, setQuery] = useState("");
 
@@ -37,6 +40,24 @@ export function PatientSheet({ open, viaKeyboard, patients, current, onPick, onM
 
   const list = (rows ?? patients.map((p) => ({ ...p, period: 0, day: 0, lastLogged: undefined as number | null | undefined })))
     .filter((p) => p.id.toLowerCase().includes(query.trim().toLowerCase()));
+
+  const row = (p: (typeof list)[number]) => {
+    const isCurrent = p.id === current;
+    return (
+      <li key={p.id}>
+        <button className="sheet-row" aria-current={isCurrent} onClick={() => onPick(p.id)}>
+          <PatientAvatar id={p.id} size={40} />
+          <span className="sheet-text">
+            <span className="sheet-code">{p.id}{p.demo && <span className="tag">demo</span>}</span>
+            {p.period > 0 && <span className="sheet-meta">Period {p.period} · day {p.day} of 14</span>}
+            {p.lastLogged !== undefined && <span className="sheet-meta">{p.lastLogged === null ? "No logs yet" : `Last log ${lastSeen(p.lastLogged)}`}</span>}
+          </span>
+          {isCurrent && <Icon name="check" size={22} className="sheet-check" />}
+        </button>
+      </li>
+    );
+  };
+  const groups = orderForCaregiver(list, mine);
 
   return (
     <Sheet open={open} viaKeyboard={viaKeyboard} keyboardFocus='[aria-current="true"]' title="Choose patient" onClose={onClose}>
@@ -54,25 +75,19 @@ export function PatientSheet({ open, viaKeyboard, patients, current, onPick, onM
           spellCheck={false}
         />
       )}
-      <ul className="sheet-list">
-        {list.map((p) => {
-          const isCurrent = p.id === current;
-          return (
-            <li key={p.id}>
-              <button className="sheet-row" aria-current={isCurrent} onClick={() => onPick(p.id)}>
-                <PatientAvatar id={p.id} size={40} />
-                <span className="sheet-text">
-                  <span className="sheet-code">{p.id}{p.demo && <span className="tag">demo</span>}</span>
-                  {p.period > 0 && <span className="sheet-meta">Period {p.period} · day {p.day} of 14</span>}
-                  {p.lastLogged !== undefined && <span className="sheet-meta">{p.lastLogged === null ? "No logs yet" : `Last log ${lastSeen(p.lastLogged)}`}</span>}
-                </span>
-                {isCurrent && <Icon name="check" size={22} className="sheet-check" />}
-              </button>
-            </li>
-          );
-        })}
-        {list.length === 0 && <li className="sheet-empty muted">No patient code contains "{query}".</li>}
-      </ul>
+      {groups.mine.length > 0 ? (
+        <>
+          <h3 className="sheet-group">My residents</h3>
+          <ul className="sheet-list">{groups.mine.map(row)}</ul>
+          {groups.others.length > 0 && <h3 className="sheet-group">Others on this phone</h3>}
+          <ul className="sheet-list">{groups.others.map(row)}</ul>
+        </>
+      ) : (
+        <ul className="sheet-list">
+          {list.map(row)}
+          {list.length === 0 && <li className="sheet-empty muted">No patient code contains "{query}".</li>}
+        </ul>
+      )}
       <button className="ghost sheet-manage" onClick={onManage}><Icon name="data" size={18} /> Manage patients</button>
     </Sheet>
   );

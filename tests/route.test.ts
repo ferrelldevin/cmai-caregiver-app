@@ -33,10 +33,17 @@ describe("Scores period in the URL", () => {
     expect(parseRoute("#/scores/p3")).toEqual({ tab: "scores", page: null, period: 3 });
   });
   it("drops a period it cannot read", () => {
-    for (const h of ["#/scores/p0", "#/scores/3", "#/scores/px", "#/scores/backup"]) expect(parseRoute(h)).toEqual({ tab: "scores", page: null });
+    for (const h of ["#/scores/p0", "#/scores/3", "#/scores/px", "#/scores/backup"])
+      expect(parseRoute(h)).toEqual({ tab: "scores", page: null });
   });
   it("writes what it reads", () => {
     for (const h of ["#/scores", "#/scores/p2"]) expect(routeHash(parseRoute(h)!)).toBe(h);
     expect(routeHash({ tab: "log", page: null, period: 2 })).toBe("#/log");
+  });
+});
+
+describe("pages behind a study switch", () => {
+  it("the caregivers page does not exist in the caregiver build (R2 switched off)", () => {
+    expect(parseRoute("#/data/caregivers")).toEqual({ tab: "data", page: null });
   });
 });

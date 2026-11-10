@@ -445,6 +445,84 @@ input[type="checkbox"] {
   flex: none;
 }
 
+/* Caregiver profiles (R2, plan 5.2, lab build only): the chip that says who is logging sits at
+   the right of the resident bar. It never covers the resident's code or the Switch pill. */
+.pin-row {
+  display: flex;
+  align-items: center;
+  max-width: 760px;
+  margin: 0 auto;
+  padding-right: var(--s3);
+}
+.pin-row .pt-banner {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  gap: var(--s2);
+  padding-right: var(--s2);
+}
+/* With the chip beside it, the Switch pill keeps its icon only, so "Period 1 · day 1 of 14" fits on one
+   line at 390 px. The whole bar is still the button, named "Choose patient". */
+.pin-row .pt-switch {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  justify-content: center;
+  font-size: 0;
+}
+.cg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1.5px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: none;
+  flex: none;
+}
+@media (hover: hover) {
+  button.cg-chip:hover {
+    background: var(--hover);
+  }
+}
+.cg-chip.none {
+  color: var(--text-muted);
+  border-style: dashed;
+}
+.cg-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-muted);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.04em;
+  flex: none;
+}
+.sheet-group {
+  margin: var(--s3) 0 var(--s1);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+[data-contrast="high"] .cg-chip,
+[data-contrast="high"] .cg-badge {
+  border-width: 2px;
+  border-color: var(--text);
+}
+
 /* Floating tab bar (design note 008): a rounded dock that sits above the screen edge. The page
    keeps enough bottom space (.app padding) that the last row always scrolls clear of it. */
 .tabs {

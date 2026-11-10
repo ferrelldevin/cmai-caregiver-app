@@ -22,6 +22,8 @@ const PATHS = {
   // Lucide "arrow-right-left" and "settings-2" (ISC license), redrawn as one path each.
   swap: "M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16",
   settings: "M20 7h-9M14 17H5M17 14a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM7 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6z",
+  // Lucide "user" (ISC license): a caregiver (R2)
+  user: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
 } as const;
 
 export type IconName = keyof typeof PATHS;

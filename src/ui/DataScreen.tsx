@@ -35,6 +35,8 @@ interface Props {
   onBack: () => void;
   onPatient: (id: string) => void;
   onChange: () => void;
+  /** Caregiver profiles (R2), when switched on: the page's content and the hub row's status. */
+  caregivers?: { page: React.ReactNode; status: string };
 }
 
 type Msg = { at: "patients" | "demo" | "export" | "safe"; text: string; tone?: "error" };
@@ -72,7 +74,17 @@ function countBands() {
   return bands;
 }
 
-export function DataScreen({ patients, current, page, pageTitle, onPage, onBack, onPatient, onChange }: Props) {
+export function DataScreen({
+  patients,
+  current,
+  page,
+  pageTitle,
+  onPage,
+  onBack,
+  onPatient,
+  onChange,
+  caregivers,
+}: Props) {
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<Msg | null>(null);
   // A message belongs to the page it was said on; leaving the page clears it.
@@ -258,6 +270,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
           </p>
           {/* the screen heading is the h1 in App */}
         </div>
+        {page === "caregivers" && caregivers?.page}
         {page === "backup" && (
           <section className="card backup" aria-label="Backup and export">
             <h3 className="form-label">Backup</h3>
@@ -420,6 +433,9 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
       title: "Keep data safe",
       status: installed ? "Installed" : persisted ? "Storage protected" : "Not installed yet",
     },
+    ...(caregivers
+      ? [{ page: "caregivers" as const, icon: "user" as const, title: "Caregivers", status: caregivers.status }]
+      : []),
     { page: "demo", icon: "chart", title: "Demo data", status: hasDemo ? "Loaded" : "Not loaded", hide: firstRun },
     { page: "about", icon: "info", title: "How ratings are worked out", status: `Rule ${RULE_VERSION}` },
   ];
