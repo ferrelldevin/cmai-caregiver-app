@@ -22,7 +22,8 @@ async function setupPin(p) {
   await pinIn(p, "246810", "Add the first caregiver");
 }
 async function newPin(p, initials, pin) {
-  await p.getByRole("heading", { name: `Choose a PIN for ${initials}` }).waitFor();
+  await p.getByRole("heading", { name: "Setup PIN" }).waitFor();
+  await pinIn(p, "246810", `Choose a PIN for ${initials}`);
   await pinIn(p, pin, "Enter it again");
   await pinIn(p, pin);
   await p.locator(".cg-chip", { hasText: initials }).waitFor();

@@ -29,7 +29,7 @@ In NIST SP 800-63B-4 terms it is an activation secret, a secret that unlocks som
 If the setup PIN is lost: export a backup, clear the app, restore, set up again. Logs are never behind a PIN, so nothing is lost.
 
 ## Known limits (accepted for now, in the threat model)
-- **A caregiver with no PIN yet** can be signed in as by whoever picks them first and chooses a PIN. The person adding caregivers is with them, so this is a setup-time gap. Closing it needs the setup PIN on every first sign-in, which costs one more step per caregiver.
+- **A caregiver with no PIN yet** gets one only through the setup PIN: whoever set up the phone enters it, then the caregiver chooses theirs. The security review of the PR found that without this, anyone could claim a caregiver restored from a backup by picking them first. It costs one more step per caregiver, once. After clear and restore the phone has no setup PIN, so the sign-in screen asks for a new one before showing the caregivers; whoever does the restore is there for that step.
 - **Anyone signed in can add or remove caregivers.** Removing needs no setup PIN. A removed caregiver with records is archived, never deleted (note 010).
 - **Someone with the unlocked phone and developer tools** can read storage or clear the counts. That is the threat-model T1 limit above, not something a PIN can fix.
 
