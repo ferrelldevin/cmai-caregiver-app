@@ -197,13 +197,16 @@ export function DataScreen({
     onChange();
   }
 
-  async function exportFile(kind: "json" | "observations" | "scores") {
+  async function exportFile(kind: "json" | "observations" | "scores" | "watches" | "ratings" | "labels") {
     try {
       const stamp = new Date().toISOString().slice(0, 10);
       const out = await buildExport();
       if (kind === "json") download(`cmai-backup-${stamp}.json`, out.json, "application/json");
       if (kind === "observations") download(`cmai-observations-${stamp}.csv`, out.observationsCsv, "text/csv");
       if (kind === "scores") download(`cmai-scores-${stamp}.csv`, out.scoresCsv, "text/csv");
+      if (kind === "watches") download(`cmai-watches-${stamp}.csv`, out.watchesCsv, "text/csv");
+      if (kind === "ratings") download(`cmai-caregiver-ratings-${stamp}.csv`, out.caregiverRatingsCsv, "text/csv");
+      if (kind === "labels") download(`cmai-labels-${stamp}.csv`, out.labelsCsv, "text/csv");
       const t = Date.now();
       try {
         localStorage.setItem(LAST_EXPORT, String(t));
@@ -311,6 +314,20 @@ export function DataScreen({
                 Scores CSV
               </button>
             </div>
+            {/* Export format 2 (D-23, plan 5.10), lab build only. */}
+            {study.exportV2 && (
+              <div className="row wrap">
+                <button className="ghost" onClick={() => exportFile("labels")} disabled={firstRun}>
+                  Labels CSV
+                </button>
+                <button className="ghost" onClick={() => exportFile("ratings")} disabled={firstRun}>
+                  Caregiver ratings CSV
+                </button>
+                <button className="ghost" onClick={() => exportFile("watches")} disabled={firstRun}>
+                  Watches CSV
+                </button>
+              </div>
+            )}
             {msgFor("export")}
           </section>
         )}

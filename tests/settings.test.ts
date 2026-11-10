@@ -12,6 +12,7 @@ const TODAY = {
   stoppedTap: false,
   extraBeforeChips: false,
   freeTextNotes: true,
+  exportV2: false,
   protectBackup: false,
   archivePatients: false,
 };
@@ -35,7 +36,7 @@ describe("study settings", () => {
   it("lab mode turns on every feature awaiting sign-off", () => {
     const lab = settingsFor("lab");
     expect(lab.labView && lab.caregiverProfiles && lab.pin && lab.blindCmai).toBe(true);
-    expect(lab.watchingHours && lab.stoppedTap && lab.extraBeforeChips && lab.protectBackup).toBe(true);
+    expect(lab.watchingHours && lab.stoppedTap && lab.extraBeforeChips && lab.exportV2 && lab.protectBackup).toBe(true);
     expect(lab.archivePatients).toBe(true);
     expect(lab.ratingsVisibleToCaregivers).toBe(false);
   });
