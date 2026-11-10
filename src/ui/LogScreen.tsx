@@ -121,7 +121,8 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
   }
 
   // "It stopped" (F-39): the end of a stretch, now. The confirmation stays, showing both times.
-  const stoppable = (t: Toast) => t.kind === "logged" && study.stoppedTap && !!ITEMS[t.obs.itemId - 1].continuous && t.obs.endedAt === undefined;
+  const stoppable = (t: Toast) =>
+    t.kind === "logged" && study.stoppedTap && !!ITEMS[t.obs.itemId - 1].continuous && t.obs.endedAt === undefined;
   async function stopped(o: SavedObs) {
     const now = Date.now();
     await stopLog(o, now);
