@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import pkg from "./package.json";
+import pkg from "./package.json" with { type: "json" };
 
 // Content-Security-Policy for the built app. GitHub Pages can't send security headers, so it goes in
 // a meta tag. Scripts run only from the app's own files plus the one inline theme script in
