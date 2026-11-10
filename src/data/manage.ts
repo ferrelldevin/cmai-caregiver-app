@@ -396,6 +396,8 @@ export async function deletePatient(
     const note = why?.note?.trim() || undefined;
     if (!why || !oneOf(why.reason, ARCHIVE_REASONS)) throw new Error("Pick a reason to remove this patient.");
     if (why.reason === "Other" && !note) throw new Error("Say in a few words why this patient is being removed.");
+    // The same limit restore checks, so an archived patient always comes back from a backup.
+    if (note && note.length > 120) throw new Error("Keep the note to 120 characters.");
     await db.patients.update(id, {
       archivedAt: now,
       archiveReason: why.reason,
