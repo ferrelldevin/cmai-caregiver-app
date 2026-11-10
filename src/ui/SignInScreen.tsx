@@ -8,12 +8,12 @@ import { db, type Caregiver } from "../data/db";
 import {
   checkPin,
   checkSetupPin,
+  hasSetupPin,
   hasPin,
   isLocked,
   pinProblem,
   PIN_LENGTH,
   resetPin,
-  setPin,
   SETUP_PIN_LENGTH,
   setSetupPin,
   type PinResult,
@@ -24,7 +24,7 @@ type Step =
   | { kind: "choose" }
   | { kind: "enter"; c: Caregiver }
   | { kind: "new"; c: Caregiver; first?: string; setupPin?: string }
-  | { kind: "setup"; c: Caregiver };
+  | { kind: "setup"; c: Caregiver; first?: boolean };
 
 interface Props {
   caregivers: Caregiver[];
@@ -58,13 +58,25 @@ export function SignInScreen({ caregivers, start, onCancel, onSignedIn }: Props)
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
   const headRef = useRef<HTMLHeadingElement>(null);
+  // No setup PIN on this phone (for example after clear and restore): it is chosen first, before
+  // anyone can be given a PIN.
+  const [noSetup, setNoSetup] = useState(false);
+  useEffect(() => {
+    let live = true;
+    hasSetupPin().then((has) => live && setNoSetup(!has));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   async function open(id: string) {
     const c = await db.caregivers.get(id);
     setError("");
     setWaitUntil(0);
     if (!c) return setStep({ kind: "choose" });
-    setStep(hasPin(c) ? { kind: "enter", c } : { kind: "new", c });
+    // A first PIN is chosen with the setup PIN, so nobody can claim a caregiver who has not signed in
+    // yet, such as one restored from a backup (security review of #70).
+    setStep(hasPin(c) ? { kind: "enter", c } : { kind: "setup", c, first: true });
     if (isLocked(c)) setError(refusal({ ok: false, reason: "locked" }, Date.now()));
   }
 
@@ -120,10 +132,10 @@ export function SignInScreen({ caregivers, start, onCancel, onSignedIn }: Props)
           setError("The two PINs were different. Choose a PIN again.");
           return setStep({ kind: "new", c: step.c, setupPin: step.setupPin });
         }
-        if (step.setupPin) {
-          const r = await resetPin(step.c.id, step.setupPin, pin);
-          if (!r.ok) return refused(r);
-        } else await setPin(step.c.id, pin);
+        // Every new PIN, first or forgotten, goes through the setup PIN.
+        if (!step.setupPin) return setStep({ kind: "setup", c: step.c, first: !hasPin(step.c) });
+        const r = await resetPin(step.c.id, step.setupPin, pin);
+        if (!r.ok) return refused(r);
         onSignedIn(step.c.id);
       }
     } catch (e) {
@@ -150,7 +162,9 @@ export function SignInScreen({ caregivers, start, onCancel, onSignedIn }: Props)
     hint = `${step.c.id}. Enter your ${PIN_LENGTH}-digit PIN.`;
   } else if (step.kind === "setup") {
     title = "Setup PIN";
-    hint = `Whoever set up this phone enters the ${SETUP_PIN_LENGTH}-digit setup PIN to give ${step.c.initials} a new PIN.`;
+    hint = step.first
+      ? `${step.c.initials} has no PIN yet. Whoever set up this phone enters the ${SETUP_PIN_LENGTH}-digit setup PIN, then ${step.c.initials} chooses one.`
+      : `Whoever set up this phone enters the ${SETUP_PIN_LENGTH}-digit setup PIN to give ${step.c.initials} a new PIN.`;
   } else if (step.kind === "new") {
     title = step.first ? "Enter it again" : `Choose a PIN for ${step.c.initials}`;
     hint = step.first
@@ -179,7 +193,9 @@ export function SignInScreen({ caregivers, start, onCancel, onSignedIn }: Props)
         </h1>
         <p className="muted">{hint}</p>
 
-        {step.kind === "choose" ? (
+        {step.kind === "choose" && noSetup ? (
+          <SetupPinCard onDone={() => setNoSetup(false)} />
+        ) : step.kind === "choose" ? (
           <ul className="sheet-list signin-list">
             {caregivers.map((c) => (
               <li key={c.id}>
