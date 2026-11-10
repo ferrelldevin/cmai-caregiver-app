@@ -196,3 +196,4 @@ Newest first. Every rule change and every sign-off goes here, with who and when.
 | 2026-10-22 | Meaningful-change marker (2+ points, or 1 point held) | Devin (research map) | Pending (D-10) |
 | 2026-10-22 | Item definitions reworded; MIT + NOTICE | Devin (permissions audit) | Pending (P-01, P-05) |
 | 2026-10-21 | `cmai-count-rule-1`: count bands and rating-7 rule | Devin | Pending (D-01, D-02) |
+| 2026-11-10 | B-09, B-11, N-02: `docs/process/release.md` (how to cut a release, what the deploy checks, how to undo a bad deploy); every build carries `<meta name="build">` with the short commit, and the deploy job's last step fails if the live page does not show the commit just deployed. No app behavior changed. The v0.3.0 release itself is not cut here | Claude (build plan step 2.7) | Lane A, no sign-off needed. Stacked on #38 (build stamp and tag job) |

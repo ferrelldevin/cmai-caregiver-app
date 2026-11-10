@@ -78,3 +78,18 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: The live page is the commit just deployed
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          want="${GITHUB_SHA::7}"
+          for attempt in 1 2 3 4 5 6 7 8; do
+            if curl -fsSL "${PAGE_URL}?check=${GITHUB_SHA}" | grep -q "<meta name=\"build\" content=\"${want}\""; then
+              echo "The live page carries build ${want}"
+              exit 0
+            fi
+            echo "Attempt ${attempt}: the live page does not show build ${want} yet"
+            sleep 15
+          done
+          echo "The live page never showed build ${want}. See docs/process/release.md to undo the deploy."
+          exit 1
