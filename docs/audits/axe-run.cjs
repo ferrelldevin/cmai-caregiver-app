@@ -52,16 +52,20 @@ async function scan(page, name, results) {
     await del.getByRole("button", { name: "Tapped by mistake" }).click();
     await del.getByRole("button", { name: "Delete log" }).click();
     await del.waitFor({ state: "hidden" });
+    await page.getByRole("button", { name: "Today", exact: true }).click();
+    await page.getByRole("heading", { name: "Nothing logged today" }).waitFor();
+    await scan(page, "Today (nothing logged yet)", results);
     await page.getByRole("button", { name: "Nothing to log today" }).click();
-    // The click leaves the page scrolled wherever the button was, and whichever behavior row the
-    // fixed tab bar happens to cut there can fail target-size by a fraction of a pixel. Scan from the
-    // top so the result does not depend on scroll position.
     await page.evaluate(() => window.scrollTo(0, 0));
-    await scan(page, "Log (checked in: nothing to log today)", results);
-    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); // makes sure there is a recent log to edit
+    await scan(page, "Today (checked in: nothing to log today)", results);
+    await page.getByRole("button", { name: "Log a behavior", exact: true }).click();
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); // a log to fix on Today
+    await page.getByRole("button", { name: "Today", exact: true }).click();
+    await page.locator(".acc-head").first().click();
+    await scan(page, "Today (a behavior opened)", results);
     await page.getByRole("button", { name: /^Edit / }).first().click();
     await page.getByRole("dialog").waitFor();
-    await scan(page, "Log details sheet (from Recent logs)", results);
+    await scan(page, "Log details sheet (from Today)", results);
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: /Choose patient$/ }).click();
     await page.getByRole("dialog", { name: "Choose patient" }).waitFor();

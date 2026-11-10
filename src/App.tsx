@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
 import { ScoresScreen } from "./ui/ScoresScreen";
+import { TodayScreen } from "./ui/TodayScreen";
 import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
@@ -12,6 +13,7 @@ import { useRoute, type DataPage, type Tab } from "./ui/route";
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
   { id: "scores", label: "Score", title: "Score", icon: "chart" },
+  { id: "today", label: "Today", title: "Today", icon: "today" },
   { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
 
@@ -206,7 +208,14 @@ export default function App() {
             onChange={refresh}
           />
         ) : shown === "log" ? (
-          <LogScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
+          <LogScreen
+            patientId={patientId!}
+            observations={observations}
+            onChange={refresh}
+            onToday={() => setTab("today")}
+          />
+        ) : shown === "today" ? (
+          <TodayScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
         ) : loaded && !error ? (
           <ScoresScreen
             key={patientId}

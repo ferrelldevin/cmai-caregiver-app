@@ -1,4 +1,4 @@
-// Where the app is, kept in the URL hash: #/log, #/scores, #/scores/p<n>, #/data,
+// Where the app is, kept in the URL hash: #/log, #/today, #/scores, #/scores/p<n>, #/data,
 // #/data/<page>. The old #/review (removed with D-14) is unknown, so it lands on the start screen. Picking a period on Scores replaces the entry, like a tab.
 // Switching tabs replaces the history entry (the platform norm: Back does not walk through
 // tab taps). Opening a Data page pushes one, so the back gesture returns to the Data hub.
@@ -6,12 +6,16 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type Tab = "log" | "scores" | "data";
+export type Tab = "log" | "scores" | "today" | "data";
 export type DataPage = "backup" | "display" | "safe" | "demo" | "about";
 /** `period` is 1-based, as people read it ("Period 3"); absent means the default period. */
-export interface Route { tab: Tab; page: DataPage | null; period?: number }
+export interface Route {
+  tab: Tab;
+  page: DataPage | null;
+  period?: number;
+}
 
-const TABS: readonly Tab[] = ["log", "scores", "data"];
+const TABS: readonly Tab[] = ["log", "scores", "today", "data"];
 const PAGES: readonly DataPage[] = ["backup", "display", "safe", "demo", "about"];
 
 export function parseRoute(hash: string): Route | null {
