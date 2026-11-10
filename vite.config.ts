@@ -53,6 +53,19 @@ function buildCommit() {
   }
 }
 
+// A <meta name="build"> with the same short commit, so the deploy job can fetch the live page and
+// fail if what is served is not the commit it just deployed (build plan step 2.7).
+function buildStamp(): Plugin {
+  return {
+    name: "cmai-build-stamp",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler: (html) => html.replace(/(<meta charset="UTF-8" \/>)/, `$1\n    <meta name="build" content="${buildCommit()}" />`),
+    },
+  };
+}
+
 // base: "./" lets the build run from any folder, including GitHub Pages.
 export default defineConfig({
   base: "./",
@@ -60,6 +73,7 @@ export default defineConfig({
   plugins: [
     react(),
     contentSecurityPolicy(),
+    buildStamp(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
