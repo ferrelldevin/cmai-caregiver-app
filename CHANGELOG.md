@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- Three more "just before" choices, lab build only (F-41): Too hot or too cold, Slept badly last night, Seemed unwell.
 - Clock check, lab view only (F-40): Settings > Clock check shows the phone's time to the tenth of a second, the UTC offset and the device ID, to film beside a wristband or camera. Stores nothing.
 - Blind two-week caregiver rating, lab build only (F-47): after each period, each caregiver who logged gives their own CMAI for those 14 days, without seeing anything from the logs. Locked once submitted; never changes the app's rating. The lab view shows it beside the app's.
 - On-phone PIN, lab build only (F-46, R1): each caregiver signs in with a 4-digit PIN once per shift; wrong tries wait, then lock; a setup PIN gives a new PIN. It says who is logging; it does not protect the data. Never in a backup.
