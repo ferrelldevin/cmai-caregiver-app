@@ -211,6 +211,9 @@ describe("archive instead of erase (D-20)", () => {
     await expect(deletePatient("P-01", { reason: "Other", note: "  " }, { archive: true })).rejects.toThrow(
       /few words/,
     );
+    await expect(deletePatient("P-01", { reason: "Other", note: "x".repeat(121) }, { archive: true })).rejects.toThrow(
+      /120/,
+    );
     expect(await deletePatient("P-01", { reason: "Other", note: " moved wards " }, { archive: true, now: NOW })).toBe(
       "archived",
     );
