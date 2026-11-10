@@ -8,8 +8,9 @@ Lines marked **assumed, sign-off pending** follow the build plan's recommended a
 
 - Today the data is only as safe as the phone's own lock. The app adds no lock and no encryption of its own (P-07, *proposed* in PR #41).
 - The two biggest gaps before real data are **the backup file** (plain JSON, sent wherever the caregiver chooses) and **the hosted site** (one personal GitHub account can change the app on every phone at once).
-- A PIN screen on its own would not protect the data. It only matters if the PIN also unlocks an encryption key, and even then a 6-digit PIN protects against a casual person, not a determined one with the file.
-- Login standard: [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html). Its rules for a PIN that unlocks something on the device are in section 3.2.10; for passwords, 3.1.1.2.
+- A PIN on the phone says who is logging and stops a passer-by opening the app. It does not protect the data from someone who has the unlocked phone and a computer: a 4-digit secret has 10,000 values, so anything protected by it can be opened by trying them all. The phone's own passcode and its built-in storage encryption are the real guard.
+- The backup file is different: a passphrase of 12 or more characters cannot be tried exhaustively, so protecting the file with one is real protection (F-10, plan step 5.11).
+- Login standard: [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html), its "Activation secrets" and "Password verifiers" sections on the [authenticators page](https://pages.nist.gov/800-63-4/sp800-63b/authenticators/) (read 2026-11-10).
 
 ## What is being protected
 
@@ -28,10 +29,10 @@ Each row: what they could do, what stops them today, and what is still missing. 
 
 | # | Who | What they could do | What stops them today | Gap | Fix, and where it is tracked |
 |---|---|---|---|---|---|
-| T1 | Someone who picks up an **unlocked** phone with the app open, such as a visitor or another resident's family | Read every resident's logs, add or delete logs, export a backup | Nothing in the app. Deletes need a reason and stay in the history (`src/data/logs.ts`) | No app lock, no timeout | R1 PIN with auto-lock (below). **Assumed, sign-off pending:** R1 option A (register R1, P-07) |
+| T1 | Someone who picks up an **unlocked** phone with the app open, such as a visitor or another resident's family | Read every resident's logs, add or delete logs, export a backup | Nothing in the app. Deletes need a reason and stay in the history (`src/data/logs.ts`) | No app lock, no timeout | R1 PIN, once per shift (below). It identifies the caregiver; it does not protect the data. **Assumed, sign-off pending:** R1 option A (R1, F-46 *proposed*) |
 | T2 | Someone with a **locked** phone that was lost or stolen | Nothing without the phone's passcode | The phone's own passcode and storage encryption. Inference: we have not checked which phone models the lab will use | A phone with no passcode | Lab rule: study phones must have a passcode. Stage 6 checklist line "checked on the real phone models" |
 | T3 | **Another caregiver on a shared phone** | Log under the wrong name, see residents not assigned to them | Nothing. There are no caregiver identities; the change history has no "who" field (`src/data/db.ts`, `LogChange`) | Logs cannot be tied to a caregiver | R2 caregiver profiles, one schema change in database version 4 (plan step 5.1, N-08). **Assumed, sign-off pending:** R2 |
-| T4 | Someone who **gets a backup or CSV file**: a forwarded email, a shared drive, a lost USB stick | Read everything, for every resident on that phone | Patients are codes, never names (`src/data/db.ts:7`). Nothing else. The app suggests "your email or cloud drive" (`src/ui/DataScreen.tsx:136`, audit A-12) | Plain-text file sent through unapproved places | Data management plan names the approved place (P-04). Encrypted backup (F-10). **Assumed, sign-off pending:** F-10 backup encryption with a lab-held passphrase, before G2 |
+| T4 | Someone who **gets a backup or CSV file**: a forwarded email, a shared drive, a lost USB stick | Read everything, for every resident on that phone | Patients are codes, never names (`src/data/db.ts:7`). Nothing else. The app suggests "your email or cloud drive" (`src/ui/DataScreen.tsx:136`, audit A-12) | Plain-text file sent through unapproved places | Data management plan names the approved place (P-04). Encrypted backup (F-10). **Assumed, sign-off pending:** F-10 passphrase-protected backup (plan v5 step 5.11) |
 | T5 | Someone who **hands the lab a crafted backup** or note | A file that breaks Export after restore (A-03). A note starting with `=` that a spreadsheet runs as a formula when the research team opens the CSV (A-07) | Restore checks a few types only (`src/data/manage.ts:20-40`). CSV cells are not escaped for formulas (`src/data/exporter.ts:11-12`) | Both proven in the 2026-11-10 audit | Plan steps 1.2 (F-31, *proposed*) and 1.6 (F-34, *proposed*). Lane A, no sign-off needed |
 | T6 | Someone who **changes the hosted app**: a stolen GitHub login, a bad dependency, a bad pull request, a compromised GitHub Action | Ship code that copies every log to a server, to every installed phone, on their next open | Pull request required on `main`, both check jobs required, no force push (ruleset "Main", verified 2026-11-04). Content-Security-Policy `connect-src 'self'` stops the page sending data to other sites (`vite.config.ts:22-33`). Dependabot, CodeQL, secret scanning | One person can merge and deploy (C-10). Actions are pinned to tags, not commits (B-04). Every merge reaches every phone at once (B-09). An attacker who can merge can also change the policy | Two-person review once Shanmei has access (plan 3.8). Commit-pinned actions (2.4). Deploy only on a version tag (2.7). A lab or ODU address that sends security headers (Stage 6, N-04) |
 | T7 | **Another website** that frames the app | Trick a caregiver into tapping inside a hidden frame (clickjacking) | Nothing. A policy in a `<meta>` tag cannot block framing; that needs an HTTP header, and GitHub Pages cannot send one (N-04). Inference: low risk while the app has no sign-in and nothing to steal by a click | No `frame-ancestors` | Host that sends headers, before G2 (Stage 6) |
@@ -43,40 +44,41 @@ Each row: what they could do, what stops them today, and what is still missing. 
 
 ### Assumed design: R1 option A, a PIN on the phone
 
-**Assumed, sign-off pending** (R1, P-07, F-10). Recommended because it keeps data on the phone, so it needs no server and no new IRB question about where data goes. Option B (lab accounts or REDCap) waits for P-03 and P-04.
+**Assumed, sign-off pending** (R1, F-46 *proposed*; plan v5 step 5.3). Recommended because it keeps data on the phone, so it needs no server and no new IRB question about where data goes. Option B (lab accounts or REDCap) waits for P-03 and P-04.
 
-In NIST's terms, an on-phone PIN is an **activation secret**: something that unlocks a factor stored on the device (SP 800-63B-4, section 3.2.10). The app's design follows that section:
+**What the PIN is, and is not.** It says who is logging, and it stops a passer-by opening the app. It does not protect the data from someone who has the unlocked phone and a computer: a 4-digit secret has 10,000 values and anything protected with it can be opened by trying them all. The phone's own passcode and its built-in storage encryption are the real guard. The PIN is not encryption, and no document or screen should describe it as encryption.
 
-| Rule | NIST 800-63B-4 | Our design |
+In NIST's terms the PIN is an **activation secret**: a secret that unlocks something on the device (SP 800-63B-4, "Activation secrets"). It would not pass as a password on its own, where NIST's minimum is 15 characters ("Password verifiers").
+
+| Rule | NIST SP 800-63B-4 | Assumed design (plan v5 step 5.3) |
 |---|---|---|
-| Length | At least 4 characters; 6 recommended; all-digit PINs are allowed (3.2.10) | 6 digits |
-| Common PINs | A blocklist is recommended (SHOULD), not required, for activation secrets (3.2.10) | Refuse one digit repeated (`000000`), straight runs (`123456`, `654321`) and a short list of the most common PINs kept in one file |
-| Wrong attempts | No more than 10 wrong tries, then the authenticator is disabled and a different one is needed (3.2.10) | After 10 wrong tries the PIN stops working. The lab unlocks it with a recovery code it holds, or the phone restores from the latest backup |
-| Composition and forced changes | Composition rules and periodic forced changes are not allowed for passwords (3.1.1.2, items 5 and 6) | No rules beyond length and the blocklist. Changed only if someone else may know it |
-| One per person | | One PIN per caregiver profile (needs R2 first, plan 5.2 then 5.3) |
-| Lock after inactivity | Not taken from NIST. Proposal | Lock after 5 minutes in the background, and on every cold start. **Assumed, sign-off pending** (R1) |
+| Length | At least 4 characters; 6 recommended (SHOULD); all-digit PINs allowed | **4 digits**, so a caregiver can enter it one-handed at the start of a shift. Below NIST's recommendation, so Dr. Gupta confirms or raises it (review packet) |
+| Wrong attempts | No more than 10 wrong tries, then the authenticator is disabled and another is needed | After 5 wrong tries a 30-second wait that doubles each time. After 10 in a row that caregiver is locked until the setup PIN is entered |
+| Common PINs | A blocklist is recommended (SHOULD) for activation secrets | Refuse one digit repeated (`0000`) and straight runs (`1234`, `4321`) |
+| Composition and forced changes | Not allowed for passwords | None |
+| When it is asked | Not set by NIST | Once per shift: when the app opens with no one signed in, on "Switch caregiver", and after 12 hours signed in. Never between taps. Locking the phone does not sign the caregiver out; the phone's lock covers that |
+| Setup PIN | Not set by NIST | 6 digits, held by whoever set up the phone. Resets or unlocks a caregiver's PIN. Reads no data. Logs are never behind a PIN, so a lost setup PIN loses nothing: back up, clear, restore, set up again |
+| Storage | | PBKDF2-HMAC-SHA256 through Web Crypto, 600,000 iterations ([OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)), random 16-byte salt per caregiver. Only salt, hash and iteration count are stored, never the PIN, and no PIN field goes into a backup |
 
-**What makes a PIN worth having.** A PIN screen that only hides the app leaves the database readable by anyone who can open the browser's storage. The PIN must also unlock an encryption key:
+So the PIN covers T3 (another caregiver on a shared phone) and the casual part of T1. It does nothing for T4. Encryption of the data on the phone is left to the phone itself, which is why study phones must have a passcode (T2).
 
-1. On setup, the app makes a random data key with the browser's Web Crypto API and encrypts each stored record with AES-GCM.
-2. The data key is itself encrypted with a key derived from the PIN (PBKDF2 or a slower derivation) and stored beside the data.
-3. Inference, important: a 6-digit PIN has one million values, so anyone who copies the encrypted database can try them all in minutes. The PIN protects against T1 and T3 (a person at the phone, stopped after 10 tries). It does not protect a copied file. That is why backups (T4) need their own, longer passphrase.
+**Backup files.** **Assumed, sign-off pending** (F-10; plan v5 step 5.11): with the study setting on, Export asks for a passphrase of at least 12 characters and encrypts the file with AES-GCM, using a key from PBKDF2-HMAC-SHA256 at 600,000 iterations, with a random salt and nonce in the file's header. AES-GCM also detects a changed byte, which helps against T5. CSVs go inside the same protected file; the lab opens it with Restore on a lab machine and exports CSVs there. The limit: a weak passphrase is weak.
 
-**Backup files.** **Assumed, sign-off pending** (F-10, P-04): the backup is encrypted with a passphrase the lab sets on each study phone and holds itself, at least 15 characters. The 15 is borrowed from NIST's minimum for a password used on its own (3.1.1.2, item 1); a backup passphrase is not an authenticator in NIST's sense, so this is our choice, not a NIST requirement. The CSVs for analysis are made at the lab, from the restored backup, not on the phone.
+**Not now:** Face ID or Touch ID through passkeys would replace the PIN and is the better end state. Whether passkeys work in a Home Screen web app on the lab's phones is not known, and whose phones they are is open (P-10). Plan v5 step 5.3.
 
 ### If Dr. Gupta picks option B, lab accounts
 
 - Use an account system ODU or the lab already runs rather than building one. Whether ODU single sign-on or ODU REDCap can be used for this app is **not verified**; it is a question in the review packet (R1, P-03).
 - Aim for AAL2: proof of two distinct factors (SP 800-63B-4, section 2).
-- If passwords are used: at least 15 characters when used alone, at least 8 with a second factor; check against a blocklist; no composition rules; no forced periodic changes (3.1.1.2).
+- If passwords are used: at least 15 characters when used alone, at least 8 with a second factor; check against a blocklist; no composition rules; no forced periodic changes ("Password verifiers").
 - Data then leaves the phone, which changes T4, T6 and the IRB question. A new threat model is written before any code.
 
 ## What must be true before real data (gate G2)
 
 These are the threat-model lines of the plan's Stage 6 checklist.
 
-- [ ] T1, T3: PIN with encryption at rest built and checked (plan 5.3), or Dr. Gupta records in the register that study phones are lab-controlled and single-user.
-- [ ] T4: backup encryption built (F-10), and the backup message names the approved place (A-12).
+- [ ] T1, T2, T3: every study phone has a passcode; the PIN is built and checked (plan 5.3), or Dr. Gupta records that study phones are lab-controlled and single-user (P-10).
+- [ ] T4: passphrase-protected backup built (F-10, plan 5.11), and the backup message names the approved place (A-12).
 - [ ] T5: plan steps 1.2 and 1.6 merged.
 - [ ] T6: deploys only on a version tag (2.7); actions pinned to commits (2.4); a second reviewer with access.
 - [ ] T7: served from an address that sends security headers.

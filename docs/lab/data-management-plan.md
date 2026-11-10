@@ -8,7 +8,7 @@ Draft for Dr. Gupta, 2026-11-10. Build plan step 3.2. Prepared by Claude (cloud 
 
 Per resident code: which of the 29 CMAI behaviors happened, the exact time, an "approximate" flag, what happened just before (pick list), an optional note of up to 120 characters, deletes with a reason, and a change history. Ratings are computed from these, never typed. Full list: `docs/data-dictionary.md`.
 
-Not collected: names, rooms, dates of birth, diagnoses, photos, audio, location. Caregivers are told not to type names in notes; the app cannot check this.
+Not collected: names, rooms, dates of birth, diagnoses, photos, audio, location. Caregivers are told not to type names in notes; the app cannot check this, so note columns are marked "check before sharing" (P-11).
 
 ## 2. Is it identifiable?
 
@@ -21,8 +21,8 @@ Not collected: names, rooms, dates of birth, diagnoses, photos, audio, location.
 
 | Stage | Where | Who can see it | **Assumed** answer (register ID) |
 |---|---|---|---|
-| On the phone | The app's storage on a study phone | Whoever holds the unlocked phone | Lab-owned phones with a passcode, one site each. PIN and encryption before G2 (R1, P-07, F-10; `docs/security/threat-model.md`) |
-| Backup leaves the phone | One approved ODU-managed storage location, never personal email, personal cloud or a messaging app | Dr. Gupta and named lab members | Dr. Gupta names the place in writing (P-04). The app's backup message changes to name it (audit A-12) |
+| On the phone | The app's storage on a study phone | Whoever holds the unlocked phone | Every study phone has a passcode; the phone's own storage encryption is the guard. Whose phones they are is open (P-10). A caregiver PIN says who logged, but is not encryption (R1, F-46; `docs/security/threat-model.md`) |
+| Backup leaves the phone | Protected with a passphrase of 12 or more characters (F-10), and kept in one approved ODU-managed storage location, never personal email, personal cloud or a messaging app | Dr. Gupta and named lab members | Dr. Gupta names the place in writing (P-04). The app's backup message changes to name it (audit A-12) |
 | Analysis | Lab computers or ODU-managed storage | Named lab members | CSVs are made at the lab from the backup, not sent from the phone (P-04) |
 | The code key | One file, kept apart from the data, by Dr. Gupta or the person he names | That person only | Never in the app, GitHub, any AI chat or the same folder as exports (P-04) |
 | Never | GitHub, personal Google Drive, any AI chat, screenshots in pull requests | Nobody | Project rule, now |

@@ -208,29 +208,59 @@ Item names are adapted from the CMAI (© 1991 Cohen-Mansfield) and are not under
 
 ## Part 2. Format 2 (assumed design, lane B)
 
-**Assumed, sign-off pending** (D-22 time zone; D-23 export format 2, *proposed*). The code change belongs to a build thread, in the same database version as R2 (plan step 5.1), so phones migrate once. Format 1 files stay readable: restore accepts both.
+**Assumed, sign-off pending** (D-23 export format 2, D-22 time zone, F-44 database version 4, F-38 watching hours, F-47 blind day-14 CMAI; all *proposed*). This follows build plan v5 steps 5.1 (database version 4) and 5.10 (export format 2). The code belongs to those build steps; this part is the reference they must match. Each item is behind a study setting and switched off until Dr. Gupta's mark.
 
-What changes, and why:
+Rules for format 2:
 
-| Change | Where | Why |
-|---|---|---|
-| `schemaVersion: 2` | JSON top level | A reader can tell formats apart. Format 1 files have no key; read them as 1 |
-| `appVersion`, `build` | JSON top level (PR #38 adds these) | Ratings before and after an update can be compared (audit N-02) |
-| `utcOffsetMinutes` on each log, check-in and change | JSON | The local day can be rebuilt from the file (A-14). Minutes east of UTC, so New York in October is `-240`. Stored from the phone at the moment of the event |
-| `exportedAtOffsetMinutes` | JSON top level | The zone the scores were worked out in |
-| `occurred_local`, `logged_local` | observations CSV, after their UTC columns | Local time as the caregiver saw it, ISO with offset, such as `2026-10-05T17:00:00.000-04:00` |
-| `utc_offset_min` | observations CSV | The same offset as a number |
-| `schema_version`, `app_version` | both CSVs, last columns | Each CSV can be read alone |
-| `by` on each log, check-in and change | JSON and observations CSV (`logged_by`) | Which caregiver profile did it (R2). A profile code such as `C-02`, never a name. **Assumed, sign-off pending** (R2) |
+- Every file names its format version and the app version.
+- Every time is given twice: UTC, and local with its offset.
+- Format 1 columns keep their names and order. New columns are added at the end, so a script that reads format 1 by column name still works.
+- Format 1 backups still restore.
+- Every CSV cell goes through the safe-cell rule from plan step 1.6 (a leading `'` before `=`, `+`, `-`, `@`).
 
-Format 2 observations row (made-up):
+### New keys in the backup (database version 4)
+
+All optional, so a version 3 record is still valid.
+
+| Where | Key | Type | Meaning | Example |
+|---|---|---|---|---|
+| top level | `schemaVersion` | whole number | `2`. A file without it is format 1 | `2` |
+| top level | `appVersion`, `build` | text | Which app made the file (PR #38 adds these) | `"0.3.0"` |
+| Log | `uid` | text | ID unique across phones (`crypto.randomUUID()`). Version 3 logs get one at upgrade. Use this, not `id`, to match logs across files | `"3f0c…"` |
+| Log | `deviceId` | text | Which phone made it | `"d-7a1e…"` |
+| Log | `by` | text | Caregiver code, never a name. Empty before caregiver profiles exist | `"C-02"` |
+| Log | `tzOffsetMin` | whole number | Minutes from UTC on the phone when logged. New York in October is `-240`, in January `-300` | `-240` |
+| Log | `endedAt` | epoch ms | When the behavior stopped, if the caregiver said (F-39) | |
+| Check-in, Change | `by`, `deviceId` | text | As above | |
+| Patient | `archivedAt`, `archiveReason`, `archiveNote` | epoch ms, text, text | Archived instead of erased (D-20) | |
+| Patient | `color` | whole number | Index into the resident color list | `2` |
+| new `caregivers` | `id`, `initials`, `createdAt`, `archivedAt` | text, 2 or 3 letters, epoch ms, epoch ms | Caregiver profiles. **PIN fields are never written to a backup** | `{"id":"C-02","initials":"JD"}` |
+| new `assignments` | `caregiverId`, `patientId`, `order`, `at` | | "My residents" order. An order, not a lock | |
+| new `watches` | `uid`, `patientId`, `by`, `deviceId`, `start`, `end`, `startSource`, `endSource`, `tzOffsetMin` | | Watching hours (F-38). `startSource`: `tap` or `log`. `endSource`: `tap`, `switch`, `signout` or `timeout` (D-25) | |
+| new `caregiverRatings` | `uid`, `patientId`, `windowStart`, `by`, `deviceId`, `answers`, `startedAt`, `submittedAt`, `ruleVersion` | | Blind day-14 CMAI (F-47). `answers` maps item 1 to 29 to a choice 1 to 9 | |
+
+### CSV changes
+
+**`observations.csv`** gains, at the end: `uid`, `device_id`, `caregiver`, `occurred_at_local`, `utc_offset_min`, `ended_at`, `schema_version`, `app_version`.
 
 ```csv
-patient_id,item_id,item_name,occurred_at,occurred_local,utc_offset_min,time_approximate,what_happened_before,before_note,logged_at,logged_local,logged_by,deleted_at,delete_reason,delete_note,schema_version,app_version
-P-DEMO-A,13,Screaming,2026-10-05T21:00:00.000Z,2026-10-05T17:00:00.000-04:00,-240,false,,,2026-10-05T21:00:20.000Z,2026-10-05T17:00:20.000-04:00,C-02,,,,2,0.3.0
+patient_id,item_id,item_name,occurred_at,time_approximate,what_happened_before,before_note,logged_at,deleted_at,delete_reason,delete_note,uid,device_id,caregiver,occurred_at_local,utc_offset_min,ended_at,schema_version,app_version
+P-DEMO-A,13,Screaming,2026-10-05T21:00:00.000Z,false,,,2026-10-05T21:00:20.000Z,,,,3f0c2a9e-demo,d-demo-1,C-02,2026-10-05T17:00:00.000-04:00,-240,,2,0.3.0
 ```
 
-Logs saved before the upgrade have no offset. The upgrade does not guess one; the CSV cell is empty and analysis treats the local day as unknown for those rows, unless the lab records each phone's zone at setup.
+**`scores.csv`** gains, at the end: `schema_version`, `app_version`, `exported_at`, `period_final` (`true` when the period ended more than 24 hours before the export, D-21; recorded, not enforced), `watched_minutes` (from watching hours; empty when the setting is off).
+
+**New files:**
+
+| File | One row per | Columns |
+|---|---|---|
+| `watches.csv` | watch | `uid`, `patient_id`, `caregiver`, `start`, `end`, `start_source`, `end_source`, `utc_offset_min` |
+| `caregiver_ratings.csv` | item per day-14 submission | the caregiver's choice, the app's rating for the same item and period beside it, and `within_one_point` |
+| `labels.csv` | interval for one resident, in time order | `kind` is `behavior` (with `item_id`, `start`, `end` or empty, `time_approximate`), `watched` (someone was there and logged nothing) or `unobserved`. The file for the sensor work: take "calm" from `watched` rows only |
+
+Logs saved before the upgrade have no offset. The upgrade does not guess one: the cell stays empty and analysis treats the local day as unknown for those rows, unless the lab recorded each phone's zone at setup.
+
+**Free-text columns** (`before_note`, `delete_note`): marked "check before sharing" (P-11). A caregiver may have typed a name despite the "no names" hint.
 
 ## Freezing the format
 
