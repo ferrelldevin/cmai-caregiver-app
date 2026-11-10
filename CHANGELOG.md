@@ -26,7 +26,11 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
 
 ### Security
+- GitHub Actions in `pages.yml` are pinned to full commit SHAs, so a moved tag cannot change what runs. Runs on `main` are never cancelled, and every job stops after 15 minutes.
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
+
+### Changed
+- CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
