@@ -69,7 +69,16 @@ async function setUp(p) {
   await hit.click(); await p.locator(".snackbar").waitFor(); ok(true, "one tap logs after reopening");
 
   // After 12 hours the PIN is asked again; nothing of the app shows behind it.
-  await p.evaluate(() => { const s = JSON.parse(localStorage.getItem("cmai-session")); s.at -= 12 * 3600 * 1000; localStorage.setItem("cmai-session", JSON.stringify(s)); });
+  await p.evaluate(() => new Promise((res, rej) => {
+    const open = indexedDB.open("cmai-tracker");
+    open.onerror = () => rej(open.error);
+    open.onsuccess = () => {
+      const t = open.result.transaction("meta", "readwrite"), st = t.objectStore("meta"), g = st.get("session");
+      g.onsuccess = () => { const s = JSON.parse(g.result.value); s.at -= 12 * 3600 * 1000; st.put({ key: "session", value: JSON.stringify(s) }); };
+      t.oncomplete = () => { open.result.close(); res(); };
+      t.onerror = () => rej(t.error);
+    };
+  }));
   await p.reload();
   await heading(p, "Who is logging?");
   ok(await p.locator("nav.tabs").count() === 0 && await p.locator(".pt-banner").count() === 0, "after 12 hours the sign-in screen covers the app");
@@ -115,7 +124,10 @@ async function setUp(p) {
   await p.getByRole("dialog", { name: "Who is logging?" }).getByRole("button", { name: "Sign out" }).click();
   await heading(p, "Who is logging?");
   ok(await p.locator(".signin").count() === 1, "Sign out shows the sign-in screen");
-  ok(await p.evaluate(() => localStorage.getItem("cmai-session")) === null, "Sign out forgets the shift");
+  ok(await p.evaluate(() => new Promise((res) => {
+    const open = indexedDB.open("cmai-tracker");
+    open.onsuccess = () => { const g = open.result.transaction("meta").objectStore("meta").get("session"); g.onsuccess = () => { open.result.close(); res(g.result === undefined); }; };
+  })), "Sign out forgets the shift");
   const stored = await p.evaluate(() => JSON.stringify(localStorage));
   ok(!stored.includes("2580") && !stored.includes("3691") && !stored.includes("246810"), "no PIN is kept in localStorage");
   // After clear and restore the phone has caregivers but no setup PIN: it is chosen before anyone gets a PIN.
