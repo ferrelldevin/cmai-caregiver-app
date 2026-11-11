@@ -64,6 +64,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      # Inside the container the checkout is owned by another user, and git refuses it ("dubious ownership"),
+      # which fails the lefthook install that npm ci runs.
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: npm ci
       - name: Every check in e2e/ plus the axe audit, against the production build
         run: npm run checks
