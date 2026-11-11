@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { GROUP_LABELS, ITEMS, type FactorGroup } from "../scoring/items";
 import { DAY_MS } from "../scoring/engine";
 import { checkInKey, db, localMidnight, type CheckIn, type StoredObservation } from "../data/db";
+import { backupReminder } from "../data/backupReminder";
 import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
 import { dayAndTime, timeOfDay } from "./format";
 import { record } from "./diagnostics";
@@ -35,10 +36,12 @@ interface Props {
   patientId: string;
   observations: StoredObservation[];
   checkins: CheckIn[];
+  demo: boolean; // the patient is made-up demo data
   onChange: () => void;
+  onBackUp: () => void; // opens the Data screen's backup page
 }
 
-export function LogScreen({ patientId, observations, checkins, onChange }: Props) {
+export function LogScreen({ patientId, observations, checkins, demo, onChange, onBackUp }: Props) {
   const [openInfo, setOpenInfo] = useState<number | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
@@ -51,6 +54,13 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
 
   const now = Date.now();
   const todayStart = localMidnight(now);
+  let lastExport: number | null = null;
+  try {
+    lastExport = Number(localStorage.getItem("cmai-last-export")) || null;
+  } catch {
+    /* private mode: treated as never */
+  }
+  const reminder = backupReminder(now, lastExport, demo, observations.length);
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
   const loggedToday = [...todayCounts.values()].reduce((a, b) => a + b, 0);
@@ -189,6 +199,14 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
         Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is
         one stretch of it.
       </p>
+      {reminder && (
+        <p className="backup-reminder muted">
+          {reminder}{" "}
+          <button className="ghost small" onClick={onBackUp}>
+            Back up
+          </button>
+        </p>
+      )}
       <SectionNav label="Jump to a group" sections={sections} />
       {GROUP_ORDER.map((g) => (
         <section key={g} id={`group-${g}`} className="group" aria-labelledby={`group-${g}-h`}>

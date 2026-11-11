@@ -242,7 +242,14 @@ export default function App() {
             onChange={refresh}
           />
         ) : shown === "log" ? (
-          <LogScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
+          <LogScreen
+            patientId={patientId!}
+            observations={observations}
+            checkins={checkins}
+            demo={!!current?.demo}
+            onChange={refresh}
+            onBackUp={() => go({ tab: "data", page: "backup" })}
+          />
         ) : loaded && !error ? (
           <Suspense fallback={<ScoresLoading />}>
             <ScoresScreen
