@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { checkInKey, db, isLive } from "../src/data/db";
 
 describe("database upgrade from version 1", () => {
-  it("keeps version 1 data and adds empty check-in and change-history tables", async () => {
+  it("keeps version 1 data and adds empty check-in, change-history and settings tables", async () => {
     db.close();
     await Dexie.delete("cmai-tracker");
     const v1 = new Dexie("cmai-tracker");
@@ -22,12 +22,13 @@ describe("database upgrade from version 1", () => {
     v1.close();
 
     await db.open();
-    expect(db.verno).toBe(3);
+    expect(db.verno).toBe(4);
     expect(await db.patients.toArray()).toEqual([{ id: "P-01", anchor: 0 }]);
     expect(await db.observations.count()).toBe(1);
     expect((await db.reviews.get("P-01|0|7"))?.choice).toBe(3);
     expect(await db.checkins.count()).toBe(0);
     expect(await db.changes.count()).toBe(0);
+    expect(await db.meta.count()).toBe(0);
     // Logs from before soft delete have no deletedAt, so they all still count.
     expect((await db.observations.toArray()).every(isLive)).toBe(true);
 
@@ -57,7 +58,7 @@ describe("database upgrade from version 2", () => {
     v2.close();
 
     await db.open();
-    expect(db.verno).toBe(3);
+    expect(db.verno).toBe(4);
     expect(await db.observations.where("patientId").equals("P-02").sortBy("at")).toMatchObject([
       { itemId: 3, approx: true, before: "Mealtime" },
       { itemId: 16, before: "Other", beforeNote: "fire alarm test" },
@@ -68,10 +69,43 @@ describe("database upgrade from version 2", () => {
   });
 });
 
+describe("database upgrade from version 3", () => {
+  it("keeps version 3 logs and change history and adds an empty settings table", async () => {
+    db.close();
+    await Dexie.delete("cmai-tracker");
+    const v3 = new Dexie("cmai-tracker");
+    v3.version(1).stores({
+      patients: "id",
+      observations: "++id, patientId, [patientId+at]",
+      reviews: "key, patientId",
+    });
+    v3.version(2).stores({ checkins: "key, patientId" });
+    v3.version(3).stores({ changes: "++id, patientId, observationId" });
+    await v3.table("patients").add({ id: "P-03", anchor: 0 });
+    await v3.table("observations").add({
+      patientId: "P-03",
+      itemId: 5,
+      at: 1000,
+      loggedAt: 1000,
+      deletedAt: 2000,
+      deleteReason: "Entered by mistake",
+    });
+    await v3.table("changes").add({ observationId: 1, patientId: "P-03", action: "delete", at: 2000 });
+    v3.close();
+
+    await db.open();
+    expect(db.verno).toBe(4);
+    expect(await db.patients.toArray()).toEqual([{ id: "P-03", anchor: 0 }]);
+    expect(await db.observations.toArray()).toMatchObject([{ itemId: 5, deletedAt: 2000 }]);
+    expect(await db.changes.count()).toBe(1);
+    expect(await db.meta.count()).toBe(0);
+  });
+});
+
 // A phone keeps its data across app updates only if each new schema version upgrades the old one.
 // When db.ts gets a new version, this fails until an upgrade test from the version before it is added
 // above and UPGRADES_TESTED is updated.
-const UPGRADES_TESTED = [1, 2];
+const UPGRADES_TESTED = [1, 2, 3];
 describe("every schema version has an upgrade test", () => {
   it("covers each version before the current one", async () => {
     if (!db.isOpen()) await db.open();

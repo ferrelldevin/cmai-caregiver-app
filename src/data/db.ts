@@ -64,12 +64,22 @@ export interface CheckIn {
   at: number; // when it was tapped
 }
 
+/**
+ * App settings that belong to this phone, not to the research data. Never exported or restored.
+ * Today it holds one row: which patient the app reopens on (see lastPatient.ts).
+ */
+export interface MetaRow {
+  key: string;
+  value: string;
+}
+
 class CmaiDb extends Dexie {
   patients!: Table<Patient, string>;
   observations!: Table<StoredObservation, number>;
   reviews!: Table<Review, string>;
   checkins!: Table<CheckIn, string>;
   changes!: Table<LogChange, number>;
+  meta!: Table<MetaRow, string>;
   constructor() {
     super("cmai-tracker");
     this.version(1).stores({
@@ -84,6 +94,10 @@ class CmaiDb extends Dexie {
     // Version 3 adds the change history. Existing data is kept; old logs have no deletedAt, so all still count.
     this.version(3).stores({
       changes: "++id, patientId, observationId",
+    });
+    // Version 4 only adds a table, for the "reopen on this patient" pointer. Existing data is kept.
+    this.version(4).stores({
+      meta: "key",
     });
   }
 }
