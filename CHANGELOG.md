@@ -56,6 +56,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - A save that fails (full phone, blocked storage) now says "That did not save. Check the phone has free space, then try again." and shows no "Logged" confirmation. Before, the tap looked as if it had worked or did nothing (F-33).
 - A crash anywhere in the app shows "Something went wrong. Your saved logs are safe." with a Reload button, instead of a blank page. An unhandled save failure shows an alert.
 
+### Fixed
+- Welcome card no longer describes a "Review" step that does not exist (ratings are locked); it now tells caregivers to back up (A-06).
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
