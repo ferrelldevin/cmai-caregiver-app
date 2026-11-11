@@ -6,7 +6,7 @@ import { db, setLoggingCaregiver, type Caregiver, type Patient } from "./db";
 
 export const CAREGIVER_CODE = /^C-[0-9]{2,3}$/;
 export const INITIALS = /^[A-Z]{2,3}$/;
-const STORE_KEY = "cmai-caregiver";
+const META_KEY = "loggingCaregiver";
 
 /** Caregivers who can log, oldest first. Archived ones keep their records but leave the list. */
 export async function activeCaregivers(): Promise<Caregiver[]> {
@@ -86,23 +86,37 @@ export function orderForCaregiver<T extends Pick<Patient, "id">>(
   return { mine: first, others: patients.filter((p) => !firstIds.has(p.id)) };
 }
 
+let remembered: string | null = null;
+
+/**
+ * Reads who was logging last from the database (meta), once, before the app first draws. It is
+ * kept in the database with everything else on the phone, not in localStorage.
+ */
+export async function loadLoggingCaregiver(): Promise<void> {
+  try {
+    const v = (await db.meta.get(META_KEY))?.value;
+    remembered = typeof v === "string" && CAREGIVER_CODE.test(v) ? v : null;
+  } catch {
+    remembered = null;
+  }
+  setLoggingCaregiver(remembered ?? undefined);
+}
+
 /** The caregiver logging now, as remembered on this phone (code only). */
 export function readLoggingCaregiver(): string | null {
-  try {
-    const id = localStorage.getItem(STORE_KEY);
-    return id && CAREGIVER_CODE.test(id) ? id : null;
-  } catch {
-    return null;
-  }
+  return remembered;
 }
 
 /** Sets who is logging: every new record carries this code from now on. */
 export function chooseLoggingCaregiver(id: string | null) {
+  remembered = id;
   setLoggingCaregiver(id ?? undefined);
-  try {
-    if (id) localStorage.setItem(STORE_KEY, id);
-    else localStorage.removeItem(STORE_KEY);
-  } catch {
-    /* private mode: the choice lasts until the app closes */
-  }
+  void (async () => {
+    try {
+      if (id) await db.meta.put({ key: META_KEY, value: id });
+      else await db.meta.delete(META_KEY);
+    } catch {
+      /* the choice lasts until the app closes */
+    }
+  })();
 }
