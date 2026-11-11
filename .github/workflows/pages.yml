@@ -63,7 +63,16 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Chromium and the system libraries it needs
-        run: npx playwright install --with-deps chromium
+        # apt on the runner sometimes cannot resolve the Ubuntu mirrors for a while, and the
+        # install fails before any check runs. Try up to 4 times, 45 seconds apart. The fonts
+        # are not skipped: the screenshots check compares pixels, so they must stay the same.
+        run: |
+          for attempt in 1 2 3 4; do
+            npx playwright install --with-deps chromium && exit 0
+            echo "Browser install failed (attempt $attempt of 4)."
+            [ "$attempt" -lt 4 ] && sleep 45
+          done
+          exit 1
       - name: Every check in e2e/ plus the axe audit, against the production build
         run: npm run checks
       - name: Report on the run page
