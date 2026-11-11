@@ -2,6 +2,45 @@
 
 Draft, 2026-11-10. Build plan step 3.1. Prepared by Claude (cloud thread) for Devin to bring to Dr. Gupta. Not sent. About 25 minutes.
 
+## Start here: six questions (about 3 minutes)
+
+Added 2026-11-11. These come before everything else, because the answers decide how much of sections A, E and F applies yet. Circle one letter per question.
+
+Each question has a recommended answer, which is also what the team builds on until you say otherwise. Background: [CMAI Tracker: right-sized scope and data security](https://claude.ai/artifact/6qdpS4j5gPtMbWq18qedau), where these are numbered G1 to G6.
+
+**Q1. Who are the first real users of the app?**
+- a. Family caregivers at home, on their own phones
+- b. Staff at a care facility, on lab or facility phones
+- c. Both; the app stays neutral so either works **(recommended)**
+- d. Lab members only, on made-up data, for now
+
+**Q2. Will the lab collect data from the app?**
+- a. Not yet; it is the caregiver's own tool until an IRB approval exists **(recommended)**
+- b. Yes, under a protocol that exists or is being written
+- c. Undecided
+
+**Q3. Is there an IRB protocol or a facility partner for this work?** (No recommended answer; a fact only you know.)
+- a. Yes, an existing protocol covers it
+- b. One is planned
+- c. None yet
+
+**Q4. How is the person being cared for labeled in the app?**
+- a. A short code or nickname typed at setup; no name field, as today **(recommended)**
+- b. Codes issued only by the study team, enforced by the app
+- c. IDs assigned by each facility, such as a site prefix and a number
+- d. Real names (not advised; it raises the data level)
+
+**Q5. Should the app carry any of the focuses from your 2026-11-11 email?** Select all that apply.
+- a. A short optional caregiver stress check-in **(recommended)**
+- b. A "medication changed" marker **(recommended)**
+- c. "What I tried" and "did it help" picks after a behavior **(recommended)**
+- d. None; sensors only
+
+**Q6. Where do sensor, audio and video data live?**
+- a. In a separate lab system, joined to app logs later by code and time **(recommended)**
+- b. The app collects some of it
+- c. Undecided
+
 ## How to mark it
 
 Every row already has an answer: an assumption the team is building on now, so work does not stop while this packet waits. Nothing in it has been decided. Mark each row once.
