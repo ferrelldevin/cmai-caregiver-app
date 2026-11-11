@@ -27,6 +27,12 @@ Material Design Icons (Apache 2.0, Pictogrammers), Material Symbols (Apache 2.0,
 Habibpour) and Hugeicons (MIT). The Scratching and Trying to leave icons are drawn in
 this repository; Restlessness adds motion lines to the Tabler armchair.
 
-Resident colors (design mockup only)
-The resident badge colors in src/mockup/mockup.css are from Paul Tol's "muted" qualitative
-palette (https://personal.sron.nl/~pault/), chosen for color-blind readers.
+Resident colors
+The resident badge and bar colors in src/styles.css (and the mockup in src/mockup/mockup.css)
+are from Paul Tol's "muted" qualitative palette (https://personal.sron.nl/~pault/), chosen
+for color-blind readers.
+
+App icons
+The Switch and Settings icons in src/ui/Icon.tsx are redrawn from Lucide's
+"arrow-right-left" and "settings-2" (https://lucide.dev), ISC License, (c) Lucide
+Contributors.

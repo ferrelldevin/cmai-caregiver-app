@@ -35,19 +35,19 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(await p.evaluate(() => window.scrollY) === 0, "tapping the current tab scrolls to top");
   ok(await active("Jump to a group") === "Aggressive", "top marks Aggressive");
   // Scores
-  await tab(/scores/i); await p.waitForTimeout(600);
+  await tab(/score/i); await p.waitForTimeout(600);
   ok(p.url().endsWith("#/scores"), "Scores in URL");
   await p.locator('nav[aria-label="Jump to a chart"] a', { hasText: "Total" }).click(); await p.waitForTimeout(900);
   ok(await active("Jump to a chart") === "Total", "Scores: jump to Total");
   await shot("05-scores-total");
   await p.reload(); await p.waitForTimeout(800);
-  ok(p.url().endsWith("#/scores") && (await p.locator("nav.tabs button.on").textContent()).includes("Scores"), "reload stays on Scores");
+  ok(p.url().endsWith("#/scores") && (await p.locator("nav.tabs button.on").textContent()).includes("Score"), "reload stays on Score");
   // The day-14 review screen is gone (D-14): no tab, and its old address lands on the start screen.
   ok(!(await p.locator("nav.tabs button", { hasText: "Review" }).count()), "no Review tab");
   await p.goto(p.url().replace(/#.*$/, "#/review")); await p.reload(); await p.waitForTimeout(800);
   ok((await p.locator("nav.tabs button.on").textContent()).includes("Log"), "old #/review address opens Log");
   // Data hub and pages
-  await tab(/data/i); await p.waitForTimeout(500);
+  await tab(/settings/i); await p.waitForTimeout(500);
   ok(p.url().endsWith("#/data"), "Data hub in URL");
   await shot("08-data-hub");
   await p.getByRole("link", { name: /Display/ }).click(); await p.waitForTimeout(400);
@@ -58,9 +58,12 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(p.url().endsWith("#/data") && await p.getByRole("link", { name: /Backup and export/ }).isVisible(), "back gesture returns to the hub");
   await p.getByRole("link", { name: /Backup and export/ }).click(); await p.waitForTimeout(300);
   await shot("10-data-backup");
-  await p.getByRole("button", { name: "Data", exact: true }).click(); await p.waitForTimeout(400);
+  await p.getByRole("button", { name: "Settings", exact: true }).click(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data"), "on-page Back button returns to the hub");
   await p.getByRole("link", { name: /How ratings/ }).click(); await p.waitForTimeout(300);
+  ok(/Data on this phone: (kept|may be cleared)/.test(await p.locator("main").textContent()), "About says whether the phone keeps the data (F-53)");
+  ok(await p.getByRole("button", { name: "Copy diagnostics" }).isVisible(), "About page has a Copy diagnostics button");
+  ok(await p.getByText("Nothing is sent anywhere. Copying is up to you.").isVisible(), "About page says nothing is sent anywhere");
   await tab(/^Log$/); await p.waitForTimeout(500);
   ok(p.url().endsWith("#/log"), "switching tab from a Data page goes to Log");
   await p.goBack(); await p.waitForTimeout(400);

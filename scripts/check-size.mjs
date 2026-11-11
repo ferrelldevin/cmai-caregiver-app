@@ -19,7 +19,9 @@ if (!fs.existsSync(path.join(DIST, "index.html"))) {
   process.exit(2);
 }
 const html = fs.readFileSync(path.join(DIST, "index.html"), "utf8");
-const entryRef = /<script[^>]+type="module"[^>]+src="([^"]+)"/.exec(html) ?? /<script[^>]+src="([^"]+\.js)"[^>]+type="module"/.exec(html);
+const entryRef =
+  /<script[^>]+type="module"[^>]+src="([^"]+)"/.exec(html) ??
+  /<script[^>]+src="([^"]+\.js)"[^>]+type="module"/.exec(html);
 if (!entryRef) {
   console.error("check-size: could not find the entry script in dist/index.html.");
   process.exit(2);
