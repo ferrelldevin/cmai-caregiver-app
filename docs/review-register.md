@@ -139,7 +139,6 @@ Each one waits on a lab decision or on V-01. Severity comes from the heuristic r
 | F-35 | The app moves to the new day at midnight and when it is reopened | A phone left open overnight logged to yesterday (audit A-11). In review: PR #53 | none | G0 |
 | F-36 | A reminder to download a backup when the last one is old | Logs are only on the phone until backed up (audit A-12). In review: PR #54 | none | G0 |
 | F-37 | One "What counts as each behavior?" sheet in place of an info button on each tile | 29 small targets next to 29 large ones (Part 8, U4). Build plan 4.1 | F-26 | G1 |
-| F-38 | Watching hours: record when someone was with the resident, so "nothing logged" can be told from "nobody was watching" | Sensor studies' "not agitated" class includes anything staff did not see (Iaboni 2022, DOI 10.1002/dad2.12305; Khan 2021, arXiv 2104.09305, preprint). That the app can fix this is an inference. Build plan 5.6, lane B, switched off | D-25, D-11 | G1 |
 | F-39 | Optional "it stopped" tap, giving a log an end time | Sensor models need a start and an end (Iaboni 2022). Build plan 5.7, lane B, switched off | F-44 | G1 |
 | F-42 | Pattern card names its evidence in lab view: episodes cluster by time of day, triggers differ by person | Abedi 2025 (preprint, arXiv 2506.06306); Bankole 2020. Supports an existing screen and adds nothing to build. Build plan 4.3 | D-18 | G1 |
 | F-43 | Alert check: could the app's logs feed an alert. Design note only | Needs data to leave the phone, which is on the Stop list. Build plan 7.1 | P-03, P-04 | G2 |
