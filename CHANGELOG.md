@@ -57,6 +57,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - A crash anywhere in the app shows "Something went wrong. Your saved logs are safe." with a Reload button, instead of a blank page. An unhandled save failure shows an alert.
 
 ### Fixed
+- Welcome card no longer describes a "Review" step that does not exist (ratings are locked); it now tells caregivers to back up (A-06).
 - "Today" stays right when the app is left open: the count and Today lists refresh at midnight and when the phone returns to the app. Before, a log made after midnight could be counted against yesterday until a reload (F-35).
 
 ### Removed

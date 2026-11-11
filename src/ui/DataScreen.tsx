@@ -420,10 +420,10 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               <b>Log.</b> One tap the moment you see a behavior.
             </li>
             <li>
-              <b>Scores.</b> See each behavior period by period, and when in the day it happens.
+              <b>Score.</b> See each behavior period by period, and when in the day it happens.
             </li>
             <li>
-              <b>Review.</b> On day 15, check the app's ratings against what you saw.
+              <b>Back up.</b> Download a backup now and then, so the logs are never only on this phone.
             </li>
           </ol>
           <p className="privacy">
