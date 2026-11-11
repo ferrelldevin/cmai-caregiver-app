@@ -9,6 +9,7 @@ import { loadDemoData } from "../data/seed";
 import { buildExport, download } from "../data/exporter";
 import { deletePatient, removeDemoData, restoreBackup } from "../data/manage";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
+import { STUDY_MODE } from "../study/settings";
 import { asText } from "./diagnostics";
 import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
@@ -356,7 +357,8 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               workplace says.
             </p>
             <p className="muted small-print">
-              Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · a prototype for
+              Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · Mode:{" "}
+              {STUDY_MODE === "lab" ? "lab (features awaiting sign-off are on)" : "caregiver"} · a prototype for
               Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
               <a
                 href="https://github.com/ferrelldevin/cmai-tracker/blob/main/docs/scoring-spec.md"

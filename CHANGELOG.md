@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+- Study settings (`src/study/settings.ts`, F-48): one switch per feature built before Dr. Gupta's sign-off. The normal build has them all off; `VITE_STUDY_MODE=lab` builds the lab version with them on. Settings > About shows which one is running.
 - Lab readiness drafts for Dr. Gupta (build plan Stage 3): `docs/security/threat-model.md`, `docs/data-dictionary.md`, `docs/lab/data-management-plan.md`, `docs/lab/review-packet.md`, `CONTRIBUTING.md` and `docs/process/runbook.md`. Docs only; no app, scoring or export change.
 - Lab database frame: `docs/data/lab-schema.sql` (runs on SQLite and PostgreSQL), `docs/data/lab-database.md`, and `scripts/backup-to-sql.mjs`, which loads a backup file and its scores CSV into it. Tested in `tests/backupToSql.test.ts`. Reads files only; the app is unchanged.
 - The app no longer saves a patient code in `localStorage`. It opens on the resident with the newest log (the first resident when there are no logs), and removes the old saved code on first open.
