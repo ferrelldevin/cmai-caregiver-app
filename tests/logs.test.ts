@@ -3,7 +3,8 @@
 import "fake-indexeddb/auto";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
-import { db, reviewKey, type StoredObservation } from "../src/data/db";
+import { db, isLive, reviewKey, type StoredObservation } from "../src/data/db";
+import { appRatings, scoreAllWindows } from "../src/scoring/engine";
 import { buildExport } from "../src/data/exporter";
 import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../src/data/logs";
 import { restoreBackup } from "../src/data/manage";
@@ -173,6 +174,33 @@ describe("backup and restore", () => {
     expect(restored.id).not.toBe(o.id);
     const history = await db.changes.where("observationId").equals(restored.id!).sortBy("id");
     expect(history.map((c) => c.action)).toEqual(["edit", "delete"]);
+  });
+});
+
+describe("backup and restore keep the scores", () => {
+  it("a phone restored from a backup shows the same ratings as the phone that made it", async () => {
+    const now = Date.UTC(2026, 0, 30, 17);
+    await loadDemoData(now);
+    const first = await db.observations.toArray();
+    await deleteLog({ ...first[0], id: first[0].id! }, "Wrong behavior", undefined, now);
+    const ratings = async () => {
+      const out: Record<string, Record<number, number>[]> = {};
+      // Only the demo patients: the file's beforeEach adds an empty P-01 anchored at 1970,
+      // which restore now rejects on purpose (F-31, dates before 2020).
+      for (const p of (await db.patients.toArray()).filter((x) => x.demo)) {
+        const obs = (await db.observations.where("patientId").equals(p.id).sortBy("at")).filter(isLive);
+        out[p.id] = scoreAllWindows(obs, p.anchor, now).map(appRatings);
+      }
+      return out;
+    };
+    const before = await ratings();
+    expect(Object.keys(before).length).toBeGreaterThan(0);
+    const { json } = await buildExport(now);
+    db.close();
+    await Dexie.delete("cmai-tracker");
+    await db.open();
+    await restoreBackup(json);
+    expect(await ratings()).toEqual(before);
   });
 });
 

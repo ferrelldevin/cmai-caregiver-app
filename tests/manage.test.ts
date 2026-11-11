@@ -67,6 +67,13 @@ describe("restore from backup", () => {
     expect(await db.checkins.count()).toBe(1);
   });
 
+  it("names the app version, build commit and scoring rule that made it", async () => {
+    const data = JSON.parse((await buildExport(100_000)).json);
+    expect(data.appVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(data.build).toMatch(/^([0-9a-f]{7}|unknown)$/);
+    expect(data.ruleVersion).toBe("cmai-count-rule-2");
+  });
+
   it("restoring the same file twice adds nothing the second time", async () => {
     await seed();
     const { json } = await buildExport(T0 + 100_000_000);
