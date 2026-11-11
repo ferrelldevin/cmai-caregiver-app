@@ -179,11 +179,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
       const r = await restoreBackup(await file.text());
       say(
         "export",
-<<<<<<< HEAD
-        `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.`,
-=======
         `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.${r.beforeStart > 0 ? ` ${r.beforeStart} log${r.beforeStart === 1 ? " is" : "s are"} from before the patient's first day on this phone and ${r.beforeStart === 1 ? "is" : "are"} not counted in any period.` : ""}${r.skipped > 0 ? ` ${r.skipped} entr${r.skipped === 1 ? "y" : "ies"} in the file ${r.skipped === 1 ? "was" : "were"} not valid and ${r.skipped === 1 ? "was" : "were"} left out.` : ""}`,
->>>>>>> origin/main
       );
       onChange();
     } catch (e) {
@@ -349,13 +345,8 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               not prevented) or <b>9</b> (not applicable); those are answers only a caregiver's own rating can give.
             </p>
             <p className="muted small-print">
-<<<<<<< HEAD
-              Version {__APP_VERSION__} · scoring rule {RULE_VERSION} · a prototype for Professor Gupta's Hands-On Lab,
-              not a medical device. Full rules:{" "}
-=======
               Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · a prototype for
               Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
->>>>>>> origin/main
               <a
                 href="https://github.com/ferrelldevin/cmai-tracker/blob/main/docs/scoring-spec.md"
                 target="_blank"
@@ -364,8 +355,6 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
                 scoring spec
               </a>
               .
-<<<<<<< HEAD
-=======
             </p>
             <p>
               <button
@@ -386,7 +375,6 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               {diagnosticsCopied === true && "Copied. Paste it into a message to the lab. "}
               {diagnosticsCopied === false && "This phone would not copy. Try again, or tell the lab what you saw. "}
               Nothing is sent anywhere. Copying is up to you.
->>>>>>> origin/main
             </p>
           </section>
         )}
@@ -435,11 +423,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               <b>Score.</b> See each behavior period by period, and when in the day it happens.
             </li>
             <li>
-<<<<<<< HEAD
               <b>Back up.</b> Download a backup now and then, so the logs are never only on this phone.
-=======
-              <b>Review.</b> On day 15, check the app's ratings against what you saw.
->>>>>>> origin/main
             </li>
           </ol>
           <p className="privacy">
@@ -627,11 +611,7 @@ function Choice<T extends string>({
 function DisplaySettings() {
   const [theme, setTheme] = useState(getThemePref);
   const [contrast, setContrast] = useState(getContrastPref);
-<<<<<<< HEAD
-  // The header button changes the theme too; keep these radios in step with it.
-=======
   // Match phone can change the theme from outside; keep these radios in step with it.
->>>>>>> origin/main
   useEffect(
     () =>
       onDisplayChange(() => {
