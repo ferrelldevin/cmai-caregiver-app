@@ -64,9 +64,23 @@ describe("caregiver profiles", () => {
     expect(cg.readLoggingCaregiver()).toBe("C-02");
   });
 
-  it("ignores a remembered value that is not a caregiver code", () => {
-    store.set("cmai-caregiver", "<b>Jane Doe</b>");
+  it("ignores a remembered value that is not a caregiver code", async () => {
+    await db.meta.put({ key: "loggingCaregiver", value: "<b>Jane Doe</b>" });
+    await cg.loadLoggingCaregiver();
     expect(cg.readLoggingCaregiver()).toBeNull();
+  });
+
+  it("who was logging is kept in the database, not in localStorage, and comes back on reopen", async () => {
+    cg.chooseLoggingCaregiver("C-01");
+    await vi.waitFor(async () => expect((await db.meta.get("loggingCaregiver"))?.value).toBe("C-01"));
+    expect(store.size).toBe(0);
+    cg.chooseLoggingCaregiver(null);
+    await cg.loadLoggingCaregiver();
+    expect(cg.readLoggingCaregiver()).toBeNull();
+    await db.meta.put({ key: "loggingCaregiver", value: "C-02" });
+    await cg.loadLoggingCaregiver();
+    expect(cg.readLoggingCaregiver()).toBe("C-02");
+    expect(madeHere().by).toBe("C-02");
   });
 
   it("an edit records the editor's code, which may differ from the logger's", async () => {
