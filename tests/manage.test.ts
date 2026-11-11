@@ -248,6 +248,20 @@ describe("restore checks every entry (F-31)", () => {
     expect(r).toMatchObject({ reviews: 0, checkins: 0, skipped: 3 });
   });
 
+  it("counts restored logs from before the patient's first day on this phone", async () => {
+    await db.patients.add({ id: "P-01", anchor: T0 + DAY }); // this phone started the patient a day later
+    const r = await restoreBackup(
+      JSON.stringify({
+        patients: [{ id: "P-01", anchor: T0 }],
+        observations: [
+          { patientId: "P-01", itemId: 3, at: T0 + 5, loggedAt: T0 + 5 },
+          { patientId: "P-01", itemId: 3, at: T0 + DAY + 5, loggedAt: T0 + DAY + 5 },
+        ],
+      }),
+    );
+    expect(r).toMatchObject({ observations: 2, beforeStart: 1 });
+  });
+
   it("a log may belong to a patient already on this phone", async () => {
     await db.patients.add({ id: "P-01", anchor: T0 });
     const r = await restoreBackup(

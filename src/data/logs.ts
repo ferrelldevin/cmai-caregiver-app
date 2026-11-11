@@ -5,7 +5,13 @@
 import { db, type LogChange, type StoredObservation } from "./db";
 
 /** Why a log was removed. A pick list, so reasons can be counted and no names get typed. */
-export const DELETE_REASONS = ["Tapped by mistake", "Wrong behavior", "Wrong patient", "Logged twice", "Other"] as const;
+export const DELETE_REASONS = [
+  "Tapped by mistake",
+  "Wrong behavior",
+  "Wrong patient",
+  "Logged twice",
+  "Other",
+] as const;
 /** The reason recorded when the snackbar's Undo takes back a log just made. */
 export const UNDO_REASON = "Undone right after logging";
 
@@ -16,7 +22,8 @@ const EDIT_MERGE_MS = 5 * 60_000;
 /** Throws when the reason is missing, or is "Other" without a note. */
 export async function deleteLog(obs: Saved, reason: string, note?: string, now = Date.now()) {
   const trimmed = note?.trim() || undefined;
-  if (reason !== UNDO_REASON && !(DELETE_REASONS as readonly string[]).includes(reason)) throw new Error("Pick a reason to delete this log.");
+  if (reason !== UNDO_REASON && !(DELETE_REASONS as readonly string[]).includes(reason))
+    throw new Error("Pick a reason to delete this log.");
   if (reason === "Other" && !trimmed) throw new Error("Say in a few words why this log is being deleted.");
   const mark = { deletedAt: now, deleteReason: reason, ...(trimmed ? { deleteNote: trimmed } : {}) };
   await db.transaction("rw", [db.observations, db.changes], async () => {
@@ -41,9 +48,20 @@ export async function restoreLog(obs: Saved, now = Date.now()) {
 
 /** Saves a change to a log's time or context and records what it was before. A deleted log can't be edited. */
 export async function editLog(obs: Saved, change: Partial<StoredObservation>, now = Date.now()) {
-  await db.transaction("rw", [db.observations, db.changes], async () => {
+  await db.transaction("rw", [db.observations, db.changes, db.patients], async () => {
     const current = await db.observations.get(obs.id);
     if (!current || current.deletedAt !== undefined) return;
+    // Periods count from the patient's first day, so a log can't be moved before it (F-32).
+    const patient =
+      change.at !== undefined && change.at !== current.at ? await db.patients.get(current.patientId) : undefined;
+    if (patient && change.at! < patient.anchor) {
+      const day = new Date(patient.anchor).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      throw new Error(`This patient's first day in the app is ${day}. A log can't be earlier than that.`);
+    }
     const from: Partial<StoredObservation> = {};
     const to: Partial<StoredObservation> = {};
     for (const k of EDITABLE) {
@@ -69,7 +87,8 @@ export async function editLog(obs: Saved, change: Partial<StoredObservation>, no
 }
 
 // Drops keys whose value is undefined, so the stored history only names what was there.
-const clean = (o?: Partial<StoredObservation>) => o && Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+const clean = (o?: Partial<StoredObservation>) =>
+  o && Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 
 function record({ from, to, ...c }: LogChange) {
   return db.changes.add({ ...c, ...(from ? { from: clean(from) } : {}), ...(to ? { to: clean(to) } : {}) });

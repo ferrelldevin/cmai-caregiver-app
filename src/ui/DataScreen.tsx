@@ -177,7 +177,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
       const r = await restoreBackup(await file.text());
       say(
         "export",
-        `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.${r.skipped > 0 ? ` ${r.skipped} entr${r.skipped === 1 ? "y" : "ies"} in the file ${r.skipped === 1 ? "was" : "were"} not valid and ${r.skipped === 1 ? "was" : "were"} left out.` : ""}`,
+        `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.${r.beforeStart > 0 ? ` ${r.beforeStart} log${r.beforeStart === 1 ? " is" : "s are"} from before the patient's first day on this phone and ${r.beforeStart === 1 ? "is" : "are"} not counted in any period.` : ""}${r.skipped > 0 ? ` ${r.skipped} entr${r.skipped === 1 ? "y" : "ies"} in the file ${r.skipped === 1 ? "was" : "were"} not valid and ${r.skipped === 1 ? "was" : "were"} left out.` : ""}`,
       );
       onChange();
     } catch (e) {
