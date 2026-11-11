@@ -58,6 +58,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Fixed
 - Welcome card no longer describes a "Review" step that does not exist (ratings are locked); it now tells caregivers to back up (A-06).
+- "Today" stays right when the app is left open: the count and Today lists refresh at midnight and when the phone returns to the app. Before, a log made after midnight could be counted against yesterday until a reload (F-35).
 
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
