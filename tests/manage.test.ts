@@ -67,6 +67,13 @@ describe("restore from backup", () => {
     expect(await db.checkins.count()).toBe(1);
   });
 
+  it("names the app version, build commit and scoring rule that made it", async () => {
+    const data = JSON.parse((await buildExport(100_000)).json);
+    expect(data.appVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(data.build).toMatch(/^([0-9a-f]{7}|unknown)$/);
+    expect(data.ruleVersion).toBe("cmai-count-rule-2");
+  });
+
   it("restoring the same file twice adds nothing the second time", async () => {
     await seed();
     const { json } = await buildExport(T0 + 100_000_000);
@@ -245,6 +252,20 @@ describe("restore checks every entry (F-31)", () => {
       }),
     );
     expect(r).toMatchObject({ reviews: 0, checkins: 0, skipped: 3 });
+  });
+
+  it("counts restored logs from before the patient's first day on this phone", async () => {
+    await db.patients.add({ id: "P-01", anchor: T0 + DAY }); // this phone started the patient a day later
+    const r = await restoreBackup(
+      JSON.stringify({
+        patients: [{ id: "P-01", anchor: T0 }],
+        observations: [
+          { patientId: "P-01", itemId: 3, at: T0 + 5, loggedAt: T0 + 5 },
+          { patientId: "P-01", itemId: 3, at: T0 + DAY + 5, loggedAt: T0 + DAY + 5 },
+        ],
+      }),
+    );
+    expect(r).toMatchObject({ observations: 2, beforeStart: 1 });
   });
 
   it("a log may belong to a patient already on this phone", async () => {

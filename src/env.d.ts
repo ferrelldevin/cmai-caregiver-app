@@ -4,3 +4,4 @@ interface ImportMetaEnv {
   // "lab" turns on features built on assumed approval (src/study/settings.ts). Unset means caregiver.
   readonly VITE_STUDY_MODE?: string;
 }
+declare const __BUILD_COMMIT__: string;
