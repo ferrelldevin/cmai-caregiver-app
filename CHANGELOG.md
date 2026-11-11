@@ -9,6 +9,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Added
 - `docs/process/release.md`: how to cut a release and how to undo a bad deploy. The deploy job now checks that the live page shows the commit it just deployed.
 - Property tests for the scoring rule (fast-check): order of logs, adding or removing a log, the count bands, the 60-minute cluster edge, the 7-day threshold, and behaviors not affecting each other, across a clock change. No change to the rule.
+- Size check in CI (`npm run check:size`): fails if the first script grows past 415 KB or any other script past 600 KB.
 - Editor and Git settings shared through the repo: `.editorconfig`, `.gitattributes` (LF line endings on every machine), recommended VS Code extensions and settings.
 - Node 22 pinned in `.nvmrc` and `package.json` `engines`.
 - `npm run lint` (ESLint with TypeScript and React hooks rules) and `npm run typecheck`.

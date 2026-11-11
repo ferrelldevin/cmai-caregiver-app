@@ -95,7 +95,6 @@ export default defineConfig({
       },
     }),
   ],
-  build: { chunkSizeWarningLimit: 800 },
   test: {
     include: ["tests/**/*.test.ts"],
     // `npm run test:coverage` (run in CI) fails if coverage of the logic the scores depend on drops.
