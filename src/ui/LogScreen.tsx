@@ -16,10 +16,11 @@ import { utcOffsetMin } from "../data/ids";
 import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
-import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../data/logs";
+import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
+import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
 import { DefinitionsSheet } from "./DefinitionsSheet";
@@ -50,6 +51,8 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
+  const [saveError, setSaveError] = useState(false); // the last save failed
+  const [editError, setEditError] = useState<string | null>(null);
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
