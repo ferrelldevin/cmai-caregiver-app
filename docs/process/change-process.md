@@ -36,16 +36,48 @@ Before building, list what the change looks like in each of these. The PR checkl
 - CI runs `npm run checks` on every pull request, so a PR can't merge with a failing browser check once the main-branch ruleset requires it.
 - `npm run checks` runs every check in `e2e/` and the axe audit in all four modes in one go and writes one report; `npm run checks:report` also pushes it to the `checks-report` branch so a cloud session can read it.
 - axe-core WCAG 2.2 AA shows 0 violations in all four modes (`docs/audits/axe-run.cjs`).
-- Before and after screenshots, on a phone size, in light and dark.
+- Before and after screenshots, on a phone size, in light and dark. They go in the pull request description, not in the repository.
 - A real phone check when the change touches install, offline, storage, gestures or the keyboard.
+- `npm run check:docs` passes: every rule in the scoring spec still names a check that exists, and every relative link, `file:line` reference and register ID resolves.
+- The screenshot comparison passes, or its baselines in `e2e/screenshots/` are updated on purpose in the same PR (see `e2e/README.md`).
 
 ## 6. Record
 - A decision-log row in `docs/review-register.md`. Anything that needs the lab's approval is added there as an open item, and it does not block the demo.
 - Update `docs/design/design-brief.md` if the design system changed, and `README.md` if what a user sees changed.
+- A change to a scoring rule, or to what a screen says about one, updates `docs/scoring-spec.md` in the same PR, with its row in the spec's "Checked by" table and the check behind it.
+- The repo is the only source for its docs. A copy kept anywhere else (such as the project folder) says which commit it was copied from, and the repo wins when they differ.
+- A release bumps `version` in `package.json` and adds its CHANGELOG section in the same PR; the merge tags it `v<version>`.
 
 ## 7. Ship
-- A draft PR using the template, with the screenshots attached. CI must be green.
+- A draft PR using the template, with the screenshots in the description, not committed. CI must be green.
 - Devin marks it ready and merges. The Pages deploy runs on merge; confirm it went live.
 
 ## Definition of done
 The problem is recorded, the shape is written down, every state above is handled, every check in step 5 passed, the register and docs are updated, and the change is live.
+
+## Lanes
+
+The full rules are in [build-plan.md](build-plan.md), section 1.3. In short, every step of the plan is in one lane.
+
+| Lane | What it covers | May start | How it ships |
+|---|---|---|---|
+| **A. Build now** | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown | Now | Draft pull request. Devin merges |
+| **B. Build on assumed approval** | Anything that adds or changes a stored field, adds sign-in or caregiver identity, changes what is collected, or adds to what an export contains | Now | Draft pull request, behind a study setting that is off in the caregiver build. The register row says "Built on assumed approval. Sign-off pending", with the assumed answer |
+| **Stop** | A real person or real participant data. Sending anything to Dr. Gupta or outside the lab. A server, account or approval the lab has not provided. Merging and GitHub settings | Only the part marked "can be done now" | Write the design or the draft. Do not fake the missing piece |
+
+**The four-part test for lane A.** All four must be true:
+
+1. Ratings for `docs/test-cases.json` are unchanged.
+2. No new field or table in `src/data/db.ts`, and no new value collected from a caregiver.
+3. Nothing leaves the phone that did not before.
+4. `git revert` of the pull request puts the app back exactly.
+
+If 2 or 3 is false, the work is lane B. If 1 is false, stop: a scoring change needs a new `RULE_VERSION`.
+
+**Rules for lane B.**
+
+1. Behind a setting that is off in the caregiver build, so the app looks and behaves exactly as before.
+2. Every new stored field goes into one database version (version 4). No version 5 without a new step in the plan.
+3. The pull request says how to undo it. A database upgrade cannot be taken back on a phone: say what a phone needs after a revert (export, clear the app, restore).
+4. The register row comes first, in the same pull request, with the assumed answer in plain words and what would change if Dr. Gupta picks another option.
+5. Nothing is settled. If Dr. Gupta later says no, the feature is removed or changed in one pull request and the row records it.
