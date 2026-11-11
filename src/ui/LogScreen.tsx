@@ -101,7 +101,16 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
     if (lastTap.current && lastTap.current.itemId === itemId && t - lastTap.current.t < 600) return;
     lastTap.current = { itemId, t };
     const obs = { patientId, itemId, at: t, loggedAt: t, ...madeHere(), tzOffsetMin: utcOffsetMin(t) };
-    const id = await db.observations.add(obs);
+    setSaveError(false);
+    let id: number;
+    try {
+      id = await db.observations.add(obs);
+    } catch (e) {
+      record(e);
+      lastTap.current = null; // the tap did not count, so a second tap is allowed at once
+      setSaveError(true);
+      return;
+    }
     // A log with no watch open starts one (D-25): logging never requires a watch.
     if (study.watchingHours && !watch) {
       await startWatch(patientId, "log", t);
