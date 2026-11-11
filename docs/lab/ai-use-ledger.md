@@ -1,6 +1,11 @@
 # AI-use ledger
 
-Running record of which AI service did which job on this project, for Dr. Gupta and for Devin's own reference. One line per job. Anything not confirmed is marked "not recorded". Code and made-up data only: no CMAI item wording and no participant data go to any outside service (P-14, proposed, assumed, sign-off pending).
+Running record of which AI service did which job on this project, for Dr. Gupta and for Devin's own reference. One line per job. Anything not confirmed is marked "not recorded".
+
+**Rule (Devin, 2026-11-11; P-14, proposed, assumed, sign-off pending):**
+- Only code and made-up data may leave Devin's computer. Never CMAI item wording, never real participant data.
+- Code reviews and second opinions go to Codex or Grok first. Bulk mechanical edits go to local Ollama. Claude writes and verifies.
+- Every outside finding is checked before anything changes.
 
 | Date | Task | Service | Model | Why |
 |---|---|---|---|---|
