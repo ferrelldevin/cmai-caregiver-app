@@ -1,14 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
-import { ScoresScreen } from "./ui/ScoresScreen";
 import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
 import { addDays, localMidnight } from "./scoring/engine";
+import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
+
+// The charts library is only needed on Scores, so it loads there, not on first open. The service worker
+// still caches the chunk, so Scores works offline after the first visit to the installed app.
+const ScoresScreen = lazy(() => import("./ui/ScoresScreen").then((m) => ({ default: m.ScoresScreen })));
+const ScoresLoading = ({ error }: { error?: string | null }) => (
+  <div className="loading" role="status">
+    {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
+  </div>
+);
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
@@ -24,17 +33,11 @@ const PAGE_TITLES: Record<DataPage, string> = {
   about: "How ratings are worked out",
 };
 
-const readSaved = () => {
-  try {
-    return localStorage.getItem("cmai-patient");
-  } catch {
-    return null;
-  }
-};
-
 export default function App() {
-  const [patientId, setPatientId] = useState<string | null>(readSaved);
-  const { route, go, back } = useRoute(() => ({ tab: readSaved() ? "log" : "data", page: null }));
+  const [patientId, setPatientId] = useState<string | null>(null);
+  // The patient to open on is worked out from the data once, before anything is shown (lastPatient.ts).
+  const [restored, setRestored] = useState(false);
+  const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
   const tab = route.tab;
   // The Scores period chosen for each patient, so leaving Scores and coming back keeps it.
   const scoresPeriod = useRef<Record<string, number>>({});
@@ -51,19 +54,22 @@ export default function App() {
   const firstRender = useRef(true);
 
   useEffect(() => {
-    try {
-      if (patientId) localStorage.setItem("cmai-patient", patientId);
-      else localStorage.removeItem("cmai-patient");
-    } catch {
-      /* private mode */
-    }
-  }, [patientId]);
+    let live = true;
+    startingPatient().then((id) => {
+      if (!live) return;
+      setPatientId(id);
+      setRestored(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!restored || !loaded) return;
     if (patients.length && !patients.some((p) => p.id === patientId)) setPatientId(patients[0].id);
     if (!patients.length && patientId) setPatientId(null);
-  }, [loaded, patients, patientId]);
+  }, [restored, loaded, patients, patientId]);
 
   // "Today" is worked out when the data is read, so an app left open must read again when the day
   // changes: at the next local midnight, and when the phone comes back to the app (F-35).
@@ -156,6 +162,14 @@ export default function App() {
   const pos = current ? patientPosition(current.anchor, Date.now()) : null;
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
+  // Wait for the starting patient so the app never opens on the wrong one for a moment.
+  if (!restored)
+    return (
+      <div className="loading" role="status">
+        Loading…
+      </div>
+    );
+
   return (
     <div className="app">
       {/* The app's name shows only before a patient exists. After that the resident bar is the
@@ -244,20 +258,20 @@ export default function App() {
             onBackUp={() => go({ tab: "data", page: "backup" })}
           />
         ) : loaded && !error ? (
-          <ScoresScreen
-            key={patientId}
-            patientId={patientId!}
-            windows={windows}
-            observations={observations}
-            hasActivity={observations.length > 0 || checkins.length > 0}
-            period={route.period}
-            onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
-            onLog={() => setTab("log")}
-          />
+          <Suspense fallback={<ScoresLoading />}>
+            <ScoresScreen
+              key={patientId}
+              patientId={patientId!}
+              windows={windows}
+              observations={observations}
+              hasActivity={observations.length > 0 || checkins.length > 0}
+              period={route.period}
+              onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
+              onLog={() => setTab("log")}
+            />
+          </Suspense>
         ) : (
-          <div className="loading" role="status">
-            {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
-          </div>
+          <ScoresLoading error={error} />
         )}
       </main>
 
