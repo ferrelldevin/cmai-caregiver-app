@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
-import { ScoresScreen } from "./ui/ScoresScreen";
 import { TodayScreen } from "./ui/TodayScreen";
 import { TwoWeeksScreen } from "./ui/TwoWeeksScreen";
 import { Icon, type IconName } from "./ui/Icon";
@@ -10,6 +9,15 @@ import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
+
+// The charts library is only needed on Scores, so it loads there, not on first open. The service worker
+// still caches the chunk, so Scores works offline after the first visit to the installed app.
+const ScoresScreen = lazy(() => import("./ui/ScoresScreen").then((m) => ({ default: m.ScoresScreen })));
+const ScoresLoading = ({ error }: { error?: string | null }) => (
+  <div className="loading" role="status">
+    {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
+  </div>
+);
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
@@ -242,20 +250,20 @@ export default function App() {
             onExport={() => go({ tab: "data", page: "backup" })}
           />
         ) : loaded && !error ? (
-          <ScoresScreen
-            key={patientId}
-            patientId={patientId!}
-            windows={windows}
-            observations={observations}
-            hasActivity={observations.length > 0 || checkins.length > 0}
-            period={route.period}
-            onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
-            onLog={() => setTab("log")}
-          />
+          <Suspense fallback={<ScoresLoading />}>
+            <ScoresScreen
+              key={patientId}
+              patientId={patientId!}
+              windows={windows}
+              observations={observations}
+              hasActivity={observations.length > 0 || checkins.length > 0}
+              period={route.period}
+              onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
+              onLog={() => setTab("log")}
+            />
+          </Suspense>
         ) : (
-          <div className="loading" role="status">
-            {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
-          </div>
+          <ScoresLoading error={error} />
         )}
       </main>
 

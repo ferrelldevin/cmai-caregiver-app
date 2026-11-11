@@ -12,10 +12,11 @@ import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from
 import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring/items";
 import { mostLogged } from "./mostLogged";
 import { db, localMidnight, type StoredObservation } from "../data/db";
-import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../data/logs";
+import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
+import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
 import { DefinitionsSheet } from "./DefinitionsSheet";
@@ -26,6 +27,8 @@ const TOAST_MS = 8000;
 
 type SavedObs = StoredObservation & { id: number };
 type Toast = { kind: "logged" | "deleted"; obs: SavedObs };
+
+export const SAVE_FAILED = "That did not save. Check the phone has free space, then try again.";
 
 interface Props {
   patientId: string;
@@ -41,6 +44,8 @@ export function LogScreen({ patientId, observations, onChange, onToday }: Props)
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
+  const [saveError, setSaveError] = useState(false); // the last save failed
+  const [editError, setEditError] = useState<string | null>(null);
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
@@ -71,7 +76,16 @@ export function LogScreen({ patientId, observations, onChange, onToday }: Props)
     if (lastTap.current && lastTap.current.itemId === itemId && t - lastTap.current.t < 600) return;
     lastTap.current = { itemId, t };
     const obs = { patientId, itemId, at: t, loggedAt: t };
-    const id = await db.observations.add(obs);
+    setSaveError(false);
+    let id: number;
+    try {
+      id = await db.observations.add(obs);
+    } catch (e) {
+      record(e);
+      lastTap.current = null; // the tap did not count, so a second tap is allowed at once
+      setSaveError(true);
+      return;
+    }
     navigator.vibrate?.(15);
     setFlash(itemId);
     window.setTimeout(() => setFlash((f) => (f === itemId ? null : f)), 900);
@@ -81,9 +95,16 @@ export function LogScreen({ patientId, observations, onChange, onToday }: Props)
 
   async function undo() {
     if (!toast) return;
-    // Undo of a log just made is a delete like any other, with its own reason.
-    if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
-    else await restoreLog(toast.obs);
+    setSaveError(false);
+    try {
+      // Undo of a log just made is a delete like any other, with its own reason.
+      if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
+      else await restoreLog(toast.obs);
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
     setToast(null);
     setHeld(false);
     onChange();
@@ -92,19 +113,34 @@ export function LogScreen({ patientId, observations, onChange, onToday }: Props)
   function edit(o: SavedObs, e: MouseEvent) {
     setToast(null);
     setHeld(false);
+    setEditError(null);
     setEditing({ obs: o, viaKeyboard: e.detail === 0 });
   }
 
   async function patch(change: Partial<StoredObservation>) {
     if (!editing) return;
-    // Show the change at once; the save follows.
+    // Show the change at once; the save follows. If the save is refused, the old values come back.
+    const before = editing;
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
-    await editLog(editing.obs, change);
-    onChange();
+    setEditError(null);
+    try {
+      await editLog(editing.obs, change);
+      onChange();
+    } catch (e) {
+      if (!(e instanceof LogTimeError)) record(e);
+      setEditing(before);
+      setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
+    }
   }
 
   async function remove(o: SavedObs, reason: string, note?: string) {
-    await deleteLog(o, reason, note);
+    try {
+      await deleteLog(o, reason, note);
+    } catch (e) {
+      record(e);
+      setEditError(SAVE_FAILED);
+      return;
+    }
     setEditing(null);
     setToast({ kind: "deleted", obs: o });
     onChange();
@@ -182,6 +218,11 @@ export function LogScreen({ patientId, observations, onChange, onToday }: Props)
 
   return (
     <div className="log">
+      {saveError && (
+        <p className="banner save-alert" role="alert">
+          {SAVE_FAILED}
+        </p>
+      )}
       <div className="log-head">
         <p className="screen-title" aria-hidden>
           Log a behavior
@@ -276,6 +317,7 @@ export function LogScreen({ patientId, observations, onChange, onToday }: Props)
       <LogSheet
         obs={editing?.obs ?? null}
         viaKeyboard={editing?.viaKeyboard ?? false}
+        error={editError}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
         onClose={() => setEditing(null)}
