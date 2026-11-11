@@ -63,13 +63,13 @@ async function scan(page, name, results) {
     await page.getByRole("dialog", { name: "Choose patient" }).waitFor();
     await scan(page, "Patient switcher (sheet open)", results);
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Scores" }).click();
+    await page.getByRole("button", { name: "Score", exact: true }).click();
     await page.getByRole("heading", { name: "Behavior scores", exact: true }).waitFor();
     await scan(page, "Scores", results);
     await page.getByRole("button", { name: "Show all 29 behaviors" }).click();
     await scan(page, "Scores (all 29 behaviors)", results);
     // The Day-14 review screen was removed when ratings were locked (D-14, PR #17).
-    await page.getByRole("button", { name: "Patients and data" }).click();
+    await page.getByRole("button", { name: "Settings" }).click();
     await scan(page, "Patients & data (with patients)", results);
     await page.getByRole("button", { name: "Delete P-DEMO-B" }).click();
     await page.getByRole("dialog", { name: "Delete P-DEMO-B?" }).waitFor();
@@ -78,7 +78,7 @@ async function scan(page, name, results) {
     for (const row of ["Backup and export", "Display", "Keep data safe", "Demo data", "How ratings are worked out"]) {
       await page.getByRole("link", { name: new RegExp(`^${row}`) }).click();
       await scan(page, `Data: ${row}`, results);
-      await page.getByRole("button", { name: "Data", exact: true }).click();
+      await page.getByRole("button", { name: "Settings", exact: true }).click();
     }
     all.schemes[scheme] = results;
     await ctx.close();
