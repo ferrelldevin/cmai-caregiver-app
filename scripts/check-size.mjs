@@ -2,6 +2,8 @@
 // Sizes are bytes on disk, before compression. The entry script is the one index.html loads first.
 // Budget: the entry measured about 302 KB on 2026-11-10 with Recharts loaded only on Scores; 330 KB is
 // that plus about 10%. The plan's first guess of 250 KB was below what React and Dexie alone take.
+// 2026-11-11: raised to 415 KB. Main moved to React 19 and Vite 8 and merged features; the entry now measures
+// 376 KB (415 is that plus about 10%). No Recharts, duplicate library or dev-only code is in the entry.
 // After step 4.4 removes Recharts, lower both numbers to what the build then measures plus 10%.
 import fs from "node:fs";
 import path from "node:path";
@@ -9,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
-const ENTRY_LIMIT = 330 * 1000;
+const ENTRY_LIMIT = 415 * 1000;
 const CHUNK_LIMIT = 600 * 1000;
 
 if (!fs.existsSync(path.join(DIST, "index.html"))) {
