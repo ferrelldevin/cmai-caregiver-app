@@ -62,8 +62,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Chromium and the system libraries it needs
-        run: npx playwright install --with-deps chromium
+      - name: Chromium (apt is used only if the runner is missing a library or font)
+        run: bash scripts/ci-install-browser.sh
       - name: Every check in e2e/ plus the axe audit, against the production build
         run: npm run checks
       - name: Report on the run page
