@@ -61,6 +61,8 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("button", { name: "Settings", exact: true }).click(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data"), "on-page Back button returns to the hub");
   await p.getByRole("link", { name: /How ratings/ }).click(); await p.waitForTimeout(300);
+  ok(await p.getByRole("button", { name: "Copy diagnostics" }).isVisible(), "About page has a Copy diagnostics button");
+  ok(await p.getByText("Nothing is sent anywhere. Copying is up to you.").isVisible(), "About page says nothing is sent anywhere");
   await tab(/^Log$/); await p.waitForTimeout(500);
   ok(p.url().endsWith("#/log"), "switching tab from a Data page goes to Log");
   await p.goBack(); await p.waitForTimeout(400);
