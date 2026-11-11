@@ -19,13 +19,28 @@ const PATHS = {
   lock: "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4",
   sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
   moon: "M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z",
+  // Lucide "arrow-right-left" and "settings-2" (ISC license), redrawn as one path each.
+  swap: "M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16",
+  settings: "M20 7h-9M14 17H5M17 14a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM7 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6z",
 } as const;
 
 export type IconName = keyof typeof PATHS;
 
 export function Icon({ name, size = 20, className }: { name: IconName; size?: number; className?: string }) {
   return (
-    <svg className={className ? `icon ${className}` : "icon"} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <svg
+      className={className ? `icon ${className}` : "icon"}
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
       <path d={PATHS[name]} />
     </svg>
   );
