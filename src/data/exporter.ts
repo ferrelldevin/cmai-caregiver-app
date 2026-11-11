@@ -9,8 +9,17 @@
 // order, new ones come after; every time is given in UTC and in local time with its offset; new
 // files watches.csv, caregiver_ratings.csv and labels.csv. Reference: docs/data-dictionary.md
 // part 2 (draft PR #46, plan 3.4).
+// Every JSON backup names the app version and build commit that made it, next to the rule version.
 
-import { addDays, appRatings, localMidnight, RULE_VERSION, scoreAllWindows, scoreWindow, unloggedDays } from "../scoring/engine";
+import {
+  addDays,
+  appRatings,
+  localMidnight,
+  RULE_VERSION,
+  scoreAllWindows,
+  scoreWindow,
+  unloggedDays,
+} from "../scoring/engine";
 import { ITEMS } from "../scoring/items";
 import { study } from "../study/settings";
 import { db, isLive, SECRET_CAREGIVER_FIELDS, thisDevice, type Caregiver, type Watch } from "./db";
@@ -69,7 +78,13 @@ export interface LabelRow {
  * exactly by "watched" (someone was there) and "unobserved" stretches, which never overlap; each
  * live log is a "behavior" row inside them. "Calm" can be taken from watched rows only.
  */
-export function labelRows(patientId: string, anchor: number, logs: { at: number; itemId: number; approx?: boolean; by?: string; tzOffsetMin?: number; endedAt?: number }[], watches: Watch[], now: number): LabelRow[] {
+export function labelRows(
+  patientId: string,
+  anchor: number,
+  logs: { at: number; itemId: number; approx?: boolean; by?: string; tzOffsetMin?: number; endedAt?: number }[],
+  watches: Watch[],
+  now: number,
+): LabelRow[] {
   // Merge overlapping watches so two caregivers watching at once count once.
   const spans = watches
     .map((w) => [w.start, Math.min(w.end ?? now, now)] as [number, number])
@@ -86,7 +101,8 @@ export function labelRows(patientId: string, anchor: number, logs: { at: number;
     const end = Math.min(addDays(day, 1), now);
     let t = day;
     for (const [a, b] of merged) {
-      const s = Math.max(a, day), e = Math.min(b, end);
+      const s = Math.max(a, day),
+        e = Math.min(b, end);
       if (e <= s) continue;
       if (s > t) rows.push({ patientId, kind: "unobserved", start: t, end: s });
       rows.push({ patientId, kind: "watched", start: s, end: e });
@@ -96,7 +112,16 @@ export function labelRows(patientId: string, anchor: number, logs: { at: number;
   }
   for (const o of logs) {
     if (o.at < anchor || o.at >= now) continue;
-    rows.push({ patientId, kind: "behavior", start: o.at, end: o.endedAt, itemId: o.itemId, approx: !!o.approx, by: o.by, tzOffsetMin: o.tzOffsetMin });
+    rows.push({
+      patientId,
+      kind: "behavior",
+      start: o.at,
+      end: o.endedAt,
+      itemId: o.itemId,
+      approx: !!o.approx,
+      by: o.by,
+      tzOffsetMin: o.tzOffsetMin,
+    });
   }
   // Time order; at the same moment the stretch comes before the behavior inside it.
   return rows.sort((x, y) => x.start - y.start || (x.kind === "behavior" ? 1 : 0) - (y.kind === "behavior" ? 1 : 0));
@@ -117,57 +142,218 @@ export async function buildExport(now = Date.now()) {
   const app = __APP_VERSION__;
   const exportedAt = iso(now);
 
-  const obsRows: Cell[][] = [["patient_id", "item_id", "item_name", "occurred_at", "time_approximate", "what_happened_before", "before_note", "logged_at", "deleted_at", "delete_reason", "delete_note",
-    ...(v2 ? ["uid", "device_id", "caregiver", "occurred_at_local", "utc_offset_min", "ended_at", "schema_version", "app_version"] : [])]];
+  const obsRows: Cell[][] = [
+    [
+      "patient_id",
+      "item_id",
+      "item_name",
+      "occurred_at",
+      "time_approximate",
+      "what_happened_before",
+      "before_note",
+      "logged_at",
+      "deleted_at",
+      "delete_reason",
+      "delete_note",
+      ...(v2
+        ? [
+            "uid",
+            "device_id",
+            "caregiver",
+            "occurred_at_local",
+            "utc_offset_min",
+            "ended_at",
+            "schema_version",
+            "app_version",
+          ]
+        : []),
+    ],
+  ];
   for (const o of observations) {
-    obsRows.push([o.patientId, o.itemId, ITEMS[o.itemId - 1].name, new Date(o.at).toISOString(), !!o.approx, o.before ?? "", o.beforeNote ?? "", new Date(o.loggedAt).toISOString(),
-      o.deletedAt === undefined ? "" : new Date(o.deletedAt).toISOString(), o.deleteReason ?? "", o.deleteNote ?? "",
-      ...(v2 ? [o.uid ?? "", o.deviceId ?? "", o.by ?? "", localIso(o.at, o.tzOffsetMin), o.tzOffsetMin ?? "", iso(o.endedAt), CSV_FORMAT, app] : [])]);
+    obsRows.push([
+      o.patientId,
+      o.itemId,
+      ITEMS[o.itemId - 1].name,
+      new Date(o.at).toISOString(),
+      !!o.approx,
+      o.before ?? "",
+      o.beforeNote ?? "",
+      new Date(o.loggedAt).toISOString(),
+      o.deletedAt === undefined ? "" : new Date(o.deletedAt).toISOString(),
+      o.deleteReason ?? "",
+      o.deleteNote ?? "",
+      ...(v2
+        ? [
+            o.uid ?? "",
+            o.deviceId ?? "",
+            o.by ?? "",
+            localIso(o.at, o.tzOffsetMin),
+            o.tzOffsetMin ?? "",
+            iso(o.endedAt),
+            CSV_FORMAT,
+            app,
+          ]
+        : []),
+    ]);
   }
 
-  const scoreRows: Cell[][] = [["patient_id", "window_start", "window_end", "provisional", "item_id", "item_name", "count", "derived_rating", "unlogged_days", "rule_version",
-    ...(v2 ? ["schema_version", "app_version", "exported_at", "period_final", "watched_minutes"] : [])]];
+  const scoreRows: Cell[][] = [
+    [
+      "patient_id",
+      "window_start",
+      "window_end",
+      "provisional",
+      "item_id",
+      "item_name",
+      "count",
+      "derived_rating",
+      "unlogged_days",
+      "rule_version",
+      ...(v2 ? ["schema_version", "app_version", "exported_at", "period_final", "watched_minutes"] : []),
+    ],
+  ];
   for (const p of patients) {
     const mine = observations.filter((o) => o.patientId === p.id && isLive(o));
     const activity = [...mine.map((o) => o.at), ...checkins.filter((c) => c.patientId === p.id).map((c) => c.at)];
     for (const w of scoreAllWindows(mine, p.anchor, now)) {
       const { unlogged } = unloggedDays(activity, w.windowStart, now);
       const extra = v2
-        ? [CSV_FORMAT, app, exportedAt, now - w.windowEnd > DAY_FINAL_MS,
-           study.watchingHours ? watchedMinutes(watches.filter((x) => x.patientId === p.id), w.windowStart, w.windowEnd, now) : ""]
+        ? [
+            CSV_FORMAT,
+            app,
+            exportedAt,
+            now - w.windowEnd > DAY_FINAL_MS,
+            study.watchingHours
+              ? watchedMinutes(
+                  watches.filter((x) => x.patientId === p.id),
+                  w.windowStart,
+                  w.windowEnd,
+                  now,
+                )
+              : "",
+          ]
         : [];
       for (const s of w.items) {
-        scoreRows.push([p.id, new Date(w.windowStart).toISOString(), new Date(w.windowEnd).toISOString(), w.provisional, s.itemId, ITEMS[s.itemId - 1].name, s.count, s.rating, unlogged, RULE_VERSION, ...extra]);
+        scoreRows.push([
+          p.id,
+          new Date(w.windowStart).toISOString(),
+          new Date(w.windowEnd).toISOString(),
+          w.provisional,
+          s.itemId,
+          ITEMS[s.itemId - 1].name,
+          s.count,
+          s.rating,
+          unlogged,
+          RULE_VERSION,
+          ...extra,
+        ]);
       }
     }
   }
 
   // Format 2 only: watches, caregivers' own ratings beside the app's, and the label file.
-  let watchesCsv = "", caregiverRatingsCsv = "", labelsCsv = "";
+  let watchesCsv = "",
+    caregiverRatingsCsv = "",
+    labelsCsv = "";
   if (v2) {
-    const wRows: Cell[][] = [["uid", "patient_id", "caregiver", "start", "end", "start_source", "end_source", "utc_offset_min", "start_local"]];
-    for (const w of watches) wRows.push([w.uid, w.patientId, w.by ?? "", iso(w.start), iso(w.end), w.startSource, w.endSource ?? "", w.tzOffsetMin ?? "", localIso(w.start, w.tzOffsetMin)]);
+    const wRows: Cell[][] = [
+      ["uid", "patient_id", "caregiver", "start", "end", "start_source", "end_source", "utc_offset_min", "start_local"],
+    ];
+    for (const w of watches)
+      wRows.push([
+        w.uid,
+        w.patientId,
+        w.by ?? "",
+        iso(w.start),
+        iso(w.end),
+        w.startSource,
+        w.endSource ?? "",
+        w.tzOffsetMin ?? "",
+        localIso(w.start, w.tzOffsetMin),
+      ]);
     watchesCsv = csv(wRows);
 
-    const rRows: Cell[][] = [["uid", "patient_id", "caregiver", "window_start", "submitted_at", "item_id", "item_name", "caregiver_choice", "app_rating", "within_one_point", "rule_version", "schema_version", "app_version"]];
+    const rRows: Cell[][] = [
+      [
+        "uid",
+        "patient_id",
+        "caregiver",
+        "window_start",
+        "submitted_at",
+        "item_id",
+        "item_name",
+        "caregiver_choice",
+        "app_rating",
+        "within_one_point",
+        "rule_version",
+        "schema_version",
+        "app_version",
+      ],
+    ];
     for (const r of caregiverRatings) {
       if (r.submittedAt === undefined) continue; // unfinished ratings stay in the backup only
       const live = observations.filter((o) => o.patientId === r.patientId && isLive(o));
       const appR = appRatings(scoreWindow(live, r.windowStart, now));
       for (const item of ITEMS) {
         const choice = r.answers[item.id];
-        rRows.push([r.uid, r.patientId, r.by ?? "", iso(r.windowStart), iso(r.submittedAt), item.id, item.name, choice ?? "", appR[item.id],
-          choice === undefined ? "" : withinOne(choice, appR[item.id]), r.ruleVersion, CSV_FORMAT, app]);
+        rRows.push([
+          r.uid,
+          r.patientId,
+          r.by ?? "",
+          iso(r.windowStart),
+          iso(r.submittedAt),
+          item.id,
+          item.name,
+          choice ?? "",
+          appR[item.id],
+          choice === undefined ? "" : withinOne(choice, appR[item.id]),
+          r.ruleVersion,
+          CSV_FORMAT,
+          app,
+        ]);
       }
     }
     caregiverRatingsCsv = csv(rRows);
 
-    const lRows: Cell[][] = [["patient_id", "kind", "item_id", "item_name", "start", "end", "time_approximate", "caregiver", "start_local", "utc_offset_min", "schema_version", "app_version"]];
+    const lRows: Cell[][] = [
+      [
+        "patient_id",
+        "kind",
+        "item_id",
+        "item_name",
+        "start",
+        "end",
+        "time_approximate",
+        "caregiver",
+        "start_local",
+        "utc_offset_min",
+        "schema_version",
+        "app_version",
+      ],
+    ];
     for (const p of patients) {
       const live = observations.filter((o) => o.patientId === p.id && isLive(o));
-      for (const l of labelRows(p.id, p.anchor, live, watches.filter((w) => w.patientId === p.id), now)) {
-        lRows.push([l.patientId, l.kind, l.itemId ?? "", l.itemId ? ITEMS[l.itemId - 1].name : "", iso(l.start), iso(l.end),
-          l.kind === "behavior" ? !!l.approx : "", l.by ?? "", localIso(l.start, l.tzOffsetMin), l.tzOffsetMin ?? "", CSV_FORMAT, app]);
+      for (const l of labelRows(
+        p.id,
+        p.anchor,
+        live,
+        watches.filter((w) => w.patientId === p.id),
+        now,
+      )) {
+        lRows.push([
+          l.patientId,
+          l.kind,
+          l.itemId ?? "",
+          l.itemId ? ITEMS[l.itemId - 1].name : "",
+          iso(l.start),
+          iso(l.end),
+          l.kind === "behavior" ? !!l.approx : "",
+          l.by ?? "",
+          localIso(l.start, l.tzOffsetMin),
+          l.tzOffsetMin ?? "",
+          CSV_FORMAT,
+          app,
+        ]);
       }
     }
     labelsCsv = csv(lRows);
@@ -177,6 +363,7 @@ export async function buildExport(now = Date.now()) {
       {
         formatVersion: BACKUP_FORMAT,
         appVersion: __APP_VERSION__,
+        build: __BUILD_COMMIT__,
         exportedAt: new Date(now).toISOString(),
         ruleVersion: RULE_VERSION,
         deviceId: thisDevice(),
