@@ -21,7 +21,7 @@ Lines marked **assumed, sign-off pending** follow the build plan's recommended a
 | Backup file (`cmai-backup-<date>.json`) and the two CSVs | Wherever the caregiver saves or sends them | A full copy of everything on the phone, unencrypted |
 | Ratings and the change history | Phone and exports | The study's results. Integrity matters as much as secrecy (D-14, D-21) |
 | The app itself | GitHub repo `ferrelldevin/cmai-tracker`, built by GitHub Actions, served by GitHub Pages | A changed app runs on every installed phone and can read everything on it |
-| Last-picked resident code | Phone, `localStorage` key `cmai-patient` (`src/App.tsx:28`) | A copy of a code already in IndexedDB |
+| Starting resident | Not stored. On open the app picks the resident with the newest log (`src/data/lastPatient.ts`); the old `localStorage` key `cmai-patient` is removed on first open (F-55) | Nothing extra: the code exists only in IndexedDB |
 
 ## Who might get at the data
 

@@ -1,4 +1,4 @@
-// Theme checks: header toggle, Display settings, no wrong-theme flash, Match phone follows the phone. usage: node e2e/theme.cjs URL OUTDIR
+// Theme checks: Display settings (the only theme control since design note 008), no wrong-theme flash, Match phone follows the phone. usage: node e2e/theme.cjs URL OUTDIR
 const { chromium } = require("playwright");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
@@ -15,24 +15,29 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.screenshot({ path: `${OUT}/01-welcome-light.png` });
   await p.getByRole("button", { name: "Try demo data" }).click();
   await p.getByRole("button", { name: /^7 Hitting/ }).waitFor();
-  await p.getByRole("button", { name: "Switch to dark mode" }).click();
-  s = await st(); ok(s.theme === "dark" && s.bg === "rgb(14, 20, 23)" && s.bar === "#0e1417", "header button switches to dark, status bar follows");
+  const display = async () => {
+    await p.locator("nav.tabs button", { hasText: /settings/i }).click();
+    await p.getByRole("link", { name: /^Display/ }).click();
+  };
+  await display();
+  await p.getByRole("radio", { name: "Dark" }).check();
+  s = await st(); ok(s.theme === "dark" && s.bg === "rgb(14, 20, 23)" && s.bar === "#0e1417", "Dark radio switches to dark, status bar follows");
+  await p.locator("nav.tabs button", { hasText: "Log" }).click();
   await p.mouse.move(1, 1); await p.waitForTimeout(200);
   await p.screenshot({ path: `${OUT}/02-log-dark-after-toggle.png` });
   await p.reload(); await p.waitForTimeout(400);
   s = await st(); ok(s.theme === "dark" && s.first === "dark", "dark kept after reload, no light flash");
-  await p.locator("nav.tabs button", { hasText: /data/i }).click();
-  ok((await p.getByRole("link", { name: /^Display/ }).textContent()).includes("Dark"), "Data hub row shows Dark");
+  await p.locator("nav.tabs button", { hasText: /settings/i }).click();
+  ok((await p.getByRole("link", { name: /^Display/ }).textContent()).includes("Dark"), "Settings row shows Dark");
   await p.getByRole("link", { name: /^Display/ }).click();
   ok(await p.getByRole("radio", { name: "Dark" }).isChecked(), "settings show Dark selected");
   await p.waitForTimeout(200);
   await p.screenshot({ path: `${OUT}/03-display-settings-dark.png` });
   await p.getByRole("radio", { name: "Light" }).check();
   s = await st(); ok(s.theme === "light", "Light radio switches");
-  ok((await p.getByRole("button", { name: "Switch to dark mode" }).count()) === 1, "header button label follows the settings");
   await p.screenshot({ path: `${OUT}/04-display-settings-light.png` });
   await p.getByRole("radio", { name: "High" }).check();
-  await p.getByRole("button", { name: "Switch to dark mode" }).click();
+  await p.getByRole("radio", { name: "Dark" }).check();
   s = await st(); ok(s.theme === "dark" && s.bar === "#000000", "dark + high contrast together");
   await p.screenshot({ path: `${OUT}/05-display-dark-high.png` });
   await p.getByRole("radio", { name: "Standard" }).check();
@@ -42,9 +47,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   s = await st(); ok(s.theme === "dark", "Match phone follows the phone switching to dark live");
   await p.emulateMedia({ colorScheme: "light" }); await p.waitForTimeout(100);
   s = await st(); ok(s.theme === "light", "and back to light live");
-  // Keyboard: the header button is reachable and works with Enter.
-  await p.getByRole("button", { name: "Switch to dark mode" }).focus(); await p.keyboard.press("Enter");
-  s = await st(); ok(s.theme === "dark", "keyboard toggle");
+  // Keyboard: the Dark choice is reachable and works with Space.
+  await p.getByRole("radio", { name: "Dark" }).focus(); await p.keyboard.press("Space");
+  s = await st(); ok(s.theme === "dark", "keyboard choice");
   await ctx.close();
   // A dark phone with an explicit Light choice: light from the first paint.
   const ctx2 = await b.newContext({ viewport: { width: 1280, height: 860 }, colorScheme: "dark", deviceScaleFactor: 2 });
