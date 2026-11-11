@@ -12,6 +12,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - New Today tab (F-27): today's logs by hour and by behavior, where a log is fixed or removed. Recent logs and "Nothing to log today" moved there from Log.
 
 ### Added
+- The app no longer saves a patient code in `localStorage`. It opens on the resident with the newest log (the first resident when there are no logs), and removes the old saved code on first open.
 - Watching hours, lab build only (F-38, D-25): "I'm here" / "I've left" on Log, a log starts a watch when none is open, a band on Today showing when someone was watching, and after 4 hours with no tap the app asks "Still with P-02?". No scoring change.
 - Passphrase-protected backup, lab build only (F-10): Export asks for a passphrase of 12 or more characters and encrypts the backup, with the CSVs inside. Restore opens it, offline too.
 - Export format 2, lab build only (D-23): more columns at the end of each CSV (unique ID, phone, caregiver, local time with offset), and three new files: labels, caregiver ratings and watches.

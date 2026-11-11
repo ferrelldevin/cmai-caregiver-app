@@ -29,9 +29,17 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
       // Old day-14 reviews on file (from before D-14). The app's ratings must ignore them.
       for (const [itemId,choice,derived] of [[3,9,1],[7,8,1],[8,4,2]]) tx.objectStore('reviews').put({key:`P-TEST-A|${anchor+window}|${itemId}`,patientId:'P-TEST-A',windowStart:anchor+window,itemId,choice,derived,reviewedAt:anchor+2*window});
       tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
-    }); db.close(); localStorage.setItem('cmai-patient','P-TEST-A');
+    }); db.close(); localStorage.setItem('cmai-patient','P-QUIET');
   });
-  await page.reload(); await page.getByRole('button', { name:'Score', exact:true }).click();
+  await page.reload();
+  // The app opens on the patient with the newest log (the demo patients, logged just now), and an old
+  // patient code left in localStorage is removed, not used. Then pick P-TEST-A for the checks below.
+  await page.locator('.pt-id b').first().waitFor();
+  ok((await page.locator('.pt-id b').first().textContent()) !== 'P-QUIET', 'an old saved patient code is not used');
+  ok(await page.evaluate(() => localStorage.getItem('cmai-patient')) === null, 'the old patient code is removed from localStorage');
+  await page.getByRole('button',{name:/Choose patient$/}).click();
+  await page.getByRole('dialog',{name:'Choose patient',exact:true}).getByRole('button',{name:/^P-TEST-A/}).click();
+  await page.getByRole('button', { name:'Score', exact:true }).click();
   await page.getByRole('heading', { name:'Period 2 scores',exact:true }).waitFor();
   const total = page.locator('.score-total-value');
   ok(await total.textContent() === '30', 'P2 total is hand-expected 30 from logs alone, all 29 items');
@@ -57,7 +65,14 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   ok(await page.locator('#sc-behaviors tr[data-behavior="7"] td').last().textContent()==='5', 'end-exclusive boundary assigns fifth hitting log to P1');
   ok((await page.locator('#sc-total').textContent()).includes('11 unlogged days'), 'quiet-day check-in counts as covered; missed days remain unknown');
   await page.reload(); await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor();
-  ok(await total.textContent()==='32', 'reload preserves selected period for this patient');
+  // The app reopens on the patient with the newest log, so after a reload the period stays in the URL and is shown for that patient.
+  ok(page.url().endsWith('#/scores/p1'), 'reload keeps the chosen period in the URL');
+  await page.getByRole('button',{name:/Choose patient$/}).click();
+  await page.getByRole('dialog',{name:'Choose patient',exact:true}).getByRole('button',{name:/^P-TEST-A/}).click();
+  await page.getByRole('heading',{name:/^Period \d scores$/}).first().waitFor();
+  for (let i = 0; i < 5 && !(await page.getByRole('heading',{name:'Period 1 scores',exact:true}).count()); i++) await page.getByRole('button',{name:'Previous period',exact:true}).click();
+  await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor();
+  ok(await total.textContent()==='32', 'P1 total is still 32 after a reload and picking the patient again');
   await page.locator('nav.tabs button',{hasText:'Log'}).click(); await page.getByRole('button',{name:'Score',exact:true}).click();
   await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor(); ok(true,'leaving and returning preserves selected period');
   await page.getByRole('button',{name:'Next period',exact:true}).focus(); await page.keyboard.press('Enter');
@@ -116,7 +131,8 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   await page.reload(); await page.getByRole('heading',{name:'Period 2 scores',exact:true}).waitFor();
   await page.waitForTimeout(1500); await ctx.setOffline(true); await page.reload();
   await page.getByRole('heading',{name:'Period 2 scores',exact:true}).waitFor();
-  ok(await total.textContent()==='30','offline reload retains period and scores');
+  // The app reopens on the patient with the newest log, so only the period (from the URL) and that patient's scores are checked here.
+  ok(/^\d+$/.test(await total.textContent()),'offline reload retains period and shows scores');
   ok(errors.length===0,'no browser exceptions: '+JSON.stringify(errors));
   await browser.close();
 })().catch(e=>{console.error(e);process.exit(1);});
