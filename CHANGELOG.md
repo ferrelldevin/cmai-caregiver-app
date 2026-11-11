@@ -8,7 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 - On-phone PIN, lab build only (F-46, R1): each caregiver signs in with a 4-digit PIN once per shift; wrong tries wait, then lock; a setup PIN gives a new PIN. It says who is logging; it does not protect the data. Never in a backup.
-- Caregiver profiles, lab build only (F-45, R2): caregivers are a code and initials; a chip shows who is logging and switches in one tap; new records say who made them; My residents come first in the switcher. `npm run checks` also tests the lab build.
+- Caregiver profiles, lab build only (F-45, R2): caregivers are a code and initials; a chip shows who is logging and switches in one tap; new records say who made them; My residents come first in the switcher. Who is logging is kept in the app's database, not in localStorage. `npm run checks` also tests the lab build.
 - Database version 4 (F-44): every log gets an ID that stays unique across phones, and new logs record the phone and its UTC offset. Backups are format 2 and never include PIN fields; format 1 backups still restore. In the lab build, deleting a patient who has logs archives them with a reason instead of erasing them (D-20). A phone that opens this version cannot go back to an older one without export, clear and restore.
 - Study settings (`src/study/settings.ts`, F-48): one switch per feature built before Dr. Gupta's sign-off. The normal build has them all off; `VITE_STUDY_MODE=lab` builds the lab version with them on. Settings > About shows which one is running.
 - `docs/process/release.md`: how to cut a release and how to undo a bad deploy. The deploy job now checks that the live page shows the commit it just deployed.
