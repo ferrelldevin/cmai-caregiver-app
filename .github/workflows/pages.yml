@@ -57,7 +57,7 @@ jobs:
     timeout-minutes: 15
     # Playwright's own image: Chromium, its libraries and its fonts are already inside, so nothing is
     # installed from apt at run time. Keep this tag equal to the "playwright" version in package.json.
-    container: mcr.microsoft.com/playwright:v1.63.0-noble
+    container: mcr.microsoft.com/playwright:v1.65.0-noble
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
