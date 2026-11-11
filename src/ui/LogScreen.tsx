@@ -16,10 +16,11 @@ import { utcOffsetMin } from "../data/ids";
 import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
-import { deleteLog, editLog, restoreLog, stopLog, UNDO_REASON } from "../data/logs";
+import { deleteLog, editLog, LogTimeError, restoreLog, stopLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
+import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
 import { DefinitionsSheet } from "./DefinitionsSheet";
@@ -30,6 +31,8 @@ const TOAST_MS = 8000;
 
 type SavedObs = StoredObservation & { id: number };
 type Toast = { kind: "logged" | "deleted"; obs: SavedObs };
+
+export const SAVE_FAILED = "That did not save. Check the phone has free space, then try again.";
 
 interface Props {
   patientId: string;
@@ -48,7 +51,8 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
-  const [sheetError, setSheetError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState(false); // the last save failed
+  const [editError, setEditError] = useState<string | null>(null);
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
@@ -112,9 +116,16 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
 
   async function undo() {
     if (!toast) return;
-    // Undo of a log just made is a delete like any other, with its own reason.
-    if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
-    else await restoreLog(toast.obs);
+    setSaveError(false);
+    try {
+      // Undo of a log just made is a delete like any other, with its own reason.
+      if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
+      else await restoreLog(toast.obs);
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
     setToast(null);
     setHeld(false);
     onChange();
@@ -133,27 +144,34 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
   function edit(o: SavedObs, e: MouseEvent) {
     setToast(null);
     setHeld(false);
+    setEditError(null);
     setEditing({ obs: o, viaKeyboard: e.detail === 0 });
   }
 
   async function patch(change: Partial<StoredObservation>) {
     if (!editing) return;
-    // Show the change at once; the save follows.
+    // Show the change at once; the save follows. If the save is refused, the old values come back.
+    const before = editing;
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
+    setEditError(null);
     try {
       await editLog(editing.obs, change);
-      setSheetError(null);
+      onChange();
     } catch (e) {
-      // Refused (an end before the start, F-39): show what is stored, and say why.
-      const stored = await db.observations.get(editing.obs.id);
-      if (stored) setEditing({ ...editing, obs: { ...stored, id: editing.obs.id } });
-      setSheetError((e as Error).message);
+      if (!(e instanceof LogTimeError)) record(e);
+      setEditing(before);
+      setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
     }
-    onChange();
   }
 
   async function remove(o: SavedObs, reason: string, note?: string) {
-    await deleteLog(o, reason, note);
+    try {
+      await deleteLog(o, reason, note);
+    } catch (e) {
+      record(e);
+      setEditError(SAVE_FAILED);
+      return;
+    }
     setEditing(null);
     setToast({ kind: "deleted", obs: o });
     onChange();
@@ -231,6 +249,11 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
 
   return (
     <div className="log">
+      {saveError && (
+        <p className="banner save-alert" role="alert">
+          {SAVE_FAILED}
+        </p>
+      )}
       <div className="log-head">
         <p className="screen-title" aria-hidden>
           Log a behavior
@@ -358,13 +381,13 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
       <LogSheet
         obs={editing?.obs ?? null}
         viaKeyboard={editing?.viaKeyboard ?? false}
+        error={editError}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
         onClose={() => {
           setEditing(null);
-          setSheetError(null);
+          setEditError(null);
         }}
-        error={sheetError}
       />
     </div>
   );

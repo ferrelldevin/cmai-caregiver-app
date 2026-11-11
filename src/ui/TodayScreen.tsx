@@ -7,7 +7,7 @@
 
 import { useEffect, useState, type MouseEvent } from "react";
 import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
-import { deleteLog, editLog, restoreLog, stopLog } from "../data/logs";
+import { deleteLog, editLog, LogTimeError, restoreLog, stopLog } from "../data/logs";
 import { dayLogs, logsByHour } from "../scoring/day";
 import { watchedMinutesByHour } from "../scoring/coverage";
 import { watchesFor } from "../data/watches";
@@ -16,7 +16,9 @@ import { ITEMS } from "../scoring/items";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
+import { record } from "./diagnostics";
 import { Icon } from "./Icon";
+import { SAVE_FAILED } from "./LogScreen";
 import { LogSheet } from "./LogSheet";
 import { OpenLabel } from "./OpenLabel";
 
@@ -36,8 +38,9 @@ interface Props {
 export function TodayScreen({ patientId, observations, checkins, onChange, initialsOf }: Props) {
   const [open, setOpen] = useState<number | null>(null);
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
-  const [sheetError, setSheetError] = useState<string | null>(null);
   const [deleted, setDeleted] = useState<SavedObs | null>(null);
+  const [saveError, setSaveError] = useState(false); // the last save failed
+  const [editError, setEditError] = useState<string | null>(null);
 
   const now = Date.now();
   const today = localMidnight(now);
@@ -82,39 +85,60 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
   // One per patient per day (D-11). Tapping again takes it back.
   async function toggleCheckIn() {
     const key = checkInKey(patientId, today);
-    if (checkedIn) await db.checkins.delete(key);
-    else await db.checkins.put({ key, patientId, day: today, at: Date.now(), ...madeHere() });
+    setSaveError(false);
+    try {
+      if (checkedIn) await db.checkins.delete(key);
+      else await db.checkins.put({ key, patientId, day: today, at: Date.now(), ...madeHere() });
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
     onChange();
   }
 
   function edit(o: SavedObs, e: MouseEvent) {
     setDeleted(null);
+    setEditError(null);
     setEditing({ obs: o, viaKeyboard: e.detail === 0 });
   }
 
   async function patch(change: Partial<StoredObservation>) {
     if (!editing) return;
+    // Show the change at once; the save follows. If the save is refused, the old values come back.
+    const before = editing;
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
+    setEditError(null);
     try {
       await editLog(editing.obs, change);
-      setSheetError(null);
+      onChange();
     } catch (e) {
-      // Refused (an end before the start, F-39): show what is stored, and say why.
-      const stored = await db.observations.get(editing.obs.id);
-      if (stored) setEditing({ ...editing, obs: { ...stored, id: editing.obs.id } });
-      setSheetError((e as Error).message);
+      if (!(e instanceof LogTimeError)) record(e);
+      setEditing(before);
+      setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
     }
-    onChange();
   }
 
   // "It stopped" (F-39): the end of a stretch, now. Optional and never scored.
   async function stopped(o: SavedObs) {
-    await stopLog(o);
+    try {
+      await stopLog(o);
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
     onChange();
   }
 
   async function remove(o: SavedObs, reason: string, note?: string) {
-    await deleteLog(o, reason, note);
+    try {
+      await deleteLog(o, reason, note);
+    } catch (e) {
+      record(e);
+      setEditError(SAVE_FAILED);
+      return;
+    }
     setEditing(null);
     setDeleted(o);
     onChange();
@@ -122,13 +146,25 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
 
   async function undoDelete() {
     if (!deleted) return;
-    await restoreLog(deleted);
+    setSaveError(false);
+    try {
+      await restoreLog(deleted);
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
     setDeleted(null);
     onChange();
   }
 
   return (
     <div className="today">
+      {saveError && (
+        <p className="banner save-alert" role="alert">
+          {SAVE_FAILED}
+        </p>
+      )}
       <div className="log-head">
         <p className="screen-title" aria-hidden>
           Today
@@ -300,13 +336,13 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
       <LogSheet
         obs={editing?.obs ?? null}
         viaKeyboard={editing?.viaKeyboard ?? false}
+        error={editError}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
         onClose={() => {
           setEditing(null);
-          setSheetError(null);
+          setEditError(null);
         }}
-        error={sheetError}
       />
     </div>
   );

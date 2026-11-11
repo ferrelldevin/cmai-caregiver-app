@@ -656,6 +656,25 @@ input[type="checkbox"] {
 .empty button {
   margin-top: var(--s2);
 }
+/* Over the page, not in it: showing or clearing it must not move the buttons under a thumb. */
+.save-alert {
+  position: fixed;
+  left: var(--s4);
+  right: var(--s4);
+  bottom: 112px;
+  z-index: 30;
+  margin: 0;
+  box-shadow: var(--shadow-2, 0 2px 8px rgb(0 0 0 / 0.25));
+}
+.crash {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 64px var(--s4);
+  text-align: center;
+}
+.crash button {
+  margin-top: var(--s4);
+}
 .loading {
   display: flex;
   align-items: center;
