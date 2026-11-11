@@ -5,6 +5,7 @@ import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
+import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
 import { closeIfTimedOut, endWatch, resumeWatch, touch } from "./data/watches";
@@ -50,17 +51,11 @@ const PAGE_TITLES: Record<DataPage, string> = {
   clock: "Clock check",
 };
 
-const readSaved = () => {
-  try {
-    return localStorage.getItem("cmai-patient");
-  } catch {
-    return null;
-  }
-};
-
 export default function App() {
-  const [patientId, setPatientId] = useState<string | null>(readSaved);
-  const { route, go, back } = useRoute(() => ({ tab: readSaved() ? "log" : "data", page: null }));
+  const [patientId, setPatientId] = useState<string | null>(null);
+  // The patient to open on is worked out from the data once, before anything is shown (lastPatient.ts).
+  const [restored, setRestored] = useState(false);
+  const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
   const tab = route.tab;
   // The Scores period chosen for each patient, so leaving Scores and coming back keeps it.
   const scoresPeriod = useRef<Record<string, number>>({});
@@ -77,19 +72,22 @@ export default function App() {
   const firstRender = useRef(true);
 
   useEffect(() => {
-    try {
-      if (patientId) localStorage.setItem("cmai-patient", patientId);
-      else localStorage.removeItem("cmai-patient");
-    } catch {
-      /* private mode */
-    }
-  }, [patientId]);
+    let live = true;
+    startingPatient().then((id) => {
+      if (!live) return;
+      setPatientId(id);
+      setRestored(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!restored || !loaded) return;
     if (patients.length && !patients.some((p) => p.id === patientId)) setPatientId(patients[0].id);
     if (!patients.length && patientId) setPatientId(null);
-  }, [loaded, patients, patientId]);
+  }, [restored, loaded, patients, patientId]);
 
   // A new screen starts at the top, and screen readers land on its heading.
   useEffect(() => {
@@ -276,6 +274,13 @@ export default function App() {
   const pos = current ? patientPosition(current.anchor, Date.now()) : null;
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
+  // Wait for the starting patient so the app never opens on the wrong one for a moment.
+  if (!restored)
+    return (
+      <div className="loading" role="status">
+        Loading…
+      </div>
+    );
   // With the PIN on and caregivers on the phone, nothing of the app shows until someone signs in.
   if (PIN_ON && !caregiversLoaded) return null;
   if (PIN_ON && caregivers.length > 0 && (!loggingAs || signingIn)) {
