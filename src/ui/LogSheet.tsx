@@ -126,6 +126,11 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
       }
       onClose={onClose}
     >
+      {obs && error && (
+        <p className="msg error" role="alert">
+          {error}
+        </p>
+      )}
       {obs && deleting && (
         <div className="sheet-scroll">
           <section className="form-group" aria-labelledby="ls-why">
@@ -229,11 +234,6 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                 />
               </label>
             </div>
-            {error && (
-              <p className="msg error" role="alert">
-                {error}
-              </p>
-            )}
           </section>
 
           <section className="form-group" aria-labelledby="ls-before">

@@ -30,6 +30,14 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // log, double tap guard
   const hit = p.getByRole("button", { name: /^7 Hitting/ });
+  // A save that fails says so, shows no "Logged" confirmation, and lets the next tap through (F-33)
+  await p.evaluate(() => {
+    const add = IDBObjectStore.prototype.add;
+    IDBObjectStore.prototype.add = function () { IDBObjectStore.prototype.add = add; throw new DOMException("full", "QuotaExceededError"); };
+  });
+  await hit.click();
+  await p.getByRole("alert").filter({ hasText: "That did not save. Check the phone has free space" }).waitFor({ timeout: 5000 });
+  ok((await p.locator(".snackbar").count()) === 0, "a failed save shows the alert and no confirmation");
   await hit.dblclick();
   await p.locator(".snackbar").waitFor();
   ok((await p.locator("li.item", { hasText: "Hitting" }).locator(".today").textContent()) === "1 today", "double tap logs once");
