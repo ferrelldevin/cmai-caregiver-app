@@ -5,6 +5,7 @@ import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
+import { addDays, localMidnight } from "./scoring/engine";
 import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
@@ -59,7 +60,9 @@ export default function App() {
       setPatientId(id);
       setRestored(true);
     });
-    return () => { live = false; };
+    return () => {
+      live = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -67,6 +70,34 @@ export default function App() {
     if (patients.length && !patients.some((p) => p.id === patientId)) setPatientId(patients[0].id);
     if (!patients.length && patientId) setPatientId(null);
   }, [restored, loaded, patients, patientId]);
+
+  // "Today" is worked out when the data is read, so an app left open must read again when the day
+  // changes: at the next local midnight, and when the phone comes back to the app (F-35).
+  useEffect(() => {
+    let timer: number;
+    const arm = () => {
+      const t = Date.now();
+      timer = window.setTimeout(
+        () => {
+          refresh();
+          arm();
+        },
+        addDays(localMidnight(t), 1) - t + 50,
+      );
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      refresh();
+      window.clearTimeout(timer);
+      arm();
+    };
+    arm();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refresh]);
 
   // A new screen starts at the top, and screen readers land on its heading.
   useEffect(() => {
@@ -132,7 +163,12 @@ export default function App() {
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
   // Wait for the starting patient so the app never opens on the wrong one for a moment.
-  if (!restored) return <div className="loading" role="status">Loading…</div>;
+  if (!restored)
+    return (
+      <div className="loading" role="status">
+        Loading…
+      </div>
+    );
 
   return (
     <div className="app">
@@ -213,7 +249,14 @@ export default function App() {
             onChange={refresh}
           />
         ) : shown === "log" ? (
-          <LogScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
+          <LogScreen
+            patientId={patientId!}
+            observations={observations}
+            checkins={checkins}
+            demo={!!current?.demo}
+            onChange={refresh}
+            onBackUp={() => go({ tab: "data", page: "backup" })}
+          />
         ) : loaded && !error ? (
           <Suspense fallback={<ScoresLoading />}>
             <ScoresScreen

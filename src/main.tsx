@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
+import { askToKeepData } from "./data/persist";
 import { ErrorBoundary } from "./ui/ErrorScreen";
 import { listenForErrors } from "./ui/diagnostics";
 import { listenForDisplay } from "./ui/display";
@@ -23,3 +24,6 @@ createRoot(document.getElementById("root")!).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+// After the first paint, and never blocking it.
+void askToKeepData();
