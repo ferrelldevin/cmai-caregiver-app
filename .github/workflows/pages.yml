@@ -44,6 +44,8 @@ jobs:
       - name: Known vulnerabilities in the app's own dependencies
         run: npm audit --omit=dev --audit-level=high
       - run: npm run build
+      - name: Script sizes are within budget
+        run: npm run check:size
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         if: github.event_name != 'pull_request'
         with:
@@ -53,15 +55,19 @@ jobs:
     name: Browser checks and axe (4 display modes)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Playwright's own image: Chromium, its libraries and its fonts are already inside, so nothing is
+    # installed from apt at run time. Keep this tag equal to the "playwright" version in package.json.
+    container: mcr.microsoft.com/playwright:v1.65.0-noble
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
+      # Inside the container the checkout is owned by another user, and git refuses it ("dubious ownership"),
+      # which fails the lefthook install that npm ci runs.
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: npm ci
-      - name: Chromium and the system libraries it needs
-        run: npx playwright install --with-deps chromium
       - name: Every check in e2e/ plus the axe audit, against the production build
         run: npm run checks
       - name: Report on the run page
@@ -69,7 +75,7 @@ jobs:
         run: cat .checks/report.md >> "$GITHUB_STEP_SUMMARY"
       - name: Screens that changed (actual and diff images)
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: screenshot-diffs
           path: /tmp/cmai-e2e/screenshots/

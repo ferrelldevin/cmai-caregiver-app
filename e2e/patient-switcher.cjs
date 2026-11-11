@@ -48,13 +48,16 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.waitForTimeout(4300);
   ok((await p.locator(".switch-notice").textContent()).trim() === "", "confirmation clears after 4 seconds");
   // Search appears with 8+ patients
-  await p.locator("nav.tabs button", { hasText: /data/i }).click();
+  await p.locator("nav.tabs button", { hasText: /settings/i }).click();
   for (const n of ["P-01", "P-02", "P-03", "P-04", "P-05", "P-06"]) {
     await p.getByRole("textbox", { name: "New patient code" }).fill(n);
     await p.getByRole("button", { name: "Add", exact: true }).click();
-    await p.locator("nav.tabs button", { hasText: /data/i }).click();
+    await p.locator("nav.tabs button", { hasText: /settings/i }).click();
   }
   await banner().click(); await sheet().waitFor();
+  // Read the row count in the same call that sees the dialog open: the list must be current from the first paint.
+  const firstPaint = await p.evaluate(() => document.querySelectorAll("dialog[open] .sheet-row").length);
+  ok(firstPaint === 8, "sheet lists all 8 patients on first paint (saw " + firstPaint + ")");
   const search = sheet().getByRole("searchbox", { name: "Find a patient by code" });
   // The 8th patient comes in with the last Add's refresh, which can land after the sheet opens.
   await search.waitFor({ timeout: 5000 }).catch(() => {});

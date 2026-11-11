@@ -35,6 +35,8 @@ npm run preview   # serve the build at http://localhost:4173
 npm run storybook # design mockup of the five-step flow at http://localhost:6006
 ```
 
+**Study mode.** Features built before Dr. Gupta's sign-off ship switched off. Every switch is in `src/study/settings.ts` (register F-48), and the mode is fixed when the app is built, so nobody can turn a feature on from a phone. `npm run build` and `npm run dev` make the caregiver build, which is what GitHub Pages serves. To try the features awaiting sign-off, start the lab build. In Git Bash: `VITE_STUDY_MODE=lab npm run dev`. In PowerShell: `$env:VITE_STUDY_MODE="lab"; npm run dev`, then `Remove-Item Env:VITE_STUDY_MODE` when done. Settings > About says which mode is running.
+
 The pre-commit hook formats (Prettier) and lints the files you stage, and scans them for secrets if [gitleaks](https://github.com/gitleaks/gitleaks) is installed. Existing files are formatted when they are next edited, not all at once.
 
 Checks and deploy (`.github/workflows/pages.yml`): every pull request runs lint, type check, unit tests with coverage floors, `npm audit`, the build, and every browser check plus the axe audit (`npm run checks`). A push to `main` runs the same and, if all pass, publishes to GitHub Pages. Dependabot proposes dependency updates once a month (`.github/dependabot.yml`).
@@ -107,7 +109,7 @@ Every change follows [`docs/process/change-process.md`](docs/process/change-proc
 Layouts are tried first in the mockup: `npm run storybook`, then change a screen's Controls panel (layout, columns, score order) or the Theme and Text switches in the toolbar. Saving `src/mockup/Screens.tsx` or `mockup.css` reloads the page. The mockup uses the app's tokens and scoring rule, so what works there carries over, but it is not the app: real screens change only through the review and one pull request per requirement.
 
 
-Visual design follows public health design systems (NHS, USWDS), Apple and Material patterns, and research on older users and patient identification. Light and dark mode switch from the sun/moon button at the top, or under Data, Display, where "Match phone" (the default) follows the phone's Dark Mode. High contrast is there too, and turns on by itself when the phone's Increase Contrast setting is on. Palette, type and the reasons for each are in [`docs/design/design-brief.md`](docs/design/design-brief.md).
+Visual design follows public health design systems (NHS, USWDS), Apple and Material patterns, and research on older users and patient identification. Light and dark mode are under Settings, Display, where "Match phone" (the default) follows the phone's Dark Mode. High contrast is there too, and turns on by itself when the phone's Increase Contrast setting is on. Palette, type and the reasons for each are in [`docs/design/design-brief.md`](docs/design/design-brief.md).
 
 ## License
 

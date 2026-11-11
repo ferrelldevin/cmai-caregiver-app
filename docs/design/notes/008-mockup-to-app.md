@@ -1,6 +1,6 @@
 # 008. Building the round 3 mockup into the app
 
-2026-11-07 · Register: F-25 to F-29, D-17, D-18 (proposed here; D-15, D-16, F-23 and F-24 are already taken by the 2026-11-04 flow comparison) · Status: plan, waiting on Devin
+2026-11-07 · Register: F-25 to F-29, D-17, D-18 (proposed here; D-15, D-16, F-23 and F-24 are already taken by the 2026-11-04 flow comparison) · Status: phase 1 built (2026-11-07)
 
 ## Problem
 On 2026-11-07 Devin approved the round 3 mockup as the direction for the app ("start the development of this in full, with the options we have right now"). The mockup (Storybook, PR #37) shows five steps: login, log, score, report, settings. The app today has three tabs (Log, Scores, Data) and no report screen. Requirements R3 to R5 in `cmai-mobile-plan.md` are only partly met, and R4 (daily report) is missing.
@@ -33,6 +33,7 @@ Not built, because a decision is still open. The mockup shows these, but the app
 3. **Phases in parallel threads.** Faster in calendar time, but the shell (phase 1) touches every screen, so later phases would conflict with it until it merges.
 
 ## Decision (proposed)
+Option 2, then 3. Devin chose "Phase 1, then parallel" on 2026-11-07: the shell ships first, and once it is merged phases 2 to 5 each get their own thread. He also chose to hold the open questions for Dr. Gupta until phase 4 is built, so he can see the Report screens working.
 
 The order and acceptance criteria now live in docs/process/build-plan.md, Stage 4.
 Option 2. Phase 1 first, then phases 2 to 5 one at a time (or in parallel once phase 1 is merged).
