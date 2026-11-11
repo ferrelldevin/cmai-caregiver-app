@@ -52,6 +52,22 @@ describe("pairsTogether", () => {
     const far = [0, 1, 2].flatMap((d) => [log(13, at(d, 9)), log(7, at(d, 9, 31))]);
     expect(pairsTogether([...twice, ...far.map((o) => ({ ...o, itemId: o.itemId === 13 ? 4 : 1 }))])).toEqual([]);
   });
+  it("lists the most frequent pair first, then ties by the lower behavior numbers", () => {
+    // Each pair gets its own days so no two pairs fall within 30 minutes of each other.
+    const pair = (a: number, b: number, days: number[]) => days.flatMap((d) => [log(a, at(d, 9)), log(b, at(d, 9, 5))]);
+    const obs = [
+      ...pair(2, 5, [0, 1, 2]),
+      ...pair(1, 3, [3, 4, 5]),
+      ...pair(1, 2, [6, 7, 8]),
+      ...pair(4, 6, [9, 10, 11, 12]),
+    ];
+    expect(pairsTogether(obs)).toEqual([
+      { a: 4, b: 6, times: 4 },
+      { a: 1, b: 2, times: 3 },
+      { a: 1, b: 3, times: 3 },
+      { a: 2, b: 5, times: 3 },
+    ]);
+  });
   it("does not pair a behavior with itself", () => {
     expect(pairsTogether([0, 1, 2].flatMap((d) => [log(1, at(d, 9)), log(1, at(d, 9, 5))]))).toEqual([]);
   });
