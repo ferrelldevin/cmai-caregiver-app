@@ -102,7 +102,7 @@ Each waits on a lab decision or the agreement study (register section F).
 
 ## Design
 
-Every change follows [`docs/process/change-process.md`](docs/process/change-process.md): problem and evidence, shaped options, every state designed, verified in every mode, recorded. Design decisions that change navigation, data or scoring get a note in [`docs/design/notes/`](docs/design/notes/).
+Every change follows [`docs/process/change-process.md`](docs/process/change-process.md): problem and evidence, shaped options, every state designed, verified in every mode, recorded. Design decisions that change navigation, data or scoring get a note in [`docs/design/notes/`](docs/design/notes/). What to build next, in what order, and which work may start now are in [`docs/process/build-plan.md`](docs/process/build-plan.md).
 
 Layouts are tried first in the mockup: `npm run storybook`, then change a screen's Controls panel (layout, columns, score order) or the Theme and Text switches in the toolbar. Saving `src/mockup/Screens.tsx` or `mockup.css` reloads the page. The mockup uses the app's tokens and scoring rule, so what works there carries over, but it is not the app: real screens change only through the review and one pull request per requirement.
 
