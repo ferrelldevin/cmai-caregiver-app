@@ -66,6 +66,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Added
 - The app asks the browser to keep its data when the phone runs low on space, and the About page says whether it was kept (F-53).
 
+### Added
+- Welcome card and About page say "This app tells no one. A log is a record for the study. For an injury or an emergency, do what your workplace says." so a caregiver does not think logging a hit alerts anyone (P-12; wording is Dr. Gupta's to approve).
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 

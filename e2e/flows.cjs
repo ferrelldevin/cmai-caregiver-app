@@ -11,6 +11,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.goto(URL);
   await p.getByRole("heading", { name: "Welcome to CMAI Tracker" }).waitFor();
   ok(true, "first run shows welcome");
+  ok(await p.getByText("This app tells no one.").isVisible(), "welcome says the app tells no one (P-12)");
   // add patient via Enter key, lower case
   await p.getByRole("button", { name: "Add a patient" }).click();
   ok(await p.evaluate(() => document.activeElement?.id) === "new-code", "Add a patient focuses code field");

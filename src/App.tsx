@@ -60,7 +60,9 @@ export default function App() {
       setPatientId(id);
       setRestored(true);
     });
-    return () => { live = false; };
+    return () => {
+      live = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -161,7 +163,12 @@ export default function App() {
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
   // Wait for the starting patient so the app never opens on the wrong one for a moment.
-  if (!restored) return <div className="loading" role="status">Loading…</div>;
+  if (!restored)
+    return (
+      <div className="loading" role="status">
+        Loading…
+      </div>
+    );
 
   return (
     <div className="app">
