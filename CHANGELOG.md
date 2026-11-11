@@ -33,6 +33,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
 
 ### Changed
+- CI: the browser job runs in Playwright's own container image (`mcr.microsoft.com/playwright`, same version as `package.json`), so Chromium and its libraries and fonts come with the image and nothing is installed from apt. An Ubuntu mirror outage no longer fails the job before any check runs. No check changes.
 - Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
 - Change process and pull request template: screenshots go in the pull request description, not in the repository (B-17).
 
