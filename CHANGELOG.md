@@ -7,7 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
-- The app remembers the last patient in its own database (new `meta` table, database version 4), not as a patient code in `localStorage`. Older installs are moved across once.
+- The app no longer saves a patient code in `localStorage`. It opens on the resident with the newest log (the first resident when there are no logs), and removes the old saved code on first open.
 - `docs/process/release.md`: how to cut a release and how to undo a bad deploy. The deploy job now checks that the live page shows the commit it just deployed.
 - Property tests for the scoring rule (fast-check): order of logs, adding or removing a log, the count bands, the 60-minute cluster edge, the 7-day threshold, and behaviors not affecting each other, across a clock change. No change to the rule.
 - Size check in CI (`npm run check:size`): fails if the first script grows past 415 KB or any other script past 600 KB.

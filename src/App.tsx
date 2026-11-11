@@ -5,7 +5,7 @@ import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
-import { readLastPatient, saveLastPatient } from "./data/lastPatient";
+import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { currentTheme, onDisplayChange, toggleTheme } from "./ui/display";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
@@ -33,7 +33,7 @@ const PAGE_TITLES: Record<DataPage, string> = {
 
 export default function App() {
   const [patientId, setPatientId] = useState<string | null>(null);
-  // The remembered patient is read from the database once, before anything is shown (lastPatient.ts).
+  // The patient to open on is worked out from the data once, before anything is shown (lastPatient.ts).
   const [restored, setRestored] = useState(false);
   const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
   const tab = route.tab;
@@ -49,17 +49,13 @@ export default function App() {
 
   useEffect(() => {
     let live = true;
-    readLastPatient().then((id) => {
+    startingPatient().then((id) => {
       if (!live) return;
       setPatientId(id);
       setRestored(true);
     });
     return () => { live = false; };
   }, []);
-
-  useEffect(() => {
-    if (restored) void saveLastPatient(patientId);
-  }, [restored, patientId]);
 
   useEffect(() => {
     if (!restored || !loaded) return;
@@ -121,7 +117,7 @@ export default function App() {
   const pos = current ? patientPosition(current.anchor, Date.now()) : null;
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
-  // Wait for the remembered patient so the app never opens on the wrong one for a moment.
+  // Wait for the starting patient so the app never opens on the wrong one for a moment.
   if (!restored) return <div className="loading" role="status">Loading…</div>;
 
   return (
