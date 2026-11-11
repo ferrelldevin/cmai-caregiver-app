@@ -27,6 +27,7 @@ export interface RestoreResult {
   observations: number; // new logs added (exact duplicates are skipped)
   reviews: number;
   checkins: number;
+  beforeStart: number; // restored logs dated before the patient's first day on this phone (not counted in any period)
   skipped: number; // entries in the file that failed the checks and were left out
 }
 
@@ -324,6 +325,7 @@ export async function restoreBackup(raw: string): Promise<RestoreResult> {
     observations: 0,
     reviews: b.reviews.length,
     checkins: b.checkins.length,
+    beforeStart: 0,
     skipped: parsed.skipped + orphans,
   };
   await db.transaction("rw", ALL_TABLES(), async () => {
@@ -348,6 +350,8 @@ export async function restoreBackup(raw: string): Promise<RestoreResult> {
       const { id: oldId, ...rest } = o;
       const id = await db.observations.add(rest);
       seenUid.add(rest.uid); // filled by the database when the file had none
+      const anchor = (await db.patients.get(o.patientId))?.anchor;
+      if (anchor !== undefined && o.at < anchor) result.beforeStart++;
       if (oldId !== undefined) newId.set(oldId, id);
       result.observations++;
     }

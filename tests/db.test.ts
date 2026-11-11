@@ -1,4 +1,4 @@
-// Upgrades must keep every patient, log and review, and never move a score.
+// Upgrading from any earlier release must keep every patient, log, review and check-in, and never move a score.
 import "fake-indexeddb/auto";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -244,5 +244,42 @@ describe("archive instead of erase (D-20)", () => {
     await db.open();
     expect((await restoreBackup(json)).skipped).toBe(0);
     expect(await db.patients.get("P-02")).toMatchObject({ archivedAt: NOW, archiveReason: "Duplicate" });
+  });
+});
+
+describe("database upgrade from version 2", () => {
+  it("keeps version 2 logs and check-ins and adds an empty change history", async () => {
+    const v2 = new Dexie("cmai-tracker");
+    v2.version(1).stores(V1);
+    v2.version(2).stores({ checkins: "key, patientId" });
+    await v2.table("patients").add({ id: "P-02", anchor: 0 });
+    await v2.table("observations").bulkAdd([
+      { patientId: "P-02", itemId: 3, at: 1000, loggedAt: 1000, approx: true, before: "Mealtime" },
+      { patientId: "P-02", itemId: 16, at: 2000, loggedAt: 2000, before: "Other", beforeNote: "fire alarm test" },
+    ]);
+    await v2.table("checkins").put({ key: checkInKey("P-02", 0), patientId: "P-02", day: 0, at: 3000 });
+    v2.close();
+
+    await db.open();
+    expect(db.verno).toBe(4);
+    expect(await db.observations.where("patientId").equals("P-02").sortBy("at")).toMatchObject([
+      { itemId: 3, approx: true, before: "Mealtime" },
+      { itemId: 16, before: "Other", beforeNote: "fire alarm test" },
+    ]);
+    expect((await db.checkins.get(checkInKey("P-02", 0)))?.at).toBe(3000);
+    expect(await db.changes.count()).toBe(0);
+    expect((await db.observations.toArray()).every(isLive)).toBe(true);
+  });
+});
+
+// A phone keeps its data across app updates only if each new schema version upgrades the old one.
+// When db.ts gets a new version, this fails until an upgrade test from the version before it is added
+// above and UPGRADES_TESTED is updated. Version 3 is covered by "upgrading from version 3" above.
+const UPGRADES_TESTED = [1, 2, 3];
+describe("every schema version has an upgrade test", () => {
+  it("covers each version before the current one", async () => {
+    if (!db.isOpen()) await db.open();
+    const before = Array.from({ length: db.verno - 1 }, (_, i) => i + 1);
+    expect(UPGRADES_TESTED).toEqual(before);
   });
 });
