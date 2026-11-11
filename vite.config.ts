@@ -61,7 +61,8 @@ function buildStamp(): Plugin {
     apply: "build",
     transformIndexHtml: {
       order: "post",
-      handler: (html) => html.replace(/(<meta charset="UTF-8" \/>)/, `$1\n    <meta name="build" content="${buildCommit()}" />`),
+      handler: (html) =>
+        html.replace(/(<meta charset="UTF-8" \/>)/, `$1\n    <meta name="build" content="${buildCommit()}" />`),
     },
   };
 }
@@ -95,7 +96,6 @@ export default defineConfig({
       },
     }),
   ],
-  build: { chunkSizeWarningLimit: 800 },
   test: {
     include: ["tests/**/*.test.ts"],
     // `npm run test:coverage` (run in CI) fails if coverage of the logic the scores depend on drops.

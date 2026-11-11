@@ -9,12 +9,14 @@ import { RULE_VERSION, scoreAllWindows, unloggedDays } from "../scoring/engine";
 import { ITEMS } from "../scoring/items";
 import { db, isLive } from "./db";
 
-const csv = (rows: (string | number | boolean)[][]) =>
-  rows
-    .map((r) =>
-      r.map((v) => (typeof v === "string" && /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : String(v))).join(","),
-    )
-    .join("\n");
+// A cell that starts with = + - @ (or a tab or return) is run as a formula by spreadsheet apps.
+// A leading apostrophe makes it plain text (OWASP, CSV Injection).
+const cell = (v: string | number | boolean) => {
+  if (typeof v !== "string") return String(v);
+  const safe = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+};
+const csv = (rows: (string | number | boolean)[][]) => rows.map((r) => r.map(cell).join(",")).join("\n");
 
 export async function buildExport(now = Date.now()) {
   const patients = await db.patients.toArray();
