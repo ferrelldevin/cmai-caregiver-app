@@ -63,6 +63,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ### Added
 - A quiet line on the Log screen, "Last backup: never. Back up" (or the days since), for a real patient with logs when the last export is over a week old. It opens the backup page. Hidden for demo patients. Reads the existing last-export value; stores nothing new (F-36).
 
+### Added
+- The app asks the browser to keep its data when the phone runs low on space, and the About page says whether it was kept (F-53).
+
 ### Removed
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 

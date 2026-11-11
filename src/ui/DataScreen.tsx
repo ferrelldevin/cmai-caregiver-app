@@ -2,6 +2,7 @@
 // open their own page: backup and export, display, keeping data safe, demo data, and how
 // ratings are worked out (iOS Settings pattern; design note docs/design/notes/001-navigation.md).
 
+import { keepState } from "../data/persist";
 import { useEffect, useRef, useState } from "react";
 import { db, localMidnight, type Patient } from "../data/db";
 import { loadDemoData } from "../data/seed";
@@ -313,6 +314,12 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               The app counts the logs for each behavior in a {WINDOW_DAYS}-day period and turns the count into a 1 to 7
               rating. These are CMAI-based (app-derived) ratings, not a CMAI interview. Nobody can change them by hand:
               the study checks them against caregivers' own ratings. Deleted logs do not count.
+            </p>
+            <p className="muted">
+              Data on this phone:{" "}
+              {keepState() === "kept"
+                ? "kept"
+                : "may be cleared by the phone. Add the app to the Home Screen and back up."}
             </p>
             <table className="bands">
               <caption className="sr">Logs in 14 days and the rating they give</caption>
