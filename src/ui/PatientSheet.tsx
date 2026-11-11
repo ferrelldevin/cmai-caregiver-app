@@ -8,6 +8,7 @@ import { orderForCaregiver } from "../data/caregivers";
 import { lastSeen } from "./format";
 import { Icon } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
+import { switcherRows } from "./patientRows";
 import { Sheet } from "./Sheet";
 
 const SEARCH_FROM = 8; // a search box appears once the list is this long
@@ -29,17 +30,22 @@ export function PatientSheet({ open, viaKeyboard, patients, current, mine = [], 
   const [rows, setRows] = useState<PatientSummary[] | null>(null);
   const [query, setQuery] = useState("");
 
-  useEffect(() => { if (open) setQuery(""); }, [open]);
+  useEffect(() => {
+    if (open) setQuery("");
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     let live = true;
-    patientSummaries(patients, Date.now()).then((r) => live && setRows(r)).catch(() => live && setRows(null));
-    return () => { live = false; };
+    patientSummaries(patients, Date.now())
+      .then((r) => live && setRows(r))
+      .catch(() => live && setRows(null));
+    return () => {
+      live = false;
+    };
   }, [open, patients]);
 
-  const list = (rows ?? patients.map((p) => ({ ...p, period: 0, day: 0, lastLogged: undefined as number | null | undefined })))
-    .filter((p) => p.id.toLowerCase().includes(query.trim().toLowerCase()));
+  const list = switcherRows(patients, rows, query);
 
   const row = (p: (typeof list)[number]) => {
     const isCurrent = p.id === current;
@@ -48,9 +54,20 @@ export function PatientSheet({ open, viaKeyboard, patients, current, mine = [], 
         <button className="sheet-row" aria-current={isCurrent} onClick={() => onPick(p.id)}>
           <PatientAvatar id={p.id} size={40} />
           <span className="sheet-text">
-            <span className="sheet-code">{p.id}{p.demo && <span className="tag">demo</span>}</span>
-            {p.period > 0 && <span className="sheet-meta">Period {p.period} · day {p.day} of 14</span>}
-            {p.lastLogged !== undefined && <span className="sheet-meta">{p.lastLogged === null ? "No logs yet" : `Last log ${lastSeen(p.lastLogged)}`}</span>}
+            <span className="sheet-code">
+              {p.id}
+              {p.demo && <span className="tag">demo</span>}
+            </span>
+            {p.period > 0 && (
+              <span className="sheet-meta">
+                Period {p.period} · day {p.day} of 14
+              </span>
+            )}
+            {p.lastLogged !== undefined && (
+              <span className="sheet-meta">
+                {p.lastLogged === null ? "No logs yet" : `Last log ${lastSeen(p.lastLogged)}`}
+              </span>
+            )}
           </span>
           {isCurrent && <Icon name="check" size={22} className="sheet-check" />}
         </button>
@@ -60,7 +77,13 @@ export function PatientSheet({ open, viaKeyboard, patients, current, mine = [], 
   const groups = orderForCaregiver(list, mine);
 
   return (
-    <Sheet open={open} viaKeyboard={viaKeyboard} keyboardFocus='[aria-current="true"]' title="Choose patient" onClose={onClose}>
+    <Sheet
+      open={open}
+      viaKeyboard={viaKeyboard}
+      keyboardFocus='[aria-current="true"]'
+      title="Choose patient"
+      onClose={onClose}
+    >
       {patients.length >= SEARCH_FROM && (
         <input
           className="sheet-search"
@@ -88,7 +111,9 @@ export function PatientSheet({ open, viaKeyboard, patients, current, mine = [], 
           {list.length === 0 && <li className="sheet-empty muted">No patient code contains "{query}".</li>}
         </ul>
       )}
-      <button className="ghost sheet-manage" onClick={onManage}><Icon name="data" size={18} /> Manage patients</button>
+      <button className="ghost sheet-manage" onClick={onManage}>
+        <Icon name="data" size={18} /> Manage patients
+      </button>
     </Sheet>
   );
 }

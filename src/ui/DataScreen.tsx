@@ -9,6 +9,7 @@ import { buildExport, download } from "../data/exporter";
 import { deletePatient, removeDemoData, restoreBackup, wouldArchive } from "../data/manage";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
 import { STUDY_MODE } from "../study/settings";
+import { asText } from "./diagnostics";
 import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
@@ -99,6 +100,7 @@ export function DataScreen({
   const archiveReady = !!archiveWhy.reason && (archiveWhy.reason !== "Other" || !!archiveWhy.note.trim());
   const [lastExport, setLastExport] = useState(readLastExport);
   const [, setInstallTick] = useState(0);
+  const [diagnosticsCopied, setDiagnosticsCopied] = useState<boolean | null>(null);
   const codeInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const hasDemo = patients.some((p) => p.demo);
@@ -229,7 +231,7 @@ export function DataScreen({
       const r = await restoreBackup(await file.text());
       say(
         "export",
-        `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.${r.skipped > 0 ? ` ${r.skipped} entr${r.skipped === 1 ? "y" : "ies"} in the file ${r.skipped === 1 ? "was" : "were"} not valid and ${r.skipped === 1 ? "was" : "were"} left out.` : ""}`,
+        `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.${r.beforeStart > 0 ? ` ${r.beforeStart} log${r.beforeStart === 1 ? " is" : "s are"} from before the patient's first day on this phone and ${r.beforeStart === 1 ? "is" : "are"} not counted in any period.` : ""}${r.skipped > 0 ? ` ${r.skipped} entr${r.skipped === 1 ? "y" : "ies"} in the file ${r.skipped === 1 ? "was" : "were"} not valid and ${r.skipped === 1 ? "was" : "were"} left out.` : ""}`,
       );
       onChange();
     } catch (e) {
@@ -396,7 +398,7 @@ export function DataScreen({
               not prevented) or <b>9</b> (not applicable); those are answers only a caregiver's own rating can give.
             </p>
             <p className="muted small-print">
-              Version {__APP_VERSION__} · scoring rule {RULE_VERSION} · Mode:{" "}
+              Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · Mode:{" "}
               {STUDY_MODE === "lab" ? "lab (features awaiting sign-off are on)" : "caregiver"} · a prototype for
               Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
               <a
@@ -407,6 +409,26 @@ export function DataScreen({
                 scoring spec
               </a>
               .
+            </p>
+            <p>
+              <button
+                className="ghost"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(asText());
+                    setDiagnosticsCopied(true);
+                  } catch {
+                    setDiagnosticsCopied(false);
+                  }
+                }}
+              >
+                Copy diagnostics
+              </button>
+            </p>
+            <p className="muted small-print" role="status">
+              {diagnosticsCopied === true && "Copied. Paste it into a message to the lab. "}
+              {diagnosticsCopied === false && "This phone would not copy. Try again, or tell the lab what you saw. "}
+              Nothing is sent anywhere. Copying is up to you.
             </p>
           </section>
         )}

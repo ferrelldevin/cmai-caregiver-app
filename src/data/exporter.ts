@@ -5,6 +5,7 @@
 // reviews from before scores were locked (D-14); scores.csv has unlogged_days per window.
 // The JSON backup is format 2 from database version 4: it adds the phone's ID and the version 4
 // tables. PIN fields never leave the phone (SECRET_CAREGIVER_FIELDS). The CSVs change in plan 5.10.
+// Every JSON backup names the app version and build commit that made it, next to the rule version.
 
 import { RULE_VERSION, scoreAllWindows, unloggedDays } from "../scoring/engine";
 import { ITEMS } from "../scoring/items";
@@ -16,8 +17,14 @@ export const BACKUP_FORMAT = 2;
 const shareable = (c: Caregiver) =>
   Object.fromEntries(Object.entries(c).filter(([k]) => !(SECRET_CAREGIVER_FIELDS as readonly string[]).includes(k)));
 
-const csv = (rows: (string | number | boolean)[][]) =>
-  rows.map((r) => r.map((v) => (typeof v === "string" && /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : String(v))).join(",")).join("\n");
+// A cell that starts with = + - @ (or a tab or return) is run as a formula by spreadsheet apps.
+// A leading apostrophe makes it plain text (OWASP, CSV Injection).
+const cell = (v: string | number | boolean) => {
+  if (typeof v !== "string") return String(v);
+  const safe = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+};
+const csv = (rows: (string | number | boolean)[][]) => rows.map((r) => r.map(cell).join(",")).join("\n");
 
 export async function buildExport(now = Date.now()) {
   const patients = await db.patients.toArray();
@@ -30,20 +37,69 @@ export async function buildExport(now = Date.now()) {
   const watches = await db.watches.toArray();
   const caregiverRatings = await db.caregiverRatings.toArray();
 
-  const obsRows: (string | number | boolean)[][] = [["patient_id", "item_id", "item_name", "occurred_at", "time_approximate", "what_happened_before", "before_note", "logged_at", "deleted_at", "delete_reason", "delete_note"]];
+  const obsRows: (string | number | boolean)[][] = [
+    [
+      "patient_id",
+      "item_id",
+      "item_name",
+      "occurred_at",
+      "time_approximate",
+      "what_happened_before",
+      "before_note",
+      "logged_at",
+      "deleted_at",
+      "delete_reason",
+      "delete_note",
+    ],
+  ];
   for (const o of observations) {
-    obsRows.push([o.patientId, o.itemId, ITEMS[o.itemId - 1].name, new Date(o.at).toISOString(), !!o.approx, o.before ?? "", o.beforeNote ?? "", new Date(o.loggedAt).toISOString(),
-      o.deletedAt === undefined ? "" : new Date(o.deletedAt).toISOString(), o.deleteReason ?? "", o.deleteNote ?? ""]);
+    obsRows.push([
+      o.patientId,
+      o.itemId,
+      ITEMS[o.itemId - 1].name,
+      new Date(o.at).toISOString(),
+      !!o.approx,
+      o.before ?? "",
+      o.beforeNote ?? "",
+      new Date(o.loggedAt).toISOString(),
+      o.deletedAt === undefined ? "" : new Date(o.deletedAt).toISOString(),
+      o.deleteReason ?? "",
+      o.deleteNote ?? "",
+    ]);
   }
 
-  const scoreRows: (string | number | boolean)[][] = [["patient_id", "window_start", "window_end", "provisional", "item_id", "item_name", "count", "derived_rating", "unlogged_days", "rule_version"]];
+  const scoreRows: (string | number | boolean)[][] = [
+    [
+      "patient_id",
+      "window_start",
+      "window_end",
+      "provisional",
+      "item_id",
+      "item_name",
+      "count",
+      "derived_rating",
+      "unlogged_days",
+      "rule_version",
+    ],
+  ];
   for (const p of patients) {
     const mine = observations.filter((o) => o.patientId === p.id && isLive(o));
     const activity = [...mine.map((o) => o.at), ...checkins.filter((c) => c.patientId === p.id).map((c) => c.at)];
     for (const w of scoreAllWindows(mine, p.anchor, now)) {
       const { unlogged } = unloggedDays(activity, w.windowStart, now);
       for (const s of w.items) {
-        scoreRows.push([p.id, new Date(w.windowStart).toISOString(), new Date(w.windowEnd).toISOString(), w.provisional, s.itemId, ITEMS[s.itemId - 1].name, s.count, s.rating, unlogged, RULE_VERSION]);
+        scoreRows.push([
+          p.id,
+          new Date(w.windowStart).toISOString(),
+          new Date(w.windowEnd).toISOString(),
+          w.provisional,
+          s.itemId,
+          ITEMS[s.itemId - 1].name,
+          s.count,
+          s.rating,
+          unlogged,
+          RULE_VERSION,
+        ]);
       }
     }
   }
@@ -52,6 +108,7 @@ export async function buildExport(now = Date.now()) {
       {
         formatVersion: BACKUP_FORMAT,
         appVersion: __APP_VERSION__,
+        build: __BUILD_COMMIT__,
         exportedAt: new Date(now).toISOString(),
         ruleVersion: RULE_VERSION,
         deviceId: thisDevice(),
