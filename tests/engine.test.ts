@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import cases from "../docs/test-cases.json";
-import { appRatings, clusteredDays, DAY_MS, meaningfulChanges, ratingFromCount, scoreAllWindows, scoreWindow, summarize, unloggedDays, WINDOW_MS, type Observation } from "../src/scoring/engine";
+import {
+  appRatings,
+  clusteredDays,
+  DAY_MS,
+  meaningfulChanges,
+  ratingFromCount,
+  scoreAllWindows,
+  scoreWindow,
+  summarize,
+  unloggedDays,
+  WINDOW_MS,
+  type Observation,
+} from "../src/scoring/engine";
 import { ITEMS } from "../src/scoring/items";
 
 const windowStart = Date.parse(cases.windowStart);
@@ -78,12 +90,18 @@ describe("engine behavior", () => {
   });
 
   it("finds a midnight cluster whatever order the logs arrive in", () => {
-    const night = toObservations(13, [{ day: 5, times: ["23:40", "23:55"] }, { day: 6, times: ["00:15"] }]).map((o) => o.at);
+    const night = toObservations(13, [
+      { day: 5, times: ["23:40", "23:55"] },
+      { day: 6, times: ["00:15"] },
+    ]).map((o) => o.at);
     expect(clusteredDays([night[2], night[0], night[1]], windowStart)).toBe(1);
   });
 
   it("logs 60+ minutes apart across midnight are not a cluster", () => {
-    const night = toObservations(13, [{ day: 5, times: ["23:30"] }, { day: 6, times: ["00:00", "00:30"] }]).map((o) => o.at);
+    const night = toObservations(13, [
+      { day: 5, times: ["23:30"] },
+      { day: 6, times: ["00:00", "00:30"] },
+    ]).map((o) => o.at);
     expect(clusteredDays(night, windowStart)).toBe(0);
   });
 

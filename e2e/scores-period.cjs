@@ -39,7 +39,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   ok(await page.evaluate(() => localStorage.getItem('cmai-patient')) === null, 'the old patient code is removed from localStorage');
   await page.getByRole('button',{name:/Choose patient$/}).click();
   await page.getByRole('dialog',{name:'Choose patient',exact:true}).getByRole('button',{name:/^P-TEST-A/}).click();
-  await page.getByRole('button', { name:'Scores', exact:true }).click();
+  await page.getByRole('button', { name:'Score', exact:true }).click();
   await page.getByRole('heading', { name:'Period 2 scores',exact:true }).waitFor();
   const total = page.locator('.score-total-value');
   ok(await total.textContent() === '30', 'P2 total is hand-expected 30 from logs alone, all 29 items');
@@ -73,7 +73,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   for (let i = 0; i < 5 && !(await page.getByRole('heading',{name:'Period 1 scores',exact:true}).count()); i++) await page.getByRole('button',{name:'Previous period',exact:true}).click();
   await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor();
   ok(await total.textContent()==='32', 'P1 total is still 32 after a reload and picking the patient again');
-  await page.locator('nav.tabs button',{hasText:'Log'}).click(); await page.getByRole('button',{name:'Scores',exact:true}).click();
+  await page.locator('nav.tabs button',{hasText:'Log'}).click(); await page.getByRole('button',{name:'Score',exact:true}).click();
   await page.getByRole('heading',{name:'Period 1 scores',exact:true}).waitFor(); ok(true,'leaving and returning preserves selected period');
   await page.getByRole('button',{name:'Next period',exact:true}).focus(); await page.keyboard.press('Enter');
   await page.getByRole('heading',{name:'Period 2 scores',exact:true}).waitFor(); ok(true,'keyboard changes the period');
