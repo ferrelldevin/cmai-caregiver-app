@@ -3,6 +3,7 @@
 // storage error uses. Nothing here touches stored data.
 
 import { Component, useEffect, useState, type ReactNode } from "react";
+import { record } from "./diagnostics";
 
 /** Shows an alert when a promise fails and nothing caught it. */
 function RejectionBanner() {
@@ -26,6 +27,10 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { crashed:
 
   static getDerivedStateFromError() {
     return { crashed: true };
+  }
+
+  componentDidCatch(error: Error) {
+    record(error);
   }
 
   render() {

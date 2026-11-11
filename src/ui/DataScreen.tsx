@@ -8,6 +8,7 @@ import { loadDemoData } from "../data/seed";
 import { buildExport, download } from "../data/exporter";
 import { deletePatient, removeDemoData, restoreBackup } from "../data/manage";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
+import { asText } from "./diagnostics";
 import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
@@ -80,6 +81,7 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; viaKeyboard: boolean } | null>(null);
   const [lastExport, setLastExport] = useState(readLastExport);
   const [, setInstallTick] = useState(0);
+  const [diagnosticsCopied, setDiagnosticsCopied] = useState<boolean | null>(null);
   const codeInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const hasDemo = patients.some((p) => p.demo);
@@ -353,6 +355,26 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
                 scoring spec
               </a>
               .
+            </p>
+            <p>
+              <button
+                className="ghost"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(asText());
+                    setDiagnosticsCopied(true);
+                  } catch {
+                    setDiagnosticsCopied(false);
+                  }
+                }}
+              >
+                Copy diagnostics
+              </button>
+            </p>
+            <p className="muted small-print" role="status">
+              {diagnosticsCopied === true && "Copied. Paste it into a message to the lab. "}
+              {diagnosticsCopied === false && "This phone would not copy. Try again, or tell the lab what you saw. "}
+              Nothing is sent anywhere. Copying is up to you.
             </p>
           </section>
         )}

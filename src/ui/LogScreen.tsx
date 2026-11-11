@@ -11,6 +11,7 @@ import { DAY_MS } from "../scoring/engine";
 import { checkInKey, db, localMidnight, type CheckIn, type StoredObservation } from "../data/db";
 import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
 import { dayAndTime, timeOfDay } from "./format";
+import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
 import { SectionNav, type Section } from "./SectionNav";
@@ -81,7 +82,8 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
     let id: number;
     try {
       id = await db.observations.add(obs);
-    } catch {
+    } catch (e) {
+      record(e);
       lastTap.current = null; // the tap did not count, so a second tap is allowed at once
       setSaveError(true);
       return;
@@ -100,7 +102,8 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
     try {
       if (checkedIn) await db.checkins.delete(key);
       else await db.checkins.put({ key, patientId, day: todayStart, at: Date.now() });
-    } catch {
+    } catch (e) {
+      record(e);
       setSaveError(true);
       return;
     }
@@ -114,7 +117,8 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
       // Undo of a log just made is a delete like any other, with its own reason.
       if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
       else await restoreLog(toast.obs);
-    } catch {
+    } catch (e) {
+      record(e);
       setSaveError(true);
       return;
     }
@@ -140,6 +144,7 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
       await editLog(editing.obs, change);
       onChange();
     } catch (e) {
+      if (!(e instanceof LogTimeError)) record(e);
       setEditing(before);
       setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
     }
@@ -148,7 +153,8 @@ export function LogScreen({ patientId, observations, checkins, onChange }: Props
   async function remove(o: SavedObs, reason: string, note?: string) {
     try {
       await deleteLog(o, reason, note);
-    } catch {
+    } catch (e) {
+      record(e);
       setEditError(SAVE_FAILED);
       return;
     }
