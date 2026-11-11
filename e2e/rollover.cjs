@@ -11,7 +11,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  await p.getByRole("button", { name: /^7 Hitting/ }).click();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
   await p.locator(".today-count").filter({ hasText: "1 logged today" }).waitFor();
   ok(true, "a log made at 23:59:50 counts as today");
   // The app stays open past midnight: the timer must refresh it without any tap.
@@ -23,7 +23,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByText("Nothing logged yet today").waitFor({ timeout: 5000 });
   ok(true, "after midnight the count starts again at nothing logged yet today");
   // The phone sleeps through midnight: coming back to the app refreshes it.
-  await p.getByRole("button", { name: /^7 Hitting/ }).click();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
   await p.locator(".today-count").filter({ hasText: "1 logged today" }).waitFor();
   await p.clock.fastForward(24 * 60 * 60 * 1000 - 5_000); // to just before the next midnight... then past it while hidden
   await p.evaluate(() => { Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true }); document.dispatchEvent(new Event("visibilitychange")); });

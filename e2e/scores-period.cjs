@@ -13,7 +13,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Try demo data' }).click();
-  await page.getByRole('button', { name: /^7 Hitting/ }).waitFor();
+  await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
   await page.evaluate(async () => {
     const anchor = Date.parse('2026-01-01T00:00:00-05:00'), day = 86400000, window = 14 * day;
     const db = await new Promise((resolve, reject) => { const request = indexedDB.open('cmai-tracker'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });

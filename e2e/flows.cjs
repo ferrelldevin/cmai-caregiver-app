@@ -30,7 +30,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.screenshot({ path: `${OUT}/flow-01-scores-empty.png` });
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // log, double tap guard
-  const hit = p.getByRole("button", { name: /^7 Hitting/ });
+  const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
   // A save that fails says so, shows no "Logged" confirmation, and lets the next tap through (F-33)
   await p.evaluate(() => {
     const add = IDBObjectStore.prototype.add;
@@ -41,9 +41,14 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok((await p.locator(".snackbar").count()) === 0, "a failed save shows the alert and no confirmation");
   await hit.dblclick();
   await p.locator(".snackbar").waitFor();
-  ok((await p.locator("li.item", { hasText: "Hitting" }).locator(".today").textContent()) === "1 today", "double tap logs once");
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting \d+ today$/ }).waitFor();
+  await p.waitForTimeout(300);
+  ok((await p.getByRole("tabpanel").getByRole("button", { name: "Hitting 1 today" }).count()) === 1, "double tap logs once");
   const snack = p.locator(".snackbar");
   ok(/P-\S+ · \d/.test(await snack.textContent()), "confirmation names the patient and time");
+  const sb = await snack.boundingBox(), tb = await p.locator("nav.tabs").boundingBox();
+  ok(sb.y + sb.height <= tb.y, `confirmation sits above the tab bar, not under it (${Math.round(sb.y + sb.height)} vs ${Math.round(tb.y)})`);
+  ok((await snack.getByRole("button", { name: "Undo" }).boundingBox()).height >= 44, "Undo is at least 44 px tall");
   ok((await snack.boundingBox()).height <= 80, "confirmation is compact: " + Math.round((await snack.boundingBox()).height) + " px");
   // timer pauses while the confirmation is in use
   await snack.hover(); await p.waitForTimeout(9000);
