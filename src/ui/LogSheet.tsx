@@ -15,12 +15,24 @@ import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 import { study } from "../study/settings";
 
-const BEFORE_BASE = ["Personal care or bathing", "Mealtime", "Noise or crowding", "Seemed in pain", "Change in routine", "Visitor or phone call"];
+const BEFORE_BASE = [
+  "Personal care or bathing",
+  "Mealtime",
+  "Noise or crowding",
+  "Seemed in pain",
+  "Change in routine",
+  "Visitor or phone call",
+];
 // F-41, on assumed approval: three causes the sensor literature names and the list lacked
 // (temperature, Tartarini 2017; sleep, Tanev 2017; illness, Capstick 2024). "Seemed unwell" is a
 // caregiver's impression, not a finding. Restore accepts all of them in either build.
 const BEFORE_EXTRA = ["Too hot or too cold", "Slept badly last night", "Seemed unwell"];
-export const BEFORE_OPTIONS = [...BEFORE_BASE, ...(study.extraBeforeChips ? BEFORE_EXTRA : []), "Nothing noticed", "Other"];
+export const BEFORE_OPTIONS = [
+  ...BEFORE_BASE,
+  ...(study.extraBeforeChips ? BEFORE_EXTRA : []),
+  "Nothing noticed",
+  "Other",
+];
 const EARLIER = [0, 5, 15, 30, 60]; // minutes before the log was made
 
 const hhmm = (t: number) => {
@@ -40,12 +52,14 @@ export function fromClock(value: string, loggedAt: number) {
 interface Props {
   obs: (StoredObservation & { id: number }) | null;
   viaKeyboard: boolean;
+  /** Why the last change was not saved, if it was refused. */
+  error?: string | null;
   onPatch: (change: Partial<StoredObservation>) => void;
   onDelete: (reason: string, note?: string) => void;
   onClose: () => void;
 }
 
-export function LogSheet({ obs, viaKeyboard, onPatch, onDelete, onClose }: Props) {
+export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }: Props) {
   const item = obs ? ITEMS[obs.itemId - 1] : null;
   const minutesBefore = obs ? Math.round((obs.loggedAt - obs.at) / 60_000) : 0;
   const noteWanted = useRef(false); // set by tapping Other, so reopening a log does not jump to the note
@@ -55,13 +69,18 @@ export function LogSheet({ obs, viaKeyboard, onPatch, onDelete, onClose }: Props
   const reasons = useRef<HTMLDivElement>(null);
   const deleteByKey = useRef(false);
   // Another log, or the sheet closing, always starts back at the details.
-  useEffect(() => { setDeleting(false); setReason(null); setReasonNote(""); }, [obs?.id]);
+  useEffect(() => {
+    setDeleting(false);
+    setReason(null);
+    setReasonNote("");
+  }, [obs?.id]);
   // The button pressed is gone once the step changes, so focus moves into the new step: the
   // first reason from the keyboard, else the dialog itself (no stray focus ring on a tap, F-14).
   const sheetRoot = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (deleting) sheetRoot.current = reasons.current?.closest("dialog") ?? null;
-    const target = deleting && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : sheetRoot.current;
+    const target =
+      deleting && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : sheetRoot.current;
     target?.focus({ preventScroll: true });
   }, [deleting]);
   const canDelete = reason !== null && (reason !== "Other" || reasonNote.trim() !== "");
@@ -72,25 +91,72 @@ export function LogSheet({ obs, viaKeyboard, onPatch, onDelete, onClose }: Props
       viaKeyboard={viaKeyboard}
       keyboardFocus=".log-sheet input[type='time']"
       className="log-sheet"
-      title={deleting ? "Delete this log?" : item?.name ?? ""}
-      subtitle={obs && <>{deleting ? `${item?.name} · ` : ""}{obs.patientId} · logged {dayAndTime(obs.loggedAt)}</>}
+      title={deleting ? "Delete this log?" : (item?.name ?? "")}
+      subtitle={
+        obs && (
+          <>
+            {deleting ? `${item?.name} · ` : ""}
+            {obs.patientId} · logged {dayAndTime(obs.loggedAt)}
+          </>
+        )
+      }
       headerClose={false}
-      footer={obs && (deleting ? <>
-        <button className="ghost" onClick={() => setDeleting(false)}>Keep log</button>
-        <button className="danger" disabled={!canDelete} onClick={() => reason && onDelete(reason, reason === "Other" ? reasonNote : undefined)}>Delete log</button>
-      </> : <>
-        <button className="text-danger" onClick={(e) => { deleteByKey.current = e.detail === 0; setDeleting(true); }}><Icon name="trash" size={18} /> Delete log</button>
-        <button className="sheet-done" onClick={onClose}>Done</button>
-      </>)}
+      footer={
+        obs &&
+        (deleting ? (
+          <>
+            <button className="ghost" onClick={() => setDeleting(false)}>
+              Keep log
+            </button>
+            <button
+              className="danger"
+              disabled={!canDelete}
+              onClick={() => reason && onDelete(reason, reason === "Other" ? reasonNote : undefined)}
+            >
+              Delete log
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="text-danger"
+              onClick={(e) => {
+                deleteByKey.current = e.detail === 0;
+                setDeleting(true);
+              }}
+            >
+              <Icon name="trash" size={18} /> Delete log
+            </button>
+            <button className="sheet-done" onClick={onClose}>
+              Done
+            </button>
+          </>
+        ))
+      }
       onClose={onClose}
     >
+      {obs && error && (
+        <p className="msg error" role="alert">
+          {error}
+        </p>
+      )}
       {obs && deleting && (
         <div className="sheet-scroll">
           <section className="form-group" aria-labelledby="ls-why">
-            <h3 className="form-label" id="ls-why">Why are you deleting it?</h3>
+            <h3 className="form-label" id="ls-why">
+              Why are you deleting it?
+            </h3>
             <div className="choice-grid" ref={reasons}>
               {DELETE_REASONS.map((r) => (
-                <button key={r} className="choice" aria-pressed={reason === r} onClick={() => { noteWanted.current = r === "Other"; setReason(r); }}>
+                <button
+                  key={r}
+                  className="choice"
+                  aria-pressed={reason === r}
+                  onClick={() => {
+                    noteWanted.current = r === "Other";
+                    setReason(r);
+                  }}
+                >
                   <span>{r}</span>
                   {reason === r && <Icon name="check" size={18} />}
                 </button>
@@ -114,36 +180,51 @@ export function LogSheet({ obs, viaKeyboard, onPatch, onDelete, onClose }: Props
                   autoComplete="off"
                   enterKeyHint="done"
                   onChange={(e) => setReasonNote(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  }}
                 />
               </label>
             )}
           </section>
-          <p className="muted">The log stops counting toward scores. It is kept with your reason, so the research team can see every change.</p>
+          <p className="muted">
+            The log stops counting toward scores. It is kept with your reason, so the research team can see every
+            change.
+          </p>
         </div>
       )}
       {obs && !deleting && (
         <div className="sheet-scroll">
           <section className="form-group" aria-labelledby="ls-when">
-            <h3 className="form-label" id="ls-when">When it happened</h3>
+            <h3 className="form-label" id="ls-when">
+              When it happened
+            </h3>
             <div className="form-card">
               <label className="form-row">
                 <span>Time</span>
                 {/* A tinted pill with a clock, so it reads as tappable; iOS shows a bare time otherwise (F-16). */}
                 <span className="time-pill">
                   <Icon name="clock" size={18} />
-                  <input type="time" value={hhmm(obs.at)} onChange={(e) => e.target.value && onPatch({ at: fromClock(e.target.value, obs.loggedAt) })} />
+                  <input
+                    type="time"
+                    value={hhmm(obs.at)}
+                    onChange={(e) => e.target.value && onPatch({ at: fromClock(e.target.value, obs.loggedAt) })}
+                  />
                 </span>
               </label>
               <div className="form-row stacked">
-                <span id="ls-earlier" className="form-hint">How long before you logged it</span>
+                <span id="ls-earlier" className="form-hint">
+                  How long before you logged it
+                </span>
                 <div className="quick-times" role="group" aria-labelledby="ls-earlier">
                   {EARLIER.map((m) => (
                     <button
                       key={m}
                       className={minutesBefore === m ? "on" : undefined}
                       aria-pressed={minutesBefore === m}
-                      aria-label={m === 0 ? "At log, when I logged it" : `${m === 60 ? "1 hr" : `${m} min`} before logging`}
+                      aria-label={
+                        m === 0 ? "At log, when I logged it" : `${m === 60 ? "1 hr" : `${m} min`} before logging`
+                      }
                       onClick={() => onPatch({ at: obs.loggedAt - m * 60_000 })}
                     >
                       {m === 0 ? "At log" : m === 60 ? "1 hr" : `${m} min`}
@@ -153,16 +234,32 @@ export function LogSheet({ obs, viaKeyboard, onPatch, onDelete, onClose }: Props
               </div>
               <label className="form-row">
                 <span>Time is approximate</span>
-                <input type="checkbox" role="switch" className="switch" checked={!!obs.approx} onChange={(e) => onPatch({ approx: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  role="switch"
+                  className="switch"
+                  checked={!!obs.approx}
+                  onChange={(e) => onPatch({ approx: e.target.checked })}
+                />
               </label>
             </div>
           </section>
 
           <section className="form-group" aria-labelledby="ls-before">
-            <h3 className="form-label" id="ls-before">What happened just before <span className="muted">Optional</span></h3>
+            <h3 className="form-label" id="ls-before">
+              What happened just before <span className="muted">Optional</span>
+            </h3>
             <div className="choice-grid">
               {BEFORE_OPTIONS.map((o) => (
-                <button key={o} className="choice" aria-pressed={obs.before === o} onClick={() => { noteWanted.current = o === "Other" && obs.before !== o; onPatch({ before: obs.before === o ? undefined : o, beforeNote: undefined }); }}>
+                <button
+                  key={o}
+                  className="choice"
+                  aria-pressed={obs.before === o}
+                  onClick={() => {
+                    noteWanted.current = o === "Other" && obs.before !== o;
+                    onPatch({ before: obs.before === o ? undefined : o, beforeNote: undefined });
+                  }}
+                >
                   <span>{o}</span>
                   {obs.before === o && <Icon name="check" size={18} />}
                 </button>
@@ -187,7 +284,9 @@ export function LogSheet({ obs, viaKeyboard, onPatch, onDelete, onClose }: Props
                   autoComplete="off"
                   enterKeyHint="done"
                   onChange={(e) => onPatch({ beforeNote: e.target.value || undefined })}
-                  onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  }}
                 />
               </label>
             )}

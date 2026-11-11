@@ -31,6 +31,8 @@ const TOAST_MS = 8000;
 type SavedObs = StoredObservation & { id: number };
 type Toast = { kind: "logged" | "deleted"; obs: SavedObs };
 
+export const SAVE_FAILED = "That did not save. Check the phone has free space, then try again.";
+
 interface Props {
   patientId: string;
   observations: StoredObservation[];
@@ -111,9 +113,16 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
 
   async function undo() {
     if (!toast) return;
-    // Undo of a log just made is a delete like any other, with its own reason.
-    if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
-    else await restoreLog(toast.obs);
+    setSaveError(false);
+    try {
+      // Undo of a log just made is a delete like any other, with its own reason.
+      if (toast.kind === "logged") await deleteLog(toast.obs, UNDO_REASON);
+      else await restoreLog(toast.obs);
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
     setToast(null);
     setHeld(false);
     onChange();
@@ -122,19 +131,34 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
   function edit(o: SavedObs, e: MouseEvent) {
     setToast(null);
     setHeld(false);
+    setEditError(null);
     setEditing({ obs: o, viaKeyboard: e.detail === 0 });
   }
 
   async function patch(change: Partial<StoredObservation>) {
     if (!editing) return;
-    // Show the change at once; the save follows.
+    // Show the change at once; the save follows. If the save is refused, the old values come back.
+    const before = editing;
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
-    await editLog(editing.obs, change);
-    onChange();
+    setEditError(null);
+    try {
+      await editLog(editing.obs, change);
+      onChange();
+    } catch (e) {
+      if (!(e instanceof LogTimeError)) record(e);
+      setEditing(before);
+      setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
+    }
   }
 
   async function remove(o: SavedObs, reason: string, note?: string) {
-    await deleteLog(o, reason, note);
+    try {
+      await deleteLog(o, reason, note);
+    } catch (e) {
+      record(e);
+      setEditError(SAVE_FAILED);
+      return;
+    }
     setEditing(null);
     setToast({ kind: "deleted", obs: o });
     onChange();
@@ -212,6 +236,11 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
 
   return (
     <div className="log">
+      {saveError && (
+        <p className="banner save-alert" role="alert">
+          {SAVE_FAILED}
+        </p>
+      )}
       <div className="log-head">
         <p className="screen-title" aria-hidden>
           Log a behavior
@@ -333,6 +362,7 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
       <LogSheet
         obs={editing?.obs ?? null}
         viaKeyboard={editing?.viaKeyboard ?? false}
+        error={editError}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
         onClose={() => setEditing(null)}
