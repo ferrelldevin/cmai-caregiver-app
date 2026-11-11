@@ -147,19 +147,24 @@ describe("backups", () => {
 });
 
 describe("the sign-in lasts one shift", () => {
-  it("survives a reopen within 12 hours, then ends", () => {
+  it("survives a reopen within 12 hours, then ends", async () => {
     session.startSession("C-01", T);
+    await vi.waitFor(async () => expect(await db.meta.get("session")).toBeTruthy());
+    await session.loadSession(); // a reopen reads it back from the database
+    expect(store.size).toBe(0); // and nothing was put in localStorage
     expect(session.readSession(T + 1)).toEqual({ id: "C-01", at: T });
     expect(session.readSession(T + session.SHIFT_MS - 1)?.id).toBe("C-01");
     expect(session.readSession(T + session.SHIFT_MS)).toBeNull();
     expect(session.readSession(T - 1)).toBeNull(); // a clock set back does not stretch a shift
     session.endSession();
     expect(session.readSession(T + 1)).toBeNull();
+    await vi.waitFor(async () => expect(await db.meta.get("session")).toBeUndefined());
   });
 
-  it("ignores anything stored that is not a caregiver code and a time", () => {
+  it("ignores anything stored that is not a caregiver code and a time", async () => {
     for (const v of ["{", '{"id":"Jane","at":1}', '{"id":"C-01"}', "null"]) {
-      store.set("cmai-session", v);
+      await db.meta.put({ key: "session", value: v });
+      await session.loadSession();
       expect(session.readSession(T)).toBeNull();
     }
   });
