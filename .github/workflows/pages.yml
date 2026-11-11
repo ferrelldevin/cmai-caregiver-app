@@ -13,29 +13,40 @@ permissions:
 
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push may cancel an older pull request run, but a run on main always finishes,
+  # so a deploy is never cut off halfway.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     name: Lint, types, unit tests, build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      - name: Docs match the code (spec checks, links, file:line references, register IDs)
+        run: npm run check:docs
       - name: Unit tests, the hand-scored cases and coverage floors
         run: npm run test:coverage
+      - name: The hand-scored cases file is up to date
+        run: npm run gen:cases && git diff --exit-code docs/test-cases.json
+      - name: The agreement script's own check
+        run: python3 docs/agreement/analyze.py --selftest
+      - name: Critical vulnerabilities in any dependency, including test tools
+        run: npm audit --audit-level=critical
       - name: Known vulnerabilities in the app's own dependencies
         run: npm audit --omit=dev --audit-level=high
       - run: npm run build
       - name: Script sizes are within budget
         run: npm run check:size
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         if: github.event_name != 'pull_request'
         with:
           path: dist
@@ -43,9 +54,10 @@ jobs:
   browser:
     name: Browser checks and axe (4 display modes)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -57,11 +69,19 @@ jobs:
       - name: Report on the run page
         if: always()
         run: cat .checks/report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Screens that changed (actual and diff images)
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: screenshot-diffs
+          path: /tmp/cmai-e2e/screenshots/
+          if-no-files-found: ignore
 
   deploy:
     if: github.event_name != 'pull_request'
     needs: [build, browser]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       pages: write
       id-token: write
@@ -70,4 +90,19 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - name: The live page is the commit just deployed
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          want="${GITHUB_SHA::7}"
+          for attempt in 1 2 3 4 5 6 7 8; do
+            if curl -fsSL "${PAGE_URL}?check=${GITHUB_SHA}" | grep -q "<meta name=\"build\" content=\"${want}\""; then
+              echo "The live page carries build ${want}"
+              exit 0
+            fi
+            echo "Attempt ${attempt}: the live page does not show build ${want} yet"
+            sleep 15
+          done
+          echo "The live page never showed build ${want}. See docs/process/release.md to undo the deploy."
+          exit 1
