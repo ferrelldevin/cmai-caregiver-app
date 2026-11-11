@@ -35,6 +35,9 @@ Not built, because a decision is still open. The mockup shows these, but the app
 ## Decision (proposed)
 Option 2, then 3. Devin chose "Phase 1, then parallel" on 2026-11-07: the shell ships first, and once it is merged phases 2 to 5 each get their own thread. He also chose to hold the open questions for Dr. Gupta until phase 4 is built, so he can see the Report screens working.
 
+The order and acceptance criteria now live in docs/process/build-plan.md, Stage 4.
+Option 2. Phase 1 first, then phases 2 to 5 one at a time (or in parallel once phase 1 is merged).
+
 | Phase | Pull request | Register | Size |
 |---|---|---|---|
 | 0 | Merge the mockup (PR #37), so the icons, colors and checks are on main | – | Devin's merge |
