@@ -3,7 +3,8 @@
 import "fake-indexeddb/auto";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
-import { db, reviewKey, type StoredObservation } from "../src/data/db";
+import { db, isLive, reviewKey, type StoredObservation } from "../src/data/db";
+import { appRatings, scoreAllWindows } from "../src/scoring/engine";
 import { buildExport } from "../src/data/exporter";
 import { deleteLog, editLog, restoreLog, UNDO_REASON } from "../src/data/logs";
 import { restoreBackup } from "../src/data/manage";
@@ -42,7 +43,10 @@ describe("deleting a log", () => {
     expect((await db.observations.get(o.id))?.deletedAt).toBeUndefined();
     expect(await db.changes.count()).toBe(0);
     await deleteLog(o, "Other", " fire drill, not the resident ", 6000);
-    expect(await db.observations.get(o.id)).toMatchObject({ deleteReason: "Other", deleteNote: "fire drill, not the resident" });
+    expect(await db.observations.get(o.id)).toMatchObject({
+      deleteReason: "Other",
+      deleteNote: "fire drill, not the resident",
+    });
   });
 
   it("records the delete in the change history, and an undo restores it with a second entry", async () => {
@@ -76,7 +80,12 @@ describe("editing a log", () => {
     const o = await add({ patientId: "P-01", itemId: 7, at: 10_000, loggedAt: 10_000 });
     await editLog(o, { at: 4000, approx: true }, 20_000);
     const [c] = await db.changes.toArray();
-    expect(c).toMatchObject({ action: "edit", observationId: o.id, from: { at: 10_000 }, to: { at: 4000, approx: true } });
+    expect(c).toMatchObject({
+      action: "edit",
+      observationId: o.id,
+      from: { at: 10_000 },
+      to: { at: 4000, approx: true },
+    });
   });
 
   it("folds edits a few minutes apart into one entry, from the first value to the last", async () => {
@@ -128,7 +137,15 @@ describe("scores are the app's own", () => {
 
   it("an old day-14 review on file never changes the exported rating", async () => {
     await add({ patientId: "P-01", itemId: 7, at: 1000, loggedAt: 1000 });
-    await db.reviews.put({ key: reviewKey("P-01", 0, 7), patientId: "P-01", windowStart: 0, itemId: 7, choice: 6, derived: 2, reviewedAt: 5000 });
+    await db.reviews.put({
+      key: reviewKey("P-01", 0, 7),
+      patientId: "P-01",
+      windowStart: 0,
+      itemId: 7,
+      choice: 6,
+      derived: 2,
+      reviewedAt: 5000,
+    });
     const scores = csvRows((await buildExport(20 * 86_400_000)).scoresCsv);
     const row = scores.find((r) => r[0] === "P-01" && r[4] === "7" && r[1] === new Date(0).toISOString())!;
     expect(row[scores[0].indexOf("derived_rating")]).toBe("2");
@@ -138,22 +155,73 @@ describe("scores are the app's own", () => {
   });
 });
 
+describe("editing a log's time", () => {
+  it("refuses a time before the patient's first day and stores nothing", async () => {
+    const T0 = Date.UTC(2026, 0, 1);
+    await db.patients.put({ id: "P-01", anchor: T0 });
+    const o = await add({ patientId: "P-01", itemId: 7, at: T0 + 5000, loggedAt: T0 + 5000 });
+    await expect(editLog(o, { at: T0 - 60_000 }, T0 + 9000)).rejects.toThrow(
+      /first day in the app is .*can't be earlier/,
+    );
+    expect((await db.observations.get(o.id))?.at).toBe(T0 + 5000);
+    expect(await db.changes.count()).toBe(0);
+  });
+
+  it("allows a time exactly on the first day", async () => {
+    const T0 = Date.UTC(2026, 0, 1);
+    await db.patients.put({ id: "P-01", anchor: T0 });
+    const o = await add({ patientId: "P-01", itemId: 7, at: T0 + 5000, loggedAt: T0 + 5000 });
+    await editLog(o, { at: T0 }, T0 + 9000);
+    expect((await db.observations.get(o.id))?.at).toBe(T0);
+  });
+});
+
 describe("backup and restore", () => {
   it("brings a deleted log back deleted, with its history pointing at the new id", async () => {
-    const o = await add({ patientId: "P-01", itemId: 7, at: 1000, loggedAt: 1000 });
-    await editLog(o, { approx: true }, 1500);
-    await deleteLog(o, "Wrong behavior", undefined, 2000);
-    const { json } = await buildExport(100_000);
+    // A backup only restores dates from 2020 on, so this test lives at a realistic date.
+    const T0 = Date.UTC(2026, 0, 1);
+    await db.patients.put({ id: "P-01", anchor: T0 });
+    const o = await add({ patientId: "P-01", itemId: 7, at: T0 + 1000, loggedAt: T0 + 1000 });
+    await editLog(o, { approx: true }, T0 + 1500);
+    await deleteLog(o, "Wrong behavior", undefined, T0 + 2000);
+    const { json } = await buildExport(T0 + 100_000);
     db.close();
     await Dexie.delete("cmai-tracker");
     await db.open();
     await db.observations.add({ patientId: "P-09", itemId: 1, at: 1, loggedAt: 1 }); // takes id 1, so ids differ
     await restoreBackup(json);
     const restored = (await db.observations.where("patientId").equals("P-01").toArray())[0];
-    expect(restored).toMatchObject({ deletedAt: 2000, deleteReason: "Wrong behavior", approx: true });
+    expect(restored).toMatchObject({ deletedAt: T0 + 2000, deleteReason: "Wrong behavior", approx: true });
     expect(restored.id).not.toBe(o.id);
     const history = await db.changes.where("observationId").equals(restored.id!).sortBy("id");
     expect(history.map((c) => c.action)).toEqual(["edit", "delete"]);
+  });
+});
+
+describe("backup and restore keep the scores", () => {
+  it("a phone restored from a backup shows the same ratings as the phone that made it", async () => {
+    const now = Date.UTC(2026, 0, 30, 17);
+    await loadDemoData(now);
+    const first = await db.observations.toArray();
+    await deleteLog({ ...first[0], id: first[0].id! }, "Wrong behavior", undefined, now);
+    const ratings = async () => {
+      const out: Record<string, Record<number, number>[]> = {};
+      // Only the demo patients: the file's beforeEach adds an empty P-01 anchored at 1970,
+      // which restore now rejects on purpose (F-31, dates before 2020).
+      for (const p of (await db.patients.toArray()).filter((x) => x.demo)) {
+        const obs = (await db.observations.where("patientId").equals(p.id).sortBy("at")).filter(isLive);
+        out[p.id] = scoreAllWindows(obs, p.anchor, now).map(appRatings);
+      }
+      return out;
+    };
+    const before = await ratings();
+    expect(Object.keys(before).length).toBeGreaterThan(0);
+    const { json } = await buildExport(now);
+    db.close();
+    await Dexie.delete("cmai-tracker");
+    await db.open();
+    await restoreBackup(json);
+    expect(await ratings()).toEqual(before);
   });
 });
 
