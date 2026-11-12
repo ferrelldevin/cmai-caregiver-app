@@ -5,11 +5,11 @@ Rule tested: `cmai-count-rule-1` (`docs/scoring-spec.md`), run through the app's
 > **Rerun under `cmai-count-rule-2` (2026-10-23).** The app adopted proposal 2 (clusters across midnight) and part of proposal 4 ("Nothing to log today" check-in and unlogged-day counts). `robustness-output/` now holds the rule 2 run (same seed, 2,000 runs). The demo rows did not change. The vignette rows changed because V08 now reaches rating 7, so there are two rating-7 items instead of one:
 >
 > | Vignettes | Missed | Rating 7 lost (rule 1, V07 only) | Rating 7 lost (rule 2, V07 + V08) |
-> |---|---|---|---|
-> | uniform | 10% | 0.1% | 38.4% |
-> | uniform | 30% | 70.5% | 85.2% |
-> | busy days | 10% | 0.4% | 39.6% |
-> | busy days | 30% | 81.8% | 90.9% |
+> | --------- | ------ | -------------------------------- | --------------------------------- |
+> | uniform   | 10%    | 0.1%                             | 38.4%                             |
+> | uniform   | 30%    | 70.5%                            | 85.2%                             |
+> | busy days | 10%    | 0.4%                             | 39.6%                             |
+> | busy days | 30%    | 81.8%                            | 90.9%                             |
 >
 > V08 has 8 clustered days, one above the floor of 7, so losing a single cluster drops it. **Rating 7 is fragile even at 10% missed logs.** That makes proposal 3 (send likely 7s to the day-14 review) more important, not less. The tables below are the original rule 1 run and are kept for the record. Proposals 1 and 3 are still open (see `docs/review-register.md`).
 
@@ -27,42 +27,42 @@ Rule tested: `cmai-count-rule-1` (`docs/scoring-spec.md`), run through the app's
 
 - **Data.** (1) The app's seeded demo data (`src/data/seed.ts`, two fictional patients, 42 days each, so 6 complete 14-day windows, 626 logs). (2) The 12 agreement vignettes (`vignettes.json`, 574 logs). 18 windows in all.
 - **Deletion.** In each run, exactly 10%, 30% or 50% of a window's logs are removed, then the window is re-scored.
-  - *Uniform:* every log equally likely to be missed.
-  - *Busy days:* a log's chance of being missed is proportional to how many logs (all behaviors) were made that day.
+  - _Uniform:_ every log equally likely to be missed.
+  - _Busy days:_ a log's chance of being missed is proportional to how many logs (all behaviors) were made that day.
 - **Runs.** 2,000 per window, per rate, per mode (216,000 re-scorings). Seeded, so the numbers repeat exactly.
-- **What is counted.** Only *active* items, meaning items with at least one log in the full data (74 item-windows). Items with no logs cannot change.
+- **What is counted.** Only _active_ items, meaning items with at least one log in the full data (74 item-windows). Items with no logs cannot change.
 
 ## Results
 
 Percentages are of active item-windows, averaged over all runs.
 
-| Data | Mode | Missed | Items that change | Drop 1 band | Drop 2+ bands | Mean drop in total | Windows whose agitated status flips | Rating 7 lost |
-|---|---|---|---|---|---|---|---|---|
-| Demo | uniform | 10% | 12.4% | 12.3% | 0.1% | 0.7 | 0.1% | no 7s |
-| Demo | uniform | 30% | 41.1% | 40.4% | 0.7% | 2.3 | 14.5% | no 7s |
-| Demo | uniform | 50% | 76.3% | 70.8% | 5.6% | 4.5 | 48.5% | no 7s |
-| Demo | busy days | 10% | 12.8% | 12.7% | 0.1% | 0.7 | 0.0% | no 7s |
-| Demo | busy days | 30% | 42.3% | 41.5% | 0.8% | 2.4 | 15.2% | no 7s |
-| Demo | busy days | 50% | 77.6% | 71.2% | 6.4% | 4.6 | 48.8% | no 7s |
-| Vignettes | uniform | 10% | 12.4% | 12.3% | 0.1% | 0.4 | 0.1% | 0.1% |
-| Vignettes | uniform | 30% | 35.7% | 33.2% | 2.5% | 1.3 | 5.2% | 70.5% |
-| Vignettes | uniform | 50% | 69.9% | 61.0% | 8.8% | 2.7 | 29.4% | 99.9% |
-| Vignettes | busy days | 10% | 13.2% | 13.1% | 0.1% | 0.5 | 0.0% | 0.4% |
-| Vignettes | busy days | 30% | 37.1% | 33.9% | 3.2% | 1.4 | 5.2% | 81.8% |
-| Vignettes | busy days | 50% | 71.2% | 60.9% | 10.2% | 2.8 | 31.0% | 100.0% |
+| Data      | Mode      | Missed | Items that change | Drop 1 band | Drop 2+ bands | Mean drop in total | Windows whose agitated status flips | Rating 7 lost |
+| --------- | --------- | ------ | ----------------- | ----------- | ------------- | ------------------ | ----------------------------------- | ------------- |
+| Demo      | uniform   | 10%    | 12.4%             | 12.3%       | 0.1%          | 0.7                | 0.1%                                | no 7s         |
+| Demo      | uniform   | 30%    | 41.1%             | 40.4%       | 0.7%          | 2.3                | 14.5%                               | no 7s         |
+| Demo      | uniform   | 50%    | 76.3%             | 70.8%       | 5.6%          | 4.5                | 48.5%                               | no 7s         |
+| Demo      | busy days | 10%    | 12.8%             | 12.7%       | 0.1%          | 0.7                | 0.0%                                | no 7s         |
+| Demo      | busy days | 30%    | 42.3%             | 41.5%       | 0.8%          | 2.4                | 15.2%                               | no 7s         |
+| Demo      | busy days | 50%    | 77.6%             | 71.2%       | 6.4%          | 4.6                | 48.8%                               | no 7s         |
+| Vignettes | uniform   | 10%    | 12.4%             | 12.3%       | 0.1%          | 0.4                | 0.1%                                | 0.1%          |
+| Vignettes | uniform   | 30%    | 35.7%             | 33.2%       | 2.5%          | 1.3                | 5.2%                                | 70.5%         |
+| Vignettes | uniform   | 50%    | 69.9%             | 61.0%       | 8.8%          | 2.7                | 29.4%                               | 99.9%         |
+| Vignettes | busy days | 10%    | 13.2%             | 13.1%       | 0.1%          | 0.5                | 0.0%                                | 0.4%          |
+| Vignettes | busy days | 30%    | 37.1%             | 33.9%       | 3.2%          | 1.4                | 5.2%                                | 81.8%         |
+| Vignettes | busy days | 50%    | 71.2%             | 60.9%       | 10.2%         | 2.8                | 31.0%                               | 100.0%        |
 
 "Mean drop in total" is the drop in the 29-item sum (29 to 203), per window.
 
 ### Which bands are fragile (both data sets, uniform misses)
 
-| Original rating | Changes at 10% | Changes at 30% | 2+ band drop at 30% | 2+ band drop at 50% |
-|---|---|---|---|---|
-| 2 (one log) | 11% | 33% | 0% | 0% |
-| 3 (2 to 4 logs) | 11% | 39% | 4.7% | 20.1% |
-| 4 (5 to 13 logs) | 8% | 31% | 0.4% | 5.7% |
-| 5 (14 to 28 logs) | 12% | 31% | 0% | 1.1% |
-| 6 (29+ logs) | 25% | 65% | 0% | 9.5% |
-| 7 (clusters on 7+ days) | 0.1% | 70.5% | 70.3% | 99.8% |
+| Original rating         | Changes at 10% | Changes at 30% | 2+ band drop at 30% | 2+ band drop at 50% |
+| ----------------------- | -------------- | -------------- | ------------------- | ------------------- |
+| 2 (one log)             | 11%            | 33%            | 0%                  | 0%                  |
+| 3 (2 to 4 logs)         | 11%            | 39%            | 4.7%                | 20.1%               |
+| 4 (5 to 13 logs)        | 8%             | 31%            | 0.4%                | 5.7%                |
+| 5 (14 to 28 logs)       | 12%            | 31%            | 0%                  | 1.1%                |
+| 6 (29+ logs)            | 25%            | 65%            | 0%                  | 9.5%                |
+| 7 (clusters on 7+ days) | 0.1%           | 70.5%          | 70.3%               | 99.8%               |
 
 Full table, including busy-day mode: `robustness-output/robustness-by-band.csv`.
 
@@ -85,7 +85,7 @@ Missed logs look exactly like improvement. In the demo data, patient P-DEMO-A's 
 
 These are proposals. `scoring-spec.md` and the app source were not changed. Any change should ship as a new rule version (for example `cmai-count-rule-2`) so old scores keep their label.
 
-1. **Count bands: keep them for now (no change).** Up to 30% missed logs, 97 to 99% of items stay within 1 point of the full-data rating, inside the manual's inter-rater tolerance (p.7). The open boundary questions (5 logs = 4 or 3? 13 logs = 4 or 5? 29 logs = 6 or 5?) should be settled by the two raters' answers on V03, V05 and V06, not by this simulation. Note that rounding gap counts *up*, as the rule does now, partly offsets the downward pull of missed logs; rounding them down would make the rule more fragile.
+1. **Count bands: keep them for now (no change).** Up to 30% missed logs, 97 to 99% of items stay within 1 point of the full-data rating, inside the manual's inter-rater tolerance (p.7). The open boundary questions (5 logs = 4 or 3? 13 logs = 4 or 5? 29 logs = 6 or 5?) should be settled by the two raters' answers on V03, V05 and V06, not by this simulation. Note that rounding gap counts _up_, as the rule does now, partly offsets the downward pull of missed logs; rounding them down would make the rule more fragile.
 2. **Clusters across midnight: fix (recommended).** The engine groups logs by calendar day before looking for 3 logs in 60 minutes, so a burst at 11:40 pm, 11:55 pm and 12:15 am never counts. Vignette V08 shows the effect: 3 screams in 35 minutes on 8 nights scores 5, not 7. Proposal: find clusters with a 60-minute window that runs across midnight, and credit each cluster to the day it starts.
 3. **Rating 7: send likely 7s to the day-14 review (recommended).** Proposal: when an item has 3 to 6 clustered days, the review screen asks the caregiver whether the behavior happened several times an hour on most days, instead of silently showing 5 or 6. On V07, 30% missed logs leave 3+ clustered days in 100% of runs (7+ in only 16%), so the prompt would catch nearly every lost 7. This keeps the judgment with the caregiver, which is how the CMAI was built (p.2, p.5), and uses the review step the app already has.
 4. **Tell a quiet day from an unlogged day (recommended).** Add a once-a-day "nothing to log today" tap (or end-of-shift check-in). Windows with several days that have neither logs nor a check-in get a "logging may be incomplete" mark, and are left out of trend lines the same way unfinished windows are now (spec section 7). This is the only proposal here that addresses the downward bias itself.
