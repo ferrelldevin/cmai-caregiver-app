@@ -115,6 +115,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.keyboard.press("Escape");
   ok(!(await sheet.isVisible()), "Esc closes the sheet");
   await p.mouse.click(10, 300);
+  await p.locator("nav.tabs button", { hasText: "Log" }).click(); // the reminder is on the Log screen
   // A real patient with logs and no export gets the quiet backup line, and it opens the backup page (F-36)
   const reminder = p.locator(".backup-reminder");
   await reminder.waitFor();
