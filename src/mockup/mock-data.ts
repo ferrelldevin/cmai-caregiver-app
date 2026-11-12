@@ -5,6 +5,7 @@
 import { ratingFromCount } from "../scoring/engine";
 export { RATING_LABELS } from "../scoring/engine";
 import { ITEMS, type FactorGroup } from "../scoring/items";
+import { SHORT_NAMES as SHORT } from "../ui/behavior-names";
 
 export const DEMO_CAREGIVER = { name: "Caregiver Demo", role: "Night shift" };
 // code is how the real app names a resident (no names are stored); short goes in the badge.
@@ -18,37 +19,7 @@ export const DEMO_PATIENTS = [
 
 // Tile labels for the compact log grid: short names in our own words.
 // The full item name and definition stay one tap away (manual p.12-13).
-export const SHORT: Record<number, string> = {
-  1: "Pacing",
-  2: "Disrobing",
-  3: "Spitting",
-  4: "Cursing",
-  5: "Asking for help",
-  6: "Repeating",
-  7: "Hitting",
-  8: "Kicking",
-  9: "Grabbing",
-  10: "Pushing",
-  11: "Throwing",
-  12: "Strange noises",
-  13: "Screaming",
-  14: "Biting",
-  15: "Scratching",
-  16: "Trying to leave",
-  17: "Falling on purpose",
-  18: "Complaining",
-  19: "Negativism",
-  20: "Eating non-food",
-  21: "Hurting self/other",
-  22: "Handling things",
-  23: "Hiding things",
-  24: "Hoarding",
-  25: "Destroying",
-  26: "Mannerisms",
-  27: "Verbal sexual",
-  28: "Physical sexual",
-  29: "Restlessness",
-};
+export { SHORT_NAMES as SHORT } from "../ui/behavior-names";
 
 export const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"];
 

@@ -19,7 +19,7 @@ async function withLog(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-07"); await p.keyboard.press("Enter");
-  await p.getByRole("button", { name: /^7 Hitting/ }).click(); await p.locator(".snackbar").waitFor();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
   await p.goto(URL.replace(/\/?$/, "/") + "#/data/backup");
   await p.getByRole("button", { name: "Download backup" }).click();
   await p.getByLabel("Passphrase for this file").waitFor();

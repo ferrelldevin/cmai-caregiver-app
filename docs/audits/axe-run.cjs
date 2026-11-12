@@ -29,12 +29,16 @@ async function scan(page, name, results) {
     await page.goto(URL);
     await scan(page, "Welcome (first run)", results);
     await page.getByRole("button", { name: "Try demo data" }).click();
-    await page.getByRole("button", { name: /^7 Hitting/ }).waitFor();
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
     await scan(page, "Log", results);
-    await page.getByRole("button", { name: /^What does not count/ }).first().click();
-    await page.getByRole("button", { name: /^7 Hitting/ }).click();
+    await page.getByRole("button", { name: "What counts as each behavior?" }).click();
+    await page.getByRole("dialog", { name: "What counts as each behavior" }).waitFor();
+    await scan(page, "What counts as each behavior (sheet)", results);
+    await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+    await page.getByRole("dialog").waitFor({ state: "hidden" });
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
     await page.locator(".snackbar").waitFor();
-    await scan(page, "Log (after a tap: confirmation, exclusion open)", results);
+    await scan(page, "Log (after a tap: confirmation)", results);
     await page.locator(".snackbar").getByRole("button", { name: "Edit" }).click();
     await page.getByRole("dialog", { name: /^Hitting/ }).waitFor();
     await scan(page, "Log details sheet (from the confirmation)", results);
@@ -48,26 +52,36 @@ async function scan(page, name, results) {
     await del.getByRole("button", { name: "Tapped by mistake" }).click();
     await del.getByRole("button", { name: "Delete log" }).click();
     await del.waitFor({ state: "hidden" });
+    await page.getByRole("button", { name: "Today", exact: true }).click();
+    await page.getByRole("heading", { name: "Nothing logged today" }).waitFor();
+    await scan(page, "Today (nothing logged yet)", results);
     await page.getByRole("button", { name: "Nothing to log today" }).click();
-    // The click leaves the page scrolled wherever the button was, and whichever behavior row the
-    // fixed tab bar happens to cut there can fail target-size by a fraction of a pixel. Scan from the
-    // top so the result does not depend on scroll position.
     await page.evaluate(() => window.scrollTo(0, 0));
-    await scan(page, "Log (checked in: nothing to log today)", results);
-    await page.getByRole("button", { name: /^7 Hitting/ }).click(); // makes sure there is a recent log to edit
+    await scan(page, "Today (checked in: nothing to log today)", results);
+    await page.getByRole("button", { name: "Log a behavior", exact: true }).click();
+    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); // a log to fix on Today
+    await page.getByRole("button", { name: "Today", exact: true }).click();
+    await page.locator(".acc-head").first().click();
+    await scan(page, "Today (a behavior opened)", results);
     await page.getByRole("button", { name: /^Edit / }).first().click();
     await page.getByRole("dialog").waitFor();
-    await scan(page, "Log details sheet (from Recent logs)", results);
+    await scan(page, "Log details sheet (from Today)", results);
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: /Choose patient$/ }).click();
     await page.getByRole("dialog", { name: "Choose patient" }).waitFor();
     await scan(page, "Patient switcher (sheet open)", results);
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Score", exact: true }).click();
-    await page.getByRole("heading", { name: "Behavior scores", exact: true }).waitFor();
-    await scan(page, "Scores", results);
+    // Two weeks (F-28): a finished period, then the one in progress.
+    await page.getByRole("button", { name: "Two weeks", exact: true }).click();
+    await page.getByRole("heading", { name: "This period", exact: true }).waitFor();
+    await scan(page, "Two weeks (finished period)", results);
+    await page.getByRole("button", { name: "Later period" }).click();
+    await page.getByRole("heading", { name: "So far this period" }).waitFor();
+    await scan(page, "Two weeks (period in progress)", results);
     await page.getByRole("button", { name: "Show all 29 behaviors" }).click();
-    await scan(page, "Scores (all 29 behaviors)", results);
+    await page.getByText(/^Compare finished periods/).click();
+    await page.locator("#tw-history table").first().waitFor();
+    await scan(page, "Two weeks (all 29 behaviors, History open)", results);
     // The Day-14 review screen was removed when ratings were locked (D-14, PR #17).
     await page.getByRole("button", { name: "Settings" }).click();
     await scan(page, "Patients & data (with patients)", results);

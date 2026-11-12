@@ -175,7 +175,6 @@ export function appRatings(score: WindowScore): Record<number, number> {
   return out;
 }
 
-
 export interface Summary {
   total: number; // sum of 1-7 ratings across items (secondary figure)
   itemsInTotal: number; // 29 minus items coded 8 or 9
@@ -193,11 +192,25 @@ function meets(ratings: number[], rows: [number, number][]): boolean {
 const CRITERIA: Record<Exclude<FactorGroup, "other">, [number, number][]> = {
   // Aggressive at least several times a week (p.5). The fourth listed row
   // (two at 2 and one at 3) is already covered by "three at 2 or more".
-  aggressive: [[4, 1], [3, 2], [2, 3]],
+  aggressive: [
+    [4, 1],
+    [3, 2],
+    [2, 3],
+  ],
   // Physically nonaggressive at least once a day (p.6).
-  physical: [[5, 1], [4, 2], [3, 3], [2, 4]],
+  physical: [
+    [5, 1],
+    [4, 2],
+    [3, 3],
+    [2, 4],
+  ],
   // Verbally agitated at least once a day (p.6).
-  verbal: [[5, 1], [4, 2], [3, 3], [2, 4]],
+  verbal: [
+    [5, 1],
+    [4, 2],
+    [3, 3],
+    [2, 4],
+  ],
 };
 
 /** `ratings` is 1-7 or code 8 / 9 per item. Codes only come from a caregiver's own rating, never the count rule. */
@@ -206,7 +219,9 @@ export function summarize(ratings: Record<number, number>): Summary {
   const factors = {} as Summary["factors"];
   const agitated = {} as Summary["agitated"];
   for (const g of groups) {
-    const inGroup = ITEMS.filter((i) => i.group === g).map((i) => ratings[i.id]).filter(isScale);
+    const inGroup = ITEMS.filter((i) => i.group === g)
+      .map((i) => ratings[i.id])
+      .filter(isScale);
     const sum = inGroup.reduce((a, b) => a + b, 0);
     factors[g] = { sum, n: inGroup.length, mean: inGroup.length ? sum / inGroup.length : 0 };
     agitated[g] = meets(inGroup, CRITERIA[g]);
