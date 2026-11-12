@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { DataScreen } from "./ui/DataScreen";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { LogScreen } from "./ui/LogScreen";
 import { TodayScreen } from "./ui/TodayScreen";
 import { TwoWeeksScreen } from "./ui/TwoWeeksScreen";
@@ -11,14 +10,19 @@ import { addDays, localMidnight } from "./scoring/engine";
 import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
-import { CaregiverPage, WhoSheet } from "./ui/CaregiverScreen";
-import { SignInScreen } from "./ui/SignInScreen";
-import { RatingScreen } from "./ui/RatingScreen";
 import { ratingsDue as findRatingsDue } from "./data/caregiverRatings";
 import { endSession, readSession, startSession } from "./data/session";
 import { activeCaregivers, chooseLoggingCaregiver, myResidents, readLoggingCaregiver } from "./data/caregivers";
 import type { Caregiver } from "./data/db";
 import { study } from "./study/settings";
+
+// Screens that most visits never open load on demand, so the first script stays small. The service worker
+// still caches each chunk, so they work offline after the first visit to the installed app.
+const DataScreen = lazy(() => import("./ui/DataScreen").then((m) => ({ default: m.DataScreen })));
+const CaregiverPage = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.CaregiverPage })));
+const WhoSheet = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.WhoSheet })));
+const SignInScreen = lazy(() => import("./ui/SignInScreen").then((m) => ({ default: m.SignInScreen })));
+const RatingScreen = lazy(() => import("./ui/RatingScreen").then((m) => ({ default: m.RatingScreen })));
 
 // The PIN needs caregivers to sign in as (plan 5.3).
 const PIN_ON = study.pin && study.caregiverProfiles;
@@ -268,12 +272,14 @@ export default function App() {
   if (PIN_ON && !caregiversLoaded) return null;
   if (PIN_ON && caregivers.length > 0 && (!loggingAs || signingIn)) {
     return (
-      <SignInScreen
-        caregivers={caregivers}
-        start={signingIn?.id ?? null}
-        onCancel={loggingAs ? () => setSigningIn(null) : undefined}
-        onSignedIn={signedIn}
-      />
+      <Suspense fallback={null}>
+        <SignInScreen
+          caregivers={caregivers}
+          start={signingIn?.id ?? null}
+          onCancel={loggingAs ? () => setSigningIn(null) : undefined}
+          onSignedIn={signedIn}
+        />
+      </Suspense>
     );
   }
 
@@ -379,51 +385,63 @@ export default function App() {
             <span className="spinner" aria-hidden /> Loading…
           </div>
         ) : shown === "data" ? (
-          <DataScreen
-            patients={patients}
-            current={hasPatient ? patientId : null}
-            page={route.page}
-            pageTitle={route.page ? PAGE_TITLES[route.page] : ""}
-            onPage={(page) => go({ tab: "data", page })}
-            onBack={back}
-            onPatient={(id) => {
-              pickPatient(id);
-              setTab("log");
-            }}
-            onChange={refresh}
-            caregivers={
-              study.caregiverProfiles
-                ? {
-                    status: caregivers.length
-                      ? `${caregivers.length} on this phone${me ? ` · ${me.initials} logging` : ""}`
-                      : "Add the first caregiver",
-                    page: (
-                      <CaregiverPage
-                        caregivers={caregivers}
-                        loggingAs={loggingAs}
-                        patients={patients}
-                        onLogAs={requestLogAs}
-                        onChange={() => setCaregiversVersion((v) => v + 1)}
-                      />
-                    ),
-                  }
-                : undefined
+          <Suspense
+            fallback={
+              <div className="loading" role="status">
+                Loading…
+              </div>
             }
-          />
+          >
+            <DataScreen
+              patients={patients}
+              current={hasPatient ? patientId : null}
+              page={route.page}
+              pageTitle={route.page ? PAGE_TITLES[route.page] : ""}
+              onPage={(page) => go({ tab: "data", page })}
+              onBack={back}
+              onPatient={(id) => {
+                pickPatient(id);
+                setTab("log");
+              }}
+              onChange={refresh}
+              caregivers={
+                study.caregiverProfiles
+                  ? {
+                      status: caregivers.length
+                        ? `${caregivers.length} on this phone${me ? ` · ${me.initials} logging` : ""}`
+                        : "Add the first caregiver",
+                      page: (
+                        <Suspense fallback={null}>
+                          <CaregiverPage
+                            caregivers={caregivers}
+                            loggingAs={loggingAs}
+                            patients={patients}
+                            onLogAs={requestLogAs}
+                            onChange={() => setCaregiversVersion((v) => v + 1)}
+                          />
+                        </Suspense>
+                      ),
+                    }
+                  : undefined
+              }
+            />
+          </Suspense>
         ) : shown === "log" && route.rating && RATING_ON ? (
           (() => {
             const p = patients.find((x) => x.id === route.rating!.patientId);
             if (!p || !me)
               return <p className="msg">{!p ? "No such resident on this phone." : "Choose who is logging first."}</p>;
             return (
-              <RatingScreen
-                key={`${p.id}-${route.rating!.period}-${me.id}`}
-                patient={p}
-                period={route.rating!.period}
-                by={me.id}
-                byInitials={me.initials}
-                onDone={() => go({ tab: "log", page: null })}
-              />
+              <Suspense fallback={null}>
+                <RatingScreen
+                  key={`${p.id}-${route.rating!.period}-${me.id}`}
+                  patient={p}
+                  period={route.rating!.period}
+                  by={me.id}
+                  byInitials={me.initials}
+                  onDone={() => go({ tab: "log", page: null })}
+                />
+              </Suspense>
             );
           })()
         ) : shown === "log" ? (
@@ -477,33 +495,35 @@ export default function App() {
       />
 
       {study.caregiverProfiles && (
-        <WhoSheet
-          open={choosingWho}
-          viaKeyboard={choosingWhoByKey}
-          caregivers={caregivers}
-          loggingAs={loggingAs}
-          onPick={(id) => {
-            setChoosingWho(false);
-            if (id === loggingAs) return;
-            if (PIN_ON) return requestLogAs(id);
-            logAs(id);
-            const c = caregivers.find((x) => x.id === id);
-            setNotice(`${c?.initials ?? id} is logging`);
-          }}
-          onSignOut={
-            PIN_ON
-              ? () => {
-                  setChoosingWho(false);
-                  logAs(null);
-                }
-              : undefined
-          }
-          onManage={() => {
-            setChoosingWho(false);
-            go({ tab: "data", page: "caregivers" });
-          }}
-          onClose={() => setChoosingWho(false)}
-        />
+        <Suspense fallback={null}>
+          <WhoSheet
+            open={choosingWho}
+            viaKeyboard={choosingWhoByKey}
+            caregivers={caregivers}
+            loggingAs={loggingAs}
+            onPick={(id) => {
+              setChoosingWho(false);
+              if (id === loggingAs) return;
+              if (PIN_ON) return requestLogAs(id);
+              logAs(id);
+              const c = caregivers.find((x) => x.id === id);
+              setNotice(`${c?.initials ?? id} is logging`);
+            }}
+            onSignOut={
+              PIN_ON
+                ? () => {
+                    setChoosingWho(false);
+                    logAs(null);
+                  }
+                : undefined
+            }
+            onManage={() => {
+              setChoosingWho(false);
+              go({ tab: "data", page: "caregivers" });
+            }}
+            onClose={() => setChoosingWho(false)}
+          />
+        </Suspense>
       )}
 
       <nav className="tabs" aria-label="Screens">
