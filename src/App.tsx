@@ -1,11 +1,19 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
+import { TodayScreen } from "./ui/TodayScreen";
+import { TwoWeeksScreen } from "./ui/TwoWeeksScreen";
 import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
+import { addDays, localMidnight } from "./scoring/engine";
+import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
+import { CaregiverPage, WhoSheet } from "./ui/CaregiverScreen";
+import { SignInScreen } from "./ui/SignInScreen";
+import { RatingScreen } from "./ui/RatingScreen";
 import { ratingsDue as findRatingsDue } from "./data/caregiverRatings";
 import { endSession, readSession, startSession } from "./data/session";
 import { activeCaregivers, chooseLoggingCaregiver, myResidents, readLoggingCaregiver } from "./data/caregivers";
@@ -14,24 +22,11 @@ import { study } from "./study/settings";
 
 // The PIN needs caregivers to sign in as (plan 5.3).
 const PIN_ON = study.pin && study.caregiverProfiles;
-// Screens that most visits never open load on demand, so the first script stays small. The service worker
-// still caches each chunk, so they work offline after the first visit to the installed app.
-const DataScreen = lazy(() => import("./ui/DataScreen").then((m) => ({ default: m.DataScreen })));
-const CaregiverPage = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.CaregiverPage })));
-const WhoSheet = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.WhoSheet })));
-const SignInScreen = lazy(() => import("./ui/SignInScreen").then((m) => ({ default: m.SignInScreen })));
-const RatingScreen = lazy(() => import("./ui/RatingScreen").then((m) => ({ default: m.RatingScreen })));
-// The charts library is only needed on Scores, so it loads there too.
-const ScoresScreen = lazy(() => import("./ui/ScoresScreen").then((m) => ({ default: m.ScoresScreen })));
-const ScoresLoading = ({ error }: { error?: string | null }) => (
-  <div className="loading" role="status">
-    {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
-  </div>
-);
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
-  { id: "scores", label: "Score", title: "Score", icon: "chart" },
+  { id: "today", label: "Today", title: "Today", icon: "today" },
+  { id: "twoweeks", label: "Two weeks", title: "Two weeks", icon: "twoweeks" },
   { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
 
@@ -44,46 +39,71 @@ const PAGE_TITLES: Record<DataPage, string> = {
   caregivers: "Caregivers",
 };
 
-const readSaved = () => {
-  try {
-    return localStorage.getItem("cmai-patient");
-  } catch {
-    return null;
-  }
-};
-
 export default function App() {
-  const [patientId, setPatientId] = useState<string | null>(readSaved);
-  const { route, go, back } = useRoute(() => ({ tab: readSaved() ? "log" : "data", page: null }));
+  const [patientId, setPatientId] = useState<string | null>(null);
+  // The patient to open on is worked out from the data once, before anything is shown (lastPatient.ts).
+  const [restored, setRestored] = useState(false);
+  const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
   const tab = route.tab;
-  // The Scores period chosen for each patient, so leaving Scores and coming back keeps it.
-  const scoresPeriod = useRef<Record<string, number>>({});
-  if (route.tab === "scores" && route.period && patientId) scoresPeriod.current[patientId] = route.period;
-  const scoresRoute = (id: string | null) => ({
-    tab: "scores" as const,
+  // The period chosen on Two weeks for each patient, so leaving and coming back keeps it.
+  const weeksPeriod = useRef<Record<string, number>>({});
+  if (route.tab === "twoweeks" && route.period && patientId) weeksPeriod.current[patientId] = route.period;
+  const weeksRoute = (id: string | null) => ({
+    tab: "twoweeks" as const,
     page: null,
-    period: id ? scoresPeriod.current[id] : undefined,
+    period: id ? weeksPeriod.current[id] : undefined,
   });
-  const setTab = (t: Tab) => go(t === "scores" ? scoresRoute(patientId) : { tab: t, page: null });
+  const setTab = (t: Tab) => go(t === "twoweeks" ? weeksRoute(patientId) : { tab: t, page: null });
   const { patients, observations, checkins, windows, refresh, loaded, everLoaded, error } = useCmaiData(patientId);
   const mainRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const firstRender = useRef(true);
 
   useEffect(() => {
-    try {
-      if (patientId) localStorage.setItem("cmai-patient", patientId);
-      else localStorage.removeItem("cmai-patient");
-    } catch {
-      /* private mode */
-    }
-  }, [patientId]);
+    let live = true;
+    startingPatient().then((id) => {
+      if (!live) return;
+      setPatientId(id);
+      setRestored(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!restored || !loaded) return;
     if (patients.length && !patients.some((p) => p.id === patientId)) setPatientId(patients[0].id);
     if (!patients.length && patientId) setPatientId(null);
-  }, [loaded, patients, patientId]);
+  }, [restored, loaded, patients, patientId]);
+
+  // "Today" is worked out when the data is read, so an app left open must read again when the day
+  // changes: at the next local midnight, and when the phone comes back to the app (F-35).
+  useEffect(() => {
+    let timer: number;
+    const arm = () => {
+      const t = Date.now();
+      timer = window.setTimeout(
+        () => {
+          refresh();
+          arm();
+        },
+        addDays(localMidnight(t), 1) - t + 50,
+      );
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      refresh();
+      window.clearTimeout(timer);
+      arm();
+    };
+    arm();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refresh]);
 
   // A new screen starts at the top, and screen readers land on its heading.
   useEffect(() => {
@@ -177,7 +197,6 @@ export default function App() {
       live = false;
     };
   }, [RATING_ON, duePatient, loggingAs, observations, route.rating]);
-  const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
 
   // The section bars pin just under the patient banner, so they need its height.
   useEffect(() => {
@@ -215,8 +234,8 @@ export default function App() {
     setChoosing(false);
     if (id === patientId) return;
     setPatientId(id);
-    // A period number belongs to one patient: Scores reopens on this patient's own choice.
-    if (route.tab === "scores") go(scoresRoute(id));
+    // A period number belongs to one patient: Two weeks reopens on this patient's own choice.
+    if (route.tab === "twoweeks") go(weeksRoute(id));
     setNotice(`Now on ${id}`);
     setSwitched(true);
   }
@@ -237,18 +256,24 @@ export default function App() {
   const pos = current ? patientPosition(current.anchor, Date.now()) : null;
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
+  // Wait for the starting patient so the app never opens on the wrong one for a moment.
+  if (!restored)
+    return (
+      <div className="loading" role="status">
+        Loading…
+      </div>
+    );
+
   // With the PIN on and caregivers on the phone, nothing of the app shows until someone signs in.
   if (PIN_ON && !caregiversLoaded) return null;
   if (PIN_ON && caregivers.length > 0 && (!loggingAs || signingIn)) {
     return (
-      <Suspense fallback={null}>
-        <SignInScreen
-          caregivers={caregivers}
-          start={signingIn?.id ?? null}
-          onCancel={loggingAs ? () => setSigningIn(null) : undefined}
-          onSignedIn={signedIn}
-        />
-      </Suspense>
+      <SignInScreen
+        caregivers={caregivers}
+        start={signingIn?.id ?? null}
+        onCancel={loggingAs ? () => setSigningIn(null) : undefined}
+        onSignedIn={signedIn}
+      />
     );
   }
 
@@ -279,7 +304,7 @@ export default function App() {
                   <b>{current.id}</b>
                   {current.demo && <span className="tag">demo</span>}
                   <span className="pt-meta">
-                    {tab === "scores" ? "Current: " : ""}
+                    {tab === "twoweeks" ? "Current: " : ""}
                     {periodLine}
                   </span>
                 </span>
@@ -312,7 +337,7 @@ export default function App() {
                 <b>{current.id}</b>
                 {current.demo && <span className="tag">demo</span>}
                 <span className="pt-meta">
-                  {tab === "scores" ? "Current: " : ""}
+                  {tab === "twoweeks" ? "Current: " : ""}
                   {periodLine}
                 </span>
               </span>
@@ -354,66 +379,61 @@ export default function App() {
             <span className="spinner" aria-hidden /> Loading…
           </div>
         ) : shown === "data" ? (
-          <Suspense fallback={<ScoresLoading />}>
-            <DataScreen
-              patients={patients}
-              current={hasPatient ? patientId : null}
-              page={route.page}
-              pageTitle={route.page ? PAGE_TITLES[route.page] : ""}
-              onPage={(page) => go({ tab: "data", page })}
-              onBack={back}
-              onPatient={(id) => {
-                pickPatient(id);
-                setTab("log");
-              }}
-              onChange={refresh}
-              caregivers={
-                study.caregiverProfiles
-                  ? {
-                      status: caregivers.length
-                        ? `${caregivers.length} on this phone${me ? ` · ${me.initials} logging` : ""}`
-                        : "Add the first caregiver",
-                      page: (
-                        <Suspense fallback={null}>
-                          <CaregiverPage
-                            caregivers={caregivers}
-                            loggingAs={loggingAs}
-                            patients={patients}
-                            onLogAs={requestLogAs}
-                            onChange={() => setCaregiversVersion((v) => v + 1)}
-                          />
-                        </Suspense>
-                      ),
-                    }
-                  : undefined
-              }
-            />
-          </Suspense>
+          <DataScreen
+            patients={patients}
+            current={hasPatient ? patientId : null}
+            page={route.page}
+            pageTitle={route.page ? PAGE_TITLES[route.page] : ""}
+            onPage={(page) => go({ tab: "data", page })}
+            onBack={back}
+            onPatient={(id) => {
+              pickPatient(id);
+              setTab("log");
+            }}
+            onChange={refresh}
+            caregivers={
+              study.caregiverProfiles
+                ? {
+                    status: caregivers.length
+                      ? `${caregivers.length} on this phone${me ? ` · ${me.initials} logging` : ""}`
+                      : "Add the first caregiver",
+                    page: (
+                      <CaregiverPage
+                        caregivers={caregivers}
+                        loggingAs={loggingAs}
+                        patients={patients}
+                        onLogAs={requestLogAs}
+                        onChange={() => setCaregiversVersion((v) => v + 1)}
+                      />
+                    ),
+                  }
+                : undefined
+            }
+          />
         ) : shown === "log" && route.rating && RATING_ON ? (
           (() => {
             const p = patients.find((x) => x.id === route.rating!.patientId);
             if (!p || !me)
               return <p className="msg">{!p ? "No such resident on this phone." : "Choose who is logging first."}</p>;
             return (
-              <Suspense fallback={null}>
-                <RatingScreen
-                  key={`${p.id}-${route.rating!.period}-${me.id}`}
-                  patient={p}
-                  period={route.rating!.period}
-                  by={me.id}
-                  byInitials={me.initials}
-                  onDone={() => go({ tab: "log", page: null })}
-                />
-              </Suspense>
+              <RatingScreen
+                key={`${p.id}-${route.rating!.period}-${me.id}`}
+                patient={p}
+                period={route.rating!.period}
+                by={me.id}
+                byInitials={me.initials}
+                onDone={() => go({ tab: "log", page: null })}
+              />
             );
           })()
         ) : shown === "log" ? (
           <LogScreen
             patientId={patientId!}
             observations={observations}
-            checkins={checkins}
+            demo={!!current?.demo}
             onChange={refresh}
-            initialsOf={study.caregiverProfiles ? initialsOf : undefined}
+            onToday={() => setTab("today")}
+            onBackUp={() => go({ tab: "data", page: "backup" })}
             ratingsDue={due}
             onRate={
               RATING_ON
@@ -421,21 +441,24 @@ export default function App() {
                 : undefined
             }
           />
+        ) : shown === "today" ? (
+          <TodayScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
         ) : loaded && !error ? (
-          <Suspense fallback={<ScoresLoading />}>
-            <ScoresScreen
-              key={patientId}
-              patientId={patientId!}
-              windows={windows}
-              observations={observations}
-              hasActivity={observations.length > 0 || checkins.length > 0}
-              period={route.period}
-              onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
-              onLog={() => setTab("log")}
-            />
-          </Suspense>
+          <TwoWeeksScreen
+            key={patientId}
+            windows={windows}
+            observations={observations}
+            checkins={checkins}
+            hasActivity={observations.length > 0 || checkins.length > 0}
+            period={route.period}
+            onPeriod={(n) => go({ tab: "twoweeks", page: null, period: n })}
+            onLog={() => setTab("log")}
+            onExport={() => go({ tab: "data", page: "backup" })}
+          />
         ) : (
-          <ScoresLoading error={error} />
+          <div className="loading" role="status">
+            {error ? "Two weeks is unavailable while saved data cannot be read." : "Loading…"}
+          </div>
         )}
       </main>
 
@@ -454,35 +477,33 @@ export default function App() {
       />
 
       {study.caregiverProfiles && (
-        <Suspense fallback={null}>
-          <WhoSheet
-            open={choosingWho}
-            viaKeyboard={choosingWhoByKey}
-            caregivers={caregivers}
-            loggingAs={loggingAs}
-            onPick={(id) => {
-              setChoosingWho(false);
-              if (id === loggingAs) return;
-              if (PIN_ON) return requestLogAs(id);
-              logAs(id);
-              const c = caregivers.find((x) => x.id === id);
-              setNotice(`${c?.initials ?? id} is logging`);
-            }}
-            onSignOut={
-              PIN_ON
-                ? () => {
-                    setChoosingWho(false);
-                    logAs(null);
-                  }
-                : undefined
-            }
-            onManage={() => {
-              setChoosingWho(false);
-              go({ tab: "data", page: "caregivers" });
-            }}
-            onClose={() => setChoosingWho(false)}
-          />
-        </Suspense>
+        <WhoSheet
+          open={choosingWho}
+          viaKeyboard={choosingWhoByKey}
+          caregivers={caregivers}
+          loggingAs={loggingAs}
+          onPick={(id) => {
+            setChoosingWho(false);
+            if (id === loggingAs) return;
+            if (PIN_ON) return requestLogAs(id);
+            logAs(id);
+            const c = caregivers.find((x) => x.id === id);
+            setNotice(`${c?.initials ?? id} is logging`);
+          }}
+          onSignOut={
+            PIN_ON
+              ? () => {
+                  setChoosingWho(false);
+                  logAs(null);
+                }
+              : undefined
+          }
+          onManage={() => {
+            setChoosingWho(false);
+            go({ tab: "data", page: "caregivers" });
+          }}
+          onClose={() => setChoosingWho(false)}
+        />
       )}
 
       <nav className="tabs" aria-label="Screens">

@@ -5,18 +5,22 @@ Every feature or change to CMAI Tracker goes through the same route, small or la
 The route is the one product teams with a design system use (problem first, shaped before built, every state designed, verified in every mode, recorded), cut down to a one-person project.
 
 ## 1. Problem
+
 - Say who has the problem and when: a caregiver mid-shift, a nurse at the day-14 review, a rater reading exports.
 - Bring evidence: something measured (page height, tap count, contrast ratio), a heuristic finding from `docs/usability/`, or what someone said.
 - Give it an ID in `docs/review-register.md` (F- for a feature, D- for a scoring decision). A scoring change also needs a new `RULE_VERSION` (see the register).
 
 ## 2. Shape
+
 - Write at least two options and recommend one, with the trade-offs.
 - Set the **appetite** (how much time the change is worth) before the scope, plus **done when** and **kill when**.
 - Anything that changes navigation, data or scoring gets a design note in `docs/design/notes/` (problem, options, decision, what was left out). A small polish fix can use the PR description instead.
 - Look for an existing pattern first: a token in `src/styles.css`, a component in `src/ui/`, or an established platform pattern (Apple HIG, Material, NHS, USWDS). New patterns need a reason.
 
 ## 3. Design every state
+
 Before building, list what the change looks like in each of these. The PR checklist repeats them.
+
 - **Data states:** empty, loading, error, one item, many items, first run.
 - **Sizes:** phone (390 px wide) and desktop.
 - **Modes:** light, dark, and both with high contrast. Colors come from tokens only, never hard-coded.
@@ -26,11 +30,13 @@ Before building, list what the change looks like in each of these. The PR checkl
 - **Motion:** respects "reduce motion".
 
 ## 4. Build
+
 - On its own branch, one change per PR.
 - Logic gets unit tests first (`tests/`). UI uses shared components and tokens, with no one-off styles.
 - Plain-language copy: short, active, no jargon, the same words as the rest of the app.
 
 ## 5. Verify
+
 - `npm test`, `npm run lint`, `npm run typecheck` and `npm run build` pass.
 - The browser checks in `e2e/` pass against the production build: the end-to-end flow (including the offline reload), navigation and theme. A new feature adds its own checks there.
 - CI runs `npm run checks` on every pull request, so a PR can't merge with a failing browser check once the main-branch ruleset requires it.
@@ -42,6 +48,7 @@ Before building, list what the change looks like in each of these. The PR checkl
 - The screenshot comparison passes, or its baselines in `e2e/screenshots/` are updated on purpose in the same PR (see `e2e/README.md`).
 
 ## 6. Record
+
 - A decision-log row in `docs/review-register.md`. Anything that needs the lab's approval is added there as an open item, and it does not block the demo.
 - Update `docs/design/design-brief.md` if the design system changed, and `README.md` if what a user sees changed.
 - A change to a scoring rule, or to what a screen says about one, updates `docs/scoring-spec.md` in the same PR, with its row in the spec's "Checked by" table and the check behind it.
@@ -49,21 +56,23 @@ Before building, list what the change looks like in each of these. The PR checkl
 - A release bumps `version` in `package.json` and adds its CHANGELOG section in the same PR; the merge tags it `v<version>`.
 
 ## 7. Ship
+
 - A draft PR using the template, with the screenshots in the description, not committed. CI must be green.
 - Devin marks it ready and merges. The Pages deploy runs on merge; confirm it went live.
 
 ## Definition of done
+
 The problem is recorded, the shape is written down, every state above is handled, every check in step 5 passed, the register and docs are updated, and the change is live.
 
 ## Lanes
 
 The full rules are in [build-plan.md](build-plan.md), section 1.3. In short, every step of the plan is in one lane.
 
-| Lane | What it covers | May start | How it ships |
-|---|---|---|---|
-| **A. Build now** | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown | Now | Draft pull request. Devin merges |
-| **B. Build on assumed approval** | Anything that adds or changes a stored field, adds sign-in or caregiver identity, changes what is collected, or adds to what an export contains | Now | Draft pull request, behind a study setting that is off in the caregiver build. The register row says "Built on assumed approval. Sign-off pending", with the assumed answer |
-| **Stop** | A real person or real participant data. Sending anything to Dr. Gupta or outside the lab. A server, account or approval the lab has not provided. Merging and GitHub settings | Only the part marked "can be done now" | Write the design or the draft. Do not fake the missing piece |
+| Lane                             | What it covers                                                                                                                                                                | May start                              | How it ships                                                                                                                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. Build now**                 | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown                                                                                   | Now                                    | Draft pull request. Devin merges                                                                                                                                            |
+| **B. Build on assumed approval** | Anything that adds or changes a stored field, adds sign-in or caregiver identity, changes what is collected, or adds to what an export contains                               | Now                                    | Draft pull request, behind a study setting that is off in the caregiver build. The register row says "Built on assumed approval. Sign-off pending", with the assumed answer |
+| **Stop**                         | A real person or real participant data. Sending anything to Dr. Gupta or outside the lab. A server, account or approval the lab has not provided. Merging and GitHub settings | Only the part marked "can be done now" | Write the design or the draft. Do not fake the missing piece                                                                                                                |
 
 **The four-part test for lane A.** All four must be true:
 

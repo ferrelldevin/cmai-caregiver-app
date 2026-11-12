@@ -8,18 +8,18 @@ The brief it was written against is `plans/build-plan-v5-scope.md`.
 
 ## Part 0. What changed from v4
 
-| Change | Where | Why |
-|---|---|---|
-| **Lane B no longer waits.** It is built now on assumed approval, as a draft pull request, switched off for caregivers until Dr. Gupta signs | 1.3 | Devin, 2026-11-10: "assume that Gupta approves and that there's nothing physically blocking us" |
-| **A third lane, Stop,** for the few things that cannot be done without a person, an account or a send | 1.3 | Same message: "If we physically need his approval to build it, then we can stop" |
-| **Steps may stack** on an unmerged branch. Waiting for a merge is not a block | 1.4 | Same |
-| **Stage 5 is fully specified:** study settings, database version 4, caregiver profiles, PIN, blind day-14 CMAI, backup protection, export format 2 | Stage 5 | It was a list of titles in v4 |
-| **The six research proposals are steps** with register IDs F-38 to F-43 and their sources | 5.6 to 5.10, 7.1, Part 9 | Research scan, 2026-11-10 |
-| **A discipline-by-discipline pass,** each gap a step or a written "not now" | Part 7 | Devin's list |
-| **A design and flow review** with four proposed screen changes drawn as mockups | Part 8, steps 4.0, 4.6, 4.7 | "Easy for these caregivers to use, and it needs to make sense" |
-| **Tabs proposed as Log, Today, Two weeks, Settings.** Steps 4.2 to 4.4 are rewritten for it | 4.2 to 4.4 | Score and Report's two-week view show the same table twice (Part 8, U1). Decision card posted; reversible |
-| **New steps:** 1.9, 1.10, 2.11 to 2.13, 3.9 to 3.14, 4.0, 4.6 to 4.8, 5.0, 5.6 to 5.11, 7.1 | Status table | Parts 7 to 9 |
-| **Two v4 errors fixed:** 4.1 said "chosen exactly as the mockup chooses them", but the mockup's three tiles are typed in by hand, so there was no rule. 4.1 put an info button on every tile, which invites mis-taps at 3 across | 4.1 | Read of `src/mockup/Screens.tsx`; Part 8, U3 and U4 |
+| Change                                                                                                                                                                                                                           | Where                       | Why                                                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Lane B no longer waits.** It is built now on assumed approval, as a draft pull request, switched off for caregivers until Dr. Gupta signs                                                                                      | 1.3                         | Devin, 2026-11-10: "assume that Gupta approves and that there's nothing physically blocking us"           |
+| **A third lane, Stop,** for the few things that cannot be done without a person, an account or a send                                                                                                                            | 1.3                         | Same message: "If we physically need his approval to build it, then we can stop"                          |
+| **Steps may stack** on an unmerged branch. Waiting for a merge is not a block                                                                                                                                                    | 1.4                         | Same                                                                                                      |
+| **Stage 5 is fully specified:** study settings, database version 4, caregiver profiles, PIN, blind day-14 CMAI, backup protection, export format 2                                                                               | Stage 5                     | It was a list of titles in v4                                                                             |
+| **The six research proposals are steps** with register IDs F-38 to F-43 and their sources                                                                                                                                        | 5.6 to 5.10, 7.1, Part 9    | Research scan, 2026-11-10                                                                                 |
+| **A discipline-by-discipline pass,** each gap a step or a written "not now"                                                                                                                                                      | Part 7                      | Devin's list                                                                                              |
+| **A design and flow review** with four proposed screen changes drawn as mockups                                                                                                                                                  | Part 8, steps 4.0, 4.6, 4.7 | "Easy for these caregivers to use, and it needs to make sense"                                            |
+| **Tabs proposed as Log, Today, Two weeks, Settings.** Steps 4.2 to 4.4 are rewritten for it                                                                                                                                      | 4.2 to 4.4                  | Score and Report's two-week view show the same table twice (Part 8, U1). Decision card posted; reversible |
+| **New steps:** 1.9, 1.10, 2.11 to 2.13, 3.9 to 3.14, 4.0, 4.6 to 4.8, 5.0, 5.6 to 5.11, 7.1                                                                                                                                      | Status table                | Parts 7 to 9                                                                                              |
+| **Two v4 errors fixed:** 4.1 said "chosen exactly as the mockup chooses them", but the mockup's three tiles are typed in by hand, so there was no rule. 4.1 put an info button on every tile, which invites mis-taps at 3 across | 4.1                         | Read of `src/mockup/Screens.tsx`; Part 8, U3 and U4                                                       |
 
 ---
 
@@ -52,11 +52,11 @@ These come from the project instructions. No step in this plan overrides them.
 
 Every step is in one lane. The lane is in the status table.
 
-| Lane | What it covers | May start | How it ships |
-|---|---|---|---|
-| **A. Build now** | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown | Now | Draft pull request. Devin merges |
-| **B. Build on assumed approval** | Anything that adds or changes a stored field, adds sign-in or caregiver identity, changes what is collected, or adds to what an export contains. Making an existing export safer, or cutting the same data a different way, is lane A | Now | Draft pull request, behind a study setting that is **off** in the caregiver build (step 5.0). Register row says `Built on assumed approval (Devin, 2026-11-10). Sign-off pending`, with the assumed answer. The question stays in Dr. Gupta's review packet (3.1) |
-| **Stop** | A real person or real participant data. Sending anything to Dr. Gupta or outside the lab. A server, account or approval the lab has not provided. Merging and GitHub settings | Only the part marked "can be done now" | Write the design or the draft. Do not fake the missing piece |
+| Lane                             | What it covers                                                                                                                                                                                                                        | May start                              | How it ships                                                                                                                                                                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. Build now**                 | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown                                                                                                                                           | Now                                    | Draft pull request. Devin merges                                                                                                                                                                                                                                  |
+| **B. Build on assumed approval** | Anything that adds or changes a stored field, adds sign-in or caregiver identity, changes what is collected, or adds to what an export contains. Making an existing export safer, or cutting the same data a different way, is lane A | Now                                    | Draft pull request, behind a study setting that is **off** in the caregiver build (step 5.0). Register row says `Built on assumed approval (Devin, 2026-11-10). Sign-off pending`, with the assumed answer. The question stays in Dr. Gupta's review packet (3.1) |
+| **Stop**                         | A real person or real participant data. Sending anything to Dr. Gupta or outside the lab. A server, account or approval the lab has not provided. Merging and GitHub settings                                                         | Only the part marked "can be done now" | Write the design or the draft. Do not fake the missing piece                                                                                                                                                                                                      |
 
 Test for lane A. All four must be true:
 
@@ -87,19 +87,19 @@ What is always Stop, whatever a step says:
 
 Follow these in order. "Where" says where each command runs.
 
-| # | Do | Where |
-|---|---|---|
-| 1 | `git fetch origin` then `git checkout -B <branch> origin/main`. If a "Needs" step is `In review`, use its branch instead of `origin/main` and name it in the pull request under "Stacked on". | Cloud thread, in the repo |
-| 2 | `npm ci` | Cloud thread |
-| 3 | Write the failing test or check named in the step. Run it. Confirm it fails for the reason the step gives. | Cloud thread |
-| 4 | Make the change. Touch only the files the step lists. If another file needs to change, say why in the pull request. | Cloud thread |
-| 5 | `npm run lint` then `npm run typecheck` then `npm run test:coverage` then `CHROME=/opt/pw-browsers/chromium npm run checks` | Cloud thread |
-| 6 | Use the app with the `run-cmai` skill for any change a caregiver can see. Take before and after screenshots at 390 px wide, light and dark. Put them in the pull request description, not in git. | Cloud thread |
-| 7 | Add a decision-log row to `docs/review-register.md` and an entry under Unreleased in `CHANGELOG.md`. Update this plan's status table. | Cloud thread |
-| 8 | Commit, `git push -u origin <branch>`, open a **draft** pull request with `.github/pull_request_template.md`. List each acceptance criterion and how it was checked. | Cloud thread |
-| 9 | Set the step to `In review` in the status table, with the pull request number. | Cloud thread |
-| 10 | Mark ready and merge | **Devin**, in the browser (GitHub) |
-| 11 | After the merge: confirm the "Test and deploy" run on `main` is green. Then set the step to `Done`. | Cloud thread reads the run; Devin confirms on his phone when the step says so |
+| #   | Do                                                                                                                                                                                                | Where                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 1   | `git fetch origin` then `git checkout -B <branch> origin/main`. If a "Needs" step is `In review`, use its branch instead of `origin/main` and name it in the pull request under "Stacked on".     | Cloud thread, in the repo                                                     |
+| 2   | `npm ci`                                                                                                                                                                                          | Cloud thread                                                                  |
+| 3   | Write the failing test or check named in the step. Run it. Confirm it fails for the reason the step gives.                                                                                        | Cloud thread                                                                  |
+| 4   | Make the change. Touch only the files the step lists. If another file needs to change, say why in the pull request.                                                                               | Cloud thread                                                                  |
+| 5   | `npm run lint` then `npm run typecheck` then `npm run test:coverage` then `CHROME=/opt/pw-browsers/chromium npm run checks`                                                                       | Cloud thread                                                                  |
+| 6   | Use the app with the `run-cmai` skill for any change a caregiver can see. Take before and after screenshots at 390 px wide, light and dark. Put them in the pull request description, not in git. | Cloud thread                                                                  |
+| 7   | Add a decision-log row to `docs/review-register.md` and an entry under Unreleased in `CHANGELOG.md`. Update this plan's status table.                                                             | Cloud thread                                                                  |
+| 8   | Commit, `git push -u origin <branch>`, open a **draft** pull request with `.github/pull_request_template.md`. List each acceptance criterion and how it was checked.                              | Cloud thread                                                                  |
+| 9   | Set the step to `In review` in the status table, with the pull request number.                                                                                                                    | Cloud thread                                                                  |
+| 10  | Mark ready and merge                                                                                                                                                                              | **Devin**, in the browser (GitHub)                                            |
+| 11  | After the merge: confirm the "Test and deploy" run on `main` is green. Then set the step to `Done`.                                                                                               | Cloud thread reads the run; Devin confirms on his phone when the step says so |
 
 On Devin's desktop, the same commands run in **PowerShell** in `C:\lab\cmai-tracker`, without the `CHROME=` prefix. After any pull that changes `package.json` or `package-lock.json`, run `npm ci` there first.
 
@@ -123,18 +123,18 @@ A stop is for that step only. Report it, then take the next step that does not d
 
 ### 1.6 Where things live
 
-| Thing | Place |
-|---|---|
-| Repo | `github.com/ferrelldevin/cmai-tracker`; on Devin's machines `C:\lab\cmai-tracker` |
-| This plan | `plans/build-plan.md` in the project folder until step 0.7 moves it to `docs/process/build-plan.md` in the repo. After that the repo copy is the source. |
-| Scoring rule | `docs/scoring-spec.md`, checked by `docs/test-cases.json` and `tests/engine.test.ts` |
-| Open decisions | `docs/review-register.md` |
-| Change route | `docs/process/change-process.md` |
-| The mockup, round 3 (decided) | `src/mockup/Screens.tsx`, `src/mockup/mockup.css`, `npm run storybook`; pictures in `mockup/round-3/` |
+| Thing                                       | Place                                                                                                                                                       |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repo                                        | `github.com/ferrelldevin/cmai-tracker`; on Devin's machines `C:\lab\cmai-tracker`                                                                           |
+| This plan                                   | `plans/build-plan.md` in the project folder until step 0.7 moves it to `docs/process/build-plan.md` in the repo. After that the repo copy is the source.    |
+| Scoring rule                                | `docs/scoring-spec.md`, checked by `docs/test-cases.json` and `tests/engine.test.ts`                                                                        |
+| Open decisions                              | `docs/review-register.md`                                                                                                                                   |
+| Change route                                | `docs/process/change-process.md`                                                                                                                            |
+| The mockup, round 3 (decided)               | `src/mockup/Screens.tsx`, `src/mockup/mockup.css`, `npm run storybook`; pictures in `mockup/round-3/`                                                       |
 | The mockup, round 4 (proposed in this plan) | `plans/round-4-mockup-proposals.patch`, pictures in `mockup/round-4/img/`, review page linked in Part 8 (https://claude.ai/artifact/99uHyDxe2WmGt1b52QhEuQ) |
-| Study settings (lane B switches) | `src/study/settings.ts` after step 5.0 |
-| Research scan | "Missed connections in agitation detection", https://claude.ai/artifact/NEUQFz3NNuBZ3jfxsXU75L |
-| Desktop check run | "Run the CMAI checks" in Claude Code on DEVIN-DESKTOP, see `CLAUDE.md` |
+| Study settings (lane B switches)            | `src/study/settings.ts` after step 5.0                                                                                                                      |
+| Research scan                               | "Missed connections in agitation detection", https://claude.ai/artifact/NEUQFz3NNuBZ3jfxsXU75L                                                              |
+| Desktop check run                           | "Run the CMAI checks" in Claude Code on DEVIN-DESKTOP, see `CLAUDE.md`                                                                                      |
 
 ---
 
@@ -142,39 +142,39 @@ A stop is for that step only. Report it, then take the next step that does not d
 
 Devin's direction on 2026-11-10: take the recommended pick, record it, keep going. So each of these is **taken**, and each can be reversed by telling any thread. Only number 8 is on a card, because it changes a choice Devin made earlier.
 
-| # | Question | Taken | What reversing it costs |
-|---|---|---|---|
-| 1 | What may be built before Dr. Gupta's review? | Everything except the Stop list. Lane B ships switched off for caregivers | Nothing. Lane B features are removed by their switch |
-| 2 | Start Stages 0 to 2 now? | Yes | n/a |
-| 3 | Browser checks on Playwright's own runner, plus WebKit (2.6) | Yes | Fall back to the scripts with a browser switch |
-| 4 | When does a merge reach phones (2.7) | Every merge deploys for now, with a version stamp and live check. Versions are tagged from 2.7 on; deploying only on a tag starts at lab adoption | One line in the workflow |
-| 5 | Format every file once (2.5) | Yes, after #41 and #38 | n/a |
-| 6 | Major upgrades | One per pull request, each with a kill rule (2.3) | Close the pull request |
-| 7 | Where this plan lives | In the repo, `docs/process/build-plan.md` | Move the file |
-| 8 | Tabs | **Log, Today, Two weeks, Settings.** Score's list moves into Two weeks (Part 8, U1) | Steps 4.2 to 4.4 go back to v4's wording. No code is lost before 4.4 |
-| 9 | Log layout | Round 3 as decided for step 4.1. One page with jump links is a separate step (4.6) so it can be compared and dropped | Skip 4.6 |
-| 10 | R2: who sets up caregivers and residents | Whoever sets up the phone, in Settings. Caregivers are codes plus initials, never names. Any caregiver on the phone can log for any resident on it. "My residents" is an order, not a lock | Change 5.2's settings; no stored data is wrong |
-| 11 | R1: how sign-in works | A 4-digit PIN per caregiver on the phone, asked once per shift, never between taps. The phone's own lock is the real guard (5.3) | Switch off; or lengthen the PIN |
-| 12 | Who sees ratings during a study | Caregivers do not. Two weeks shows counts and charts to caregivers and ratings only in lab view (D-24). Built that way in the lab build; the caregiver build keeps today's behavior until D-24 is signed | One setting |
-| 13 | R4: when a day ends | Local midnight | One function |
-| 14 | D-17, D-18 | Group average, and the mockup's pattern thresholds, both shown as open in lab view | Constants in one file |
-| 15 | Blind day-14 CMAI, codes 8 and 9 | Built as spec section 5 describes. Code 8 stays a separate code (5.4) | Switch off |
-| 16 | Free-text notes | Kept, 120 characters, with "no names" beside the field. The data dictionary marks them "check before sharing" (P-11) | One setting hides the fields |
-| 17 | Backup file | Protected with a passphrase once 5.11 is built (F-10): on in the lab build, off in the caregiver build until signed | One setting |
+| #   | Question                                                     | Taken                                                                                                                                                                                                    | What reversing it costs                                              |
+| --- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1   | What may be built before Dr. Gupta's review?                 | Everything except the Stop list. Lane B ships switched off for caregivers                                                                                                                                | Nothing. Lane B features are removed by their switch                 |
+| 2   | Start Stages 0 to 2 now?                                     | Yes                                                                                                                                                                                                      | n/a                                                                  |
+| 3   | Browser checks on Playwright's own runner, plus WebKit (2.6) | Yes                                                                                                                                                                                                      | Fall back to the scripts with a browser switch                       |
+| 4   | When does a merge reach phones (2.7)                         | Every merge deploys for now, with a version stamp and live check. Versions are tagged from 2.7 on; deploying only on a tag starts at lab adoption                                                        | One line in the workflow                                             |
+| 5   | Format every file once (2.5)                                 | Yes, after #41 and #38                                                                                                                                                                                   | n/a                                                                  |
+| 6   | Major upgrades                                               | One per pull request, each with a kill rule (2.3)                                                                                                                                                        | Close the pull request                                               |
+| 7   | Where this plan lives                                        | In the repo, `docs/process/build-plan.md`                                                                                                                                                                | Move the file                                                        |
+| 8   | Tabs                                                         | **Log, Today, Two weeks, Settings.** Score's list moves into Two weeks (Part 8, U1)                                                                                                                      | Steps 4.2 to 4.4 go back to v4's wording. No code is lost before 4.4 |
+| 9   | Log layout                                                   | Round 3 as decided for step 4.1. One page with jump links is a separate step (4.6) so it can be compared and dropped                                                                                     | Skip 4.6                                                             |
+| 10  | R2: who sets up caregivers and residents                     | Whoever sets up the phone, in Settings. Caregivers are codes plus initials, never names. Any caregiver on the phone can log for any resident on it. "My residents" is an order, not a lock               | Change 5.2's settings; no stored data is wrong                       |
+| 11  | R1: how sign-in works                                        | A 4-digit PIN per caregiver on the phone, asked once per shift, never between taps. The phone's own lock is the real guard (5.3)                                                                         | Switch off; or lengthen the PIN                                      |
+| 12  | Who sees ratings during a study                              | Caregivers do not. Two weeks shows counts and charts to caregivers and ratings only in lab view (D-24). Built that way in the lab build; the caregiver build keeps today's behavior until D-24 is signed | One setting                                                          |
+| 13  | R4: when a day ends                                          | Local midnight                                                                                                                                                                                           | One function                                                         |
+| 14  | D-17, D-18                                                   | Group average, and the mockup's pattern thresholds, both shown as open in lab view                                                                                                                       | Constants in one file                                                |
+| 15  | Blind day-14 CMAI, codes 8 and 9                             | Built as spec section 5 describes. Code 8 stays a separate code (5.4)                                                                                                                                    | Switch off                                                           |
+| 16  | Free-text notes                                              | Kept, 120 characters, with "no names" beside the field. The data dictionary marks them "check before sharing" (P-11)                                                                                     | One setting hides the fields                                         |
+| 17  | Backup file                                                  | Protected with a passphrase once 5.11 is built (F-10): on in the lab build, off in the caregiver build until signed                                                                                      | One setting                                                          |
 
 ---
 
 ## Part 3. Where things stand (2026-11-10)
 
-| Item | State |
-|---|---|
-| `main` | `b753f6f`. All checks pass (see the audit, "What I ran") |
-| Mobile requirements | R1 Login missing. R2 Caregiver partial. R3 One-click mostly met. R4 Daily report missing. R5 Two-week report mostly met |
-| Mockup build (note 008) | Phase 0 merged (#37). Phase 1 shell is draft PR #41, green. Phases 2 to 5 not started |
-| Open pull requests | #28 actions, #30 and #31 security patches (green), #32 #33 #42 Dependabot (failing), #38 drift checks (draft, stale), #41 shell (draft, green) |
-| Threads at work | "Fix audit bugs and harden checks" (Stages 1 and 2). "Draft lab readiness documents" (Stage 3). "Build the mockup into the app" (PR #41, Stage 4). Each updates its own rows in Part 4 |
-| Dr. Gupta's review | Workbook with him. Not in the project folder. 14 scoring decisions and 11 questions open. Assumed approved for the purpose of building, not approved (Part 2), still asked in the packet (3.1) |
-| Real data | None. Demo data only |
+| Item                    | State                                                                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main`                  | `b753f6f`. All checks pass (see the audit, "What I ran")                                                                                                                                       |
+| Mobile requirements     | R1 Login missing. R2 Caregiver partial. R3 One-click mostly met. R4 Daily report missing. R5 Two-week report mostly met                                                                        |
+| Mockup build (note 008) | Phase 0 merged (#37). Phase 1 shell is draft PR #41, green. Phases 2 to 5 not started                                                                                                          |
+| Open pull requests      | #28 actions, #30 and #31 security patches (green), #32 #33 #42 Dependabot (failing), #38 drift checks (draft, stale), #41 shell (draft, green)                                                 |
+| Threads at work         | "Fix audit bugs and harden checks" (Stages 1 and 2). "Draft lab readiness documents" (Stage 3). "Build the mockup into the app" (PR #41, Stage 4). Each updates its own rows in Part 4         |
+| Dr. Gupta's review      | Workbook with him. Not in the project folder. 14 scoring decisions and 11 questions open. Assumed approved for the purpose of building, not approved (Part 2), still asked in the packet (3.1) |
+| Real data               | None. Demo data only                                                                                                                                                                           |
 
 ---
 
@@ -182,77 +182,77 @@ Devin's direction on 2026-11-10: take the recommended pick, record it, keep goin
 
 Update the Status column in the same pull request that does the step. Status is one of `Not started`, `In review (#n)`, `Done`, `Stopped: <why>`.
 
-| Step | What | Lane | Who | Needs | Status |
-|---|---|---|---|---|---|
-| 0.1 | Merge the two green security patches (#30, #31) | A | Devin | none | Not started |
-| 0.2 | Rerun and merge the actions update (#28) | A | Devin | none | Not started |
-| 0.3 | Merge the shell (#41) | A | Devin | none | Not started |
-| 0.4 | Rebase, refresh and merge the drift checks (#38) | A | Claude, then Devin | 0.3 | Not started |
-| 0.5 | Delete merged branches, turn on auto-delete | A | Devin | 0.3, 0.4 | Not started |
-| 0.6 | Run the CMAI checks on the desktop | A | Devin | 0.4 | Not started |
-| 0.7 | Put this plan in the repo; fix the skill and plan v3 | A | Claude | none | Not started |
-| 0.8 | Bring the register up to date | A | Claude | 0.3, 0.4 | Not started |
-| 0.9 | Replace the project-folder copies with pointers | A | Claude | 0.7 | Not started |
-| 1.1 | Patient switcher always lists the current patients | A | Claude | none | Not started |
-| 1.2 | Restore rejects bad files; Export cannot be broken by one | A | Claude | 0.4 | Not started |
-| 1.3 | Warn about logs before a patient's first day | A | Claude | 1.2 | Not started |
-| 1.4 | A failed save tells the caregiver | A | Claude | 0.3 | Not started |
-| 1.5 | Welcome screen matches the app | A | Claude | 0.3 | Not started |
-| 1.6 | CSV cells cannot run as formulas | A | Claude | 0.4 | Not started |
-| 1.7 | "Today" stays right when the app is left open | A | Claude | 0.3 | Not started |
-| 1.8 | Backup reminder | A | Claude | 0.3 | Not started |
-| 1.9 | Ask the phone to keep the app's data | A | Claude | 1.4 | Not started |
-| 1.10 | Say what the app does not do | A | Claude | 0.3 | Not started |
-| 2.1 | Dependabot: minors together, majors alone | A | Claude | none | Not started |
-| 2.2 | Close the three failing Dependabot pull requests | A | Devin | 2.1 | Not started |
-| 2.3 | Major upgrades, one at a time | A | Claude | 2.1 | Not started |
-| 2.4 | Workflow hardening | A | Claude | 0.2 | Not started |
-| 2.5 | Format every file once | A | Claude | 0.3, 0.4 | Not started |
-| 2.6 | Browser checks on Playwright Test, plus WebKit | A | Claude | 0.4, 2.5 | Not started |
-| 2.7 | Releases, live check, undo steps | A | Claude | 0.4 | Not started |
-| 2.8 | Size budget; load charts only where shown | A | Claude | 2.5 | Not started |
-| 2.9 | Stop adding screenshots to git | A | Claude | none | Not started |
-| 2.10 | Manual accessibility pass | A | Claude and Devin | 0.3 | Not started |
-| 2.11 | Property tests for the scoring rule | A | Claude | none | Not started |
-| 2.12 | Dependency review on every pull request | A | Claude | 2.4 | Not started |
-| 2.13 | Diagnostics a caregiver can copy | A | Claude | 1.4 | Not started |
-| 3.1 | Review packet for Dr. Gupta | A to write, Stop to send | Claude, then Devin | 0.8 | Not started |
-| 3.2 | Data management plan, one page | A to write | Claude, then Devin | none | Not started |
-| 3.3 | Threat model and login standard | A to write | Claude | none | Not started |
-| 3.4 | Data dictionary and export format version | A to write; export changes are step 5.10 | Claude | 0.4 | Not started |
-| 3.5 | Permission, ownership, citation, accounts | Stop (Devin sends) | Devin | 3.1 | Not started |
-| 3.6 | Internal pilot, usability sessions, agreement study | A for the pilot; Stop for the rest | Devin and the lab | 5.4, 5.6, 5.7 for the pilot; P-06 for the rest | Not started |
-| 3.7 | Wording once the lab adopts the app | A | Claude | Dr. Gupta says adopted | Not started |
-| 3.8 | Continuity: CONTRIBUTING, access, runbook | A | Claude and Devin | 0.7 | Not started |
-| 3.9 | Study protocol and analysis plan, draft | A to write, Stop to register or send | Claude, then Devin | 3.4 | Not started |
-| 3.10 | Research notes: add the scan's sources after a full-text check | A | Claude | none | Not started |
-| 3.11 | Who did what, and how AI was used | A to write | Claude, then Devin | none | Not started |
-| 3.12 | Caregiver quick card and training script | A | Claude | 4.1 | Not started |
-| 3.13 | Options note: lab server, accounts, sync | A to write, Stop to build | Claude | 3.3 | Not started |
-| 3.14 | Sensor pairing guide | A to write | Claude | 5.8, 5.10 | Not started |
-| 4.0 | Round 4 proposals into the mockup | A | Claude | none | Not started |
-| 4.1 | Log (mockup phase 2) | A | Claude | 0.3 | Not started |
-| 4.2 | Today tab (mockup phase 3, R4) | A | Claude | 4.1 | Not started |
-| 4.3 | Two weeks tab (mockup phase 4, R5) | A | Claude | 4.2 | Not started |
-| 4.4 | Fold Score into Two weeks (mockup phase 5) | A | Claude | 4.3 | Not started |
-| 4.5 | Show Dr. Gupta the working screens | Stop (Devin shows) | Devin | 4.3, 3.1 | Not started |
-| 4.6 | Log on one page with jump links | A | Claude | 4.1, 4.0 | Not started |
-| 4.7 | "When did it happen" on the confirmation | A | Claude | 4.1 | Not started |
-| 4.8 | Lab labels only in lab view | A | Claude | 5.0, 4.2 | Not started |
-| 5.0 | Study settings: one place for every switch | A | Claude | none | In review (#51) |
-| 5.1 | Database version 4 | B | Claude | 5.0, 1.2 | Built (stacked on #51 and #47); push waits on Devin allowing a branch per step. Patch: plans/stage5/db-v4.patch |
-| 5.2 | R2: caregiver profiles and resident order | B | Claude | 5.1 | Built on branch claude/caregivers (stacked on 5.1 and #41); all checks pass incl. new lab-build check; push waits on Devin allowing a branch per step. Patch: plans/stage5/caregivers.patch |
-| 5.3 | R1 option A: on-phone PIN | B | Claude | 5.2 | Built on branch claude/pin (stacked on 5.2); all checks pass incl. new lab sign-in check; push waits on Devin allowing a branch per step. Not yet timed on a phone. Patch: plans/stage5/pin.patch |
-| 5.4 | Blind caregiver CMAI at day 14, codes 8 and 9 | B | Claude | 5.2 | Built on branch claude/blind-cmai (stacked on 5.3); all checks pass incl. new lab blind-rating check; push waits on Devin allowing a branch per step. Not yet timed by a person (criterion 7). Patch: plans/stage5/blind-rating.patch |
-| 5.5 | R1 option B: lab accounts or REDCap | Stop (design in 3.13) | open | a server from the lab | Not started |
-| 5.6 | Watching hours (F-38) | B | Claude | 5.2, 4.2 | Not started |
-| 5.7 | Optional "it stopped" tap (F-39) | B | Claude | 5.1, 4.2 | Not started |
-| 5.8 | Clock check screen (F-40) | A | Claude | 5.0 | Not started |
-| 5.9 | Three more "just before" chips (F-41) | B | Claude | 5.0 | Not started |
-| 5.10 | Export format 2 and the label file (D-23) | B | Claude | 5.1, 3.4 | Not started |
-| 5.11 | Protect the backup file (F-10) | B | Claude | 5.10 | Not started |
-| 6 | Real-data readiness checklist | Stop | Devin and the lab | all above | Not started |
-| 7.1 | Alert check (F-43), design note only | Stop | Claude | a sensor model and a server | Not started |
+| Step | What                                                           | Lane                                     | Who                | Needs                                          | Status                                                                                                                                                                                                                                |
+| ---- | -------------------------------------------------------------- | ---------------------------------------- | ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0.1  | Merge the two green security patches (#30, #31)                | A                                        | Devin              | none                                           | Not started                                                                                                                                                                                                                           |
+| 0.2  | Rerun and merge the actions update (#28)                       | A                                        | Devin              | none                                           | Not started                                                                                                                                                                                                                           |
+| 0.3  | Merge the shell (#41)                                          | A                                        | Devin              | none                                           | Not started                                                                                                                                                                                                                           |
+| 0.4  | Rebase, refresh and merge the drift checks (#38)               | A                                        | Claude, then Devin | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 0.5  | Delete merged branches, turn on auto-delete                    | A                                        | Devin              | 0.3, 0.4                                       | Not started                                                                                                                                                                                                                           |
+| 0.6  | Run the CMAI checks on the desktop                             | A                                        | Devin              | 0.4                                            | Not started                                                                                                                                                                                                                           |
+| 0.7  | Put this plan in the repo; fix the skill and plan v3           | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 0.8  | Bring the register up to date                                  | A                                        | Claude             | 0.3, 0.4                                       | Not started                                                                                                                                                                                                                           |
+| 0.9  | Replace the project-folder copies with pointers                | A                                        | Claude             | 0.7                                            | Not started                                                                                                                                                                                                                           |
+| 1.1  | Patient switcher always lists the current patients             | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 1.2  | Restore rejects bad files; Export cannot be broken by one      | A                                        | Claude             | 0.4                                            | Not started                                                                                                                                                                                                                           |
+| 1.3  | Warn about logs before a patient's first day                   | A                                        | Claude             | 1.2                                            | Not started                                                                                                                                                                                                                           |
+| 1.4  | A failed save tells the caregiver                              | A                                        | Claude             | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 1.5  | Welcome screen matches the app                                 | A                                        | Claude             | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 1.6  | CSV cells cannot run as formulas                               | A                                        | Claude             | 0.4                                            | Not started                                                                                                                                                                                                                           |
+| 1.7  | "Today" stays right when the app is left open                  | A                                        | Claude             | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 1.8  | Backup reminder                                                | A                                        | Claude             | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 1.9  | Ask the phone to keep the app's data                           | A                                        | Claude             | 1.4                                            | Not started                                                                                                                                                                                                                           |
+| 1.10 | Say what the app does not do                                   | A                                        | Claude             | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 2.1  | Dependabot: minors together, majors alone                      | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 2.2  | Close the three failing Dependabot pull requests               | A                                        | Devin              | 2.1                                            | Not started                                                                                                                                                                                                                           |
+| 2.3  | Major upgrades, one at a time                                  | A                                        | Claude             | 2.1                                            | Not started                                                                                                                                                                                                                           |
+| 2.4  | Workflow hardening                                             | A                                        | Claude             | 0.2                                            | Not started                                                                                                                                                                                                                           |
+| 2.5  | Format every file once                                         | A                                        | Claude             | 0.3, 0.4                                       | Not started                                                                                                                                                                                                                           |
+| 2.6  | Browser checks on Playwright Test, plus WebKit                 | A                                        | Claude             | 0.4, 2.5                                       | Not started                                                                                                                                                                                                                           |
+| 2.7  | Releases, live check, undo steps                               | A                                        | Claude             | 0.4                                            | Not started                                                                                                                                                                                                                           |
+| 2.8  | Size budget; load charts only where shown                      | A                                        | Claude             | 2.5                                            | Not started                                                                                                                                                                                                                           |
+| 2.9  | Stop adding screenshots to git                                 | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 2.10 | Manual accessibility pass                                      | A                                        | Claude and Devin   | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 2.11 | Property tests for the scoring rule                            | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 2.12 | Dependency review on every pull request                        | A                                        | Claude             | 2.4                                            | Not started                                                                                                                                                                                                                           |
+| 2.13 | Diagnostics a caregiver can copy                               | A                                        | Claude             | 1.4                                            | Not started                                                                                                                                                                                                                           |
+| 3.1  | Review packet for Dr. Gupta                                    | A to write, Stop to send                 | Claude, then Devin | 0.8                                            | Not started                                                                                                                                                                                                                           |
+| 3.2  | Data management plan, one page                                 | A to write                               | Claude, then Devin | none                                           | Not started                                                                                                                                                                                                                           |
+| 3.3  | Threat model and login standard                                | A to write                               | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 3.4  | Data dictionary and export format version                      | A to write; export changes are step 5.10 | Claude             | 0.4                                            | Not started                                                                                                                                                                                                                           |
+| 3.5  | Permission, ownership, citation, accounts                      | Stop (Devin sends)                       | Devin              | 3.1                                            | Not started                                                                                                                                                                                                                           |
+| 3.6  | Internal pilot, usability sessions, agreement study            | A for the pilot; Stop for the rest       | Devin and the lab  | 5.4, 5.6, 5.7 for the pilot; P-06 for the rest | Not started                                                                                                                                                                                                                           |
+| 3.7  | Wording once the lab adopts the app                            | A                                        | Claude             | Dr. Gupta says adopted                         | Not started                                                                                                                                                                                                                           |
+| 3.8  | Continuity: CONTRIBUTING, access, runbook                      | A                                        | Claude and Devin   | 0.7                                            | Not started                                                                                                                                                                                                                           |
+| 3.9  | Study protocol and analysis plan, draft                        | A to write, Stop to register or send     | Claude, then Devin | 3.4                                            | Not started                                                                                                                                                                                                                           |
+| 3.10 | Research notes: add the scan's sources after a full-text check | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 3.11 | Who did what, and how AI was used                              | A to write                               | Claude, then Devin | none                                           | Not started                                                                                                                                                                                                                           |
+| 3.12 | Caregiver quick card and training script                       | A                                        | Claude             | 4.1                                            | Not started                                                                                                                                                                                                                           |
+| 3.13 | Options note: lab server, accounts, sync                       | A to write, Stop to build                | Claude             | 3.3                                            | Not started                                                                                                                                                                                                                           |
+| 3.14 | Sensor pairing guide                                           | A to write                               | Claude             | 5.8, 5.10                                      | Not started                                                                                                                                                                                                                           |
+| 4.0  | Round 4 proposals into the mockup                              | A                                        | Claude             | none                                           | Not started                                                                                                                                                                                                                           |
+| 4.1  | Log (mockup phase 2)                                           | A                                        | Claude             | 0.3                                            | Not started                                                                                                                                                                                                                           |
+| 4.2  | Today tab (mockup phase 3, R4)                                 | A                                        | Claude             | 4.1                                            | Not started                                                                                                                                                                                                                           |
+| 4.3  | Two weeks tab (mockup phase 4, R5)                             | A                                        | Claude             | 4.2                                            | Not started                                                                                                                                                                                                                           |
+| 4.4  | Fold Score into Two weeks (mockup phase 5)                     | A                                        | Claude             | 4.3                                            | Not started                                                                                                                                                                                                                           |
+| 4.5  | Show Dr. Gupta the working screens                             | Stop (Devin shows)                       | Devin              | 4.3, 3.1                                       | Not started                                                                                                                                                                                                                           |
+| 4.6  | Log on one page with jump links                                | A                                        | Claude             | 4.1, 4.0                                       | Not started                                                                                                                                                                                                                           |
+| 4.7  | "When did it happen" on the confirmation                       | A                                        | Claude             | 4.1                                            | Not started                                                                                                                                                                                                                           |
+| 4.8  | Lab labels only in lab view                                    | A                                        | Claude             | 5.0, 4.2                                       | Not started                                                                                                                                                                                                                           |
+| 5.0  | Study settings: one place for every switch                     | A                                        | Claude             | none                                           | In review (#51)                                                                                                                                                                                                                       |
+| 5.1  | Database version 4                                             | B                                        | Claude             | 5.0, 1.2                                       | Built (stacked on #51 and #47); push waits on Devin allowing a branch per step. Patch: plans/stage5/db-v4.patch                                                                                                                       |
+| 5.2  | R2: caregiver profiles and resident order                      | B                                        | Claude             | 5.1                                            | Built on branch claude/caregivers (stacked on 5.1 and #41); all checks pass incl. new lab-build check; push waits on Devin allowing a branch per step. Patch: plans/stage5/caregivers.patch                                           |
+| 5.3  | R1 option A: on-phone PIN                                      | B                                        | Claude             | 5.2                                            | Built on branch claude/pin (stacked on 5.2); all checks pass incl. new lab sign-in check; push waits on Devin allowing a branch per step. Not yet timed on a phone. Patch: plans/stage5/pin.patch                                     |
+| 5.4  | Blind caregiver CMAI at day 14, codes 8 and 9                  | B                                        | Claude             | 5.2                                            | Built on branch claude/blind-cmai (stacked on 5.3); all checks pass incl. new lab blind-rating check; push waits on Devin allowing a branch per step. Not yet timed by a person (criterion 7). Patch: plans/stage5/blind-rating.patch |
+| 5.5  | R1 option B: lab accounts or REDCap                            | Stop (design in 3.13)                    | open               | a server from the lab                          | Not started                                                                                                                                                                                                                           |
+| 5.6  | Watching hours (F-38)                                          | B                                        | Claude             | 5.2, 4.2                                       | Not started                                                                                                                                                                                                                           |
+| 5.7  | Optional "it stopped" tap (F-39)                               | B                                        | Claude             | 5.1, 4.2                                       | Not started                                                                                                                                                                                                                           |
+| 5.8  | Clock check screen (F-40)                                      | A                                        | Claude             | 5.0                                            | Not started                                                                                                                                                                                                                           |
+| 5.9  | Three more "just before" chips (F-41)                          | B                                        | Claude             | 5.0                                            | Not started                                                                                                                                                                                                                           |
+| 5.10 | Export format 2 and the label file (D-23)                      | B                                        | Claude             | 5.1, 3.4                                       | Not started                                                                                                                                                                                                                           |
+| 5.11 | Protect the backup file (F-10)                                 | B                                        | Claude             | 5.10                                           | Not started                                                                                                                                                                                                                           |
+| 6    | Real-data readiness checklist                                  | Stop                                     | Devin and the lab  | all above                                      | Not started                                                                                                                                                                                                                           |
+| 7.1  | Alert check (F-43), design note only                           | Stop                                     | Claude             | a sensor model and a server                    | Not started                                                                                                                                                                                                                           |
 
 ---
 
@@ -355,22 +355,21 @@ No new code except in 0.4, 0.7 and 0.8. Goal: `main` holds everything that is fi
 - **Why:** C-03, C-04.
 - **Branch:** `claude/register-catch-up`
 - **File:** `docs/review-register.md` only.
-- **Do:**
-  0. Besides the rows below, add a row for every ID in the table in Part 9.1 of this plan, with status `Proposed`, or `Built on assumed approval. Sign-off pending` once its step is In review. Where this step's older wording and a Stage 5 "Assumed answer" differ (D-20 is one), the row's "today" column says what the app does today and the "proposed" column carries the Stage 5 answer.
+- **Do:** 0. Besides the rows below, add a row for every ID in the table in Part 9.1 of this plan, with status `Proposed`, or `Built on assumed approval. Sign-off pending` once its step is In review. Where this step's older wording and a Stage 5 "Assumed answer" differ (D-20 is one), the row's "today" column says what the app does today and the "proposed" column carries the Stage 5 answer.
   1. Add rows for every ID used elsewhere. D-15, D-16, F-23, F-24: copy the wording from the 2026-11-04 comparison page (link in project memory). If that page cannot be read, add each as "Reserved 2026-11-04, wording to be restored" and tell Devin. F-26 to F-29, D-17, D-18: from note 008's table. P-07: from PR #41 if not already merged with it.
   2. Add the new rows below. Status `Open`, sign-off from Dr. Gupta, gate G1 unless stated.
 
-  | ID | Decision | In this build | Evidence |
-  |---|---|---|---|
-  | D-19 | A log dated before the patient's first day, and which start date wins when a backup is merged onto a phone that already has that patient | Kept, counted in no period, warned about (step 1.3) | Audit A-04 |
-  | D-20 | Can a patient be deleted once real logging starts, or only archived with a reason | Deleted for good after a confirm, history erased | Audit A-09 |
-  | D-21 | When is a finished period's rating final? Proposed: 24 hours after the period ends, and the export says so | Recomputed on every export | Audit A-10 |
-  | D-22 | Time zone and clock: record the phone's UTC offset on each log; what to do when a phone changes zone | Local time of the phone, offset not stored | Audit A-14, N-03 |
-  | P-08 | Regulatory status: research tool, not a medical device | App small print says so; no sign-off | Audit N-07 |
-  | P-09 | Languages and reading level the app must support | English only | Audit N-05 |
-
+  | ID   | Decision                                                                                                                                 | In this build                                       | Evidence         |
+  | ---- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------- |
+  | D-19 | A log dated before the patient's first day, and which start date wins when a backup is merged onto a phone that already has that patient | Kept, counted in no period, warned about (step 1.3) | Audit A-04       |
+  | D-20 | Can a patient be deleted once real logging starts, or only archived with a reason                                                        | Deleted for good after a confirm, history erased    | Audit A-09       |
+  | D-21 | When is a finished period's rating final? Proposed: 24 hours after the period ends, and the export says so                               | Recomputed on every export                          | Audit A-10       |
+  | D-22 | Time zone and clock: record the phone's UTC offset on each log; what to do when a phone changes zone                                     | Local time of the phone, offset not stored          | Audit A-14, N-03 |
+  | P-08 | Regulatory status: research tool, not a medical device                                                                                   | App small print says so; no sign-off                | Audit N-07       |
+  | P-09 | Languages and reading level the app must support                                                                                         | English only                                        | Audit N-05       |
   3. Rewrite the Gates table: G0 `Done (interview, October 2026)`. G1 `Lab adoption: Dr. Gupta says in writing that the lab will use the app`. G2 unchanged. Do not change any item's gate.
   4. Put section V's rows in number order.
+
 - **Acceptance criteria:**
   1. `npm run check:docs` passes (it checks every ID used in the docs has a row).
   2. No existing row's "In this build" text changed.
@@ -398,8 +397,9 @@ Each is one pull request, lane A, no scoring change. Each adds the unit test tha
 - **Change:** build the list from `patients` (always current) and use `rows` only to fill in details.
 - **Old (`src/ui/PatientSheet.tsx`):**
   ```tsx
-  const list = (rows ?? patients.map((p) => ({ ...p, period: 0, day: 0, lastLogged: undefined as number | null | undefined })))
-    .filter((p) => p.id.toLowerCase().includes(query.trim().toLowerCase()));
+  const list = (
+    rows ?? patients.map((p) => ({ ...p, period: 0, day: 0, lastLogged: undefined as number | null | undefined }))
+  ).filter((p) => p.id.toLowerCase().includes(query.trim().toLowerCase()));
   ```
 - **New:** move the logic to a pure function in `src/ui/patientRows.ts` and call it.
   ```ts
@@ -486,11 +486,15 @@ Each is one pull request, lane A, no scoring change. Each adds the unit test tha
 - **File:** `src/ui/DataScreen.tsx`.
 - **Old:**
   ```tsx
-  <li><b>Review.</b> On day 15, check the app's ratings against what you saw.</li>
+  <li>
+    <b>Review.</b> On day 15, check the app's ratings against what you saw.
+  </li>
   ```
 - **New:**
   ```tsx
-  <li><b>Back up.</b> Download a backup now and then, so the logs are never only on this phone.</li>
+  <li>
+    <b>Back up.</b> Download a backup now and then, so the logs are never only on this phone.
+  </li>
   ```
 - Also change `<li><b>Scores.</b>` to `<li><b>Score.</b>` if step 0.3 renamed the tab.
 - **Acceptance criteria:** `grep -rn "day 15" src` returns nothing; the welcome card names only screens that exist.
@@ -502,7 +506,11 @@ Each is one pull request, lane A, no scoring change. Each adds the unit test tha
 - **Old:**
   ```ts
   const csv = (rows: (string | number | boolean)[][]) =>
-    rows.map((r) => r.map((v) => (typeof v === "string" && /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : String(v))).join(",")).join("\n");
+    rows
+      .map((r) =>
+        r.map((v) => (typeof v === "string" && /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : String(v))).join(","),
+      )
+      .join("\n");
   ```
 - **New:**
   ```ts
@@ -565,7 +573,10 @@ Each is one pull request, lane A, no scoring change. Each adds the unit test tha
 - **Files:** `src/ui/DataScreen.tsx` (welcome card and About page).
 - **Add to the welcome list:**
   ```tsx
-  <li><b>This app tells no one.</b> A log is a record for the study. For an injury or an emergency, do what your workplace says.</li>
+  <li>
+    <b>This app tells no one.</b> A log is a record for the study. For an injury or an emergency, do what your workplace
+    says.
+  </li>
   ```
 - **Add the same sentence** to the About page above the small print.
 - **Acceptance criteria:** the sentence is on both screens; reading level is grade 6 or below (check with any readability tool and write the score in the pull request); axe 0 violations.
@@ -580,17 +591,17 @@ Each is one pull request, lane A, no scoring change. Each adds the unit test tha
 - **Why:** B-02. **Branch:** `claude/dependabot-groups`. **File:** `.github/dependabot.yml`.
 - **Old (npm block):**
   ```yaml
-      groups:
-        npm:
-          patterns: ["*"]
-      open-pull-requests-limit: 2
+  groups:
+    npm:
+      patterns: ["*"]
+  open-pull-requests-limit: 2
   ```
 - **New:**
   ```yaml
-      groups:
-        npm-minor-and-patch:
-          update-types: ["minor", "patch"]
-      open-pull-requests-limit: 5
+  groups:
+    npm-minor-and-patch:
+      update-types: ["minor", "patch"]
+  open-pull-requests-limit: 5
   ```
 - A major version now arrives as its own pull request. Reference: [Dependabot options, groups](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#groups--).
 - **Done when:** merged, and the next Dependabot run opens one grouped minor-and-patch pull request that passes.
@@ -915,7 +926,10 @@ Rules for every step in this stage:
          counts.set(o.itemId, (counts.get(o.itemId) ?? 0) + 1);
        }
        if (counts.size < size) return [];
-       return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, size).map(([id]) => id);
+       return [...counts.entries()]
+         .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+         .slice(0, size)
+         .map(([id]) => id);
      }
      ```
      Tests first: a log today does not change the answer; a deleted log is not counted; two behaviors with logs returns `[]`; a tie returns the lower item number first; a log 15 days ago is not counted.
@@ -1091,26 +1105,26 @@ Order: 5.0, 5.1, 5.2, then 5.3, 5.4, 5.6 in any order, then 5.7 to 5.11.
 - **Files:** `src/data/db.ts`, new `src/data/ids.ts`, `src/data/logs.ts`, `src/data/manage.ts`, `src/data/exporter.ts` (backup only; CSVs are 5.10), `tests/db.test.ts`, new `tests/fixtures/backup-v3.json` (made-up), `docs/data-dictionary.md`.
 - **New fields.** All optional, so version 3 data is valid as it stands.
 
-  | Table | Field | Type | Meaning |
-  |---|---|---|---|
-  | observations | `uid` | string | An ID unique across phones (`crypto.randomUUID()`). Version 3 logs get one at upgrade |
-  | observations | `deviceId` | string | Which phone made it |
-  | observations | `by` | string | Caregiver code, for example `C-02`. Empty before 5.2 |
-  | observations | `tzOffsetMin` | number | Minutes from UTC on the phone when logged, for example `-300` |
-  | observations | `endedAt` | number | When it stopped, if the caregiver said (5.7) |
-  | checkins, changes | `by`, `deviceId` | string | As above |
-  | patients | `archivedAt`, `archiveReason`, `archiveNote` | number, string, string | Archived, not erased (D-20) |
-  | patients | `color` | number | Index into the resident color list, so a badge keeps its color when the list changes order |
+  | Table             | Field                                        | Type                   | Meaning                                                                                    |
+  | ----------------- | -------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------ |
+  | observations      | `uid`                                        | string                 | An ID unique across phones (`crypto.randomUUID()`). Version 3 logs get one at upgrade      |
+  | observations      | `deviceId`                                   | string                 | Which phone made it                                                                        |
+  | observations      | `by`                                         | string                 | Caregiver code, for example `C-02`. Empty before 5.2                                       |
+  | observations      | `tzOffsetMin`                                | number                 | Minutes from UTC on the phone when logged, for example `-300`                              |
+  | observations      | `endedAt`                                    | number                 | When it stopped, if the caregiver said (5.7)                                               |
+  | checkins, changes | `by`, `deviceId`                             | string                 | As above                                                                                   |
+  | patients          | `archivedAt`, `archiveReason`, `archiveNote` | number, string, string | Archived, not erased (D-20)                                                                |
+  | patients          | `color`                                      | number                 | Index into the resident color list, so a badge keeps its color when the list changes order |
 
 - **New tables.**
 
-  | Table | Key and indexes | Fields | Used by |
-  |---|---|---|---|
-  | `meta` | `key` | `key`, `value`. Rows: `deviceId`, `createdAt` | all |
-  | `caregivers` | `id` | `id` (`C-01`), `initials` (2 or 3 letters), `pinSalt`, `pinHash`, `pinIterations`, `failedAttempts`, `lockedAt`, `createdAt`, `archivedAt` | 5.2, 5.3 |
-  | `assignments` | `[caregiverId+patientId]` | `caregiverId`, `patientId`, `order`, `at` | 5.2 |
-  | `watches` | `uid`, `patientId`, `[patientId+start]` | `uid`, `patientId`, `by`, `deviceId`, `start`, `end`, `startSource`, `endSource`, `tzOffsetMin` | 5.6 |
-  | `caregiverRatings` | `uid`, `patientId`, `[patientId+windowStart+by]` | `uid`, `patientId`, `windowStart`, `by`, `deviceId`, `answers` (item number to 1 to 9), `startedAt`, `submittedAt`, `ruleVersion` | 5.4 |
+  | Table              | Key and indexes                                  | Fields                                                                                                                                     | Used by  |
+  | ------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+  | `meta`             | `key`                                            | `key`, `value`. Rows: `deviceId`, `createdAt`                                                                                              | all      |
+  | `caregivers`       | `id`                                             | `id` (`C-01`), `initials` (2 or 3 letters), `pinSalt`, `pinHash`, `pinIterations`, `failedAttempts`, `lockedAt`, `createdAt`, `archivedAt` | 5.2, 5.3 |
+  | `assignments`      | `[caregiverId+patientId]`                        | `caregiverId`, `patientId`, `order`, `at`                                                                                                  | 5.2      |
+  | `watches`          | `uid`, `patientId`, `[patientId+start]`          | `uid`, `patientId`, `by`, `deviceId`, `start`, `end`, `startSource`, `endSource`, `tzOffsetMin`                                            | 5.6      |
+  | `caregiverRatings` | `uid`, `patientId`, `[patientId+windowStart+by]` | `uid`, `patientId`, `windowStart`, `by`, `deviceId`, `answers` (item number to 1 to 9), `startedAt`, `submittedAt`, `ruleVersion`          | 5.4      |
 
 - **Schema, old (`src/data/db.ts`):**
   ```ts
@@ -1296,14 +1310,35 @@ Order: 5.0, 5.1, 5.2, then 5.3, 5.4, 5.6 in any order, then 5.7 to 5.11.
 - **File:** `src/ui/LogSheet.tsx`, `docs/data-dictionary.md`.
 - **Old:**
   ```ts
-  export const BEFORE_OPTIONS = ["Personal care or bathing", "Mealtime", "Noise or crowding", "Seemed in pain", "Change in routine", "Visitor or phone call", "Nothing noticed", "Other"];
+  export const BEFORE_OPTIONS = [
+    "Personal care or bathing",
+    "Mealtime",
+    "Noise or crowding",
+    "Seemed in pain",
+    "Change in routine",
+    "Visitor or phone call",
+    "Nothing noticed",
+    "Other",
+  ];
   ```
 - **New:**
   ```ts
-  const BEFORE_BASE = ["Personal care or bathing", "Mealtime", "Noise or crowding", "Seemed in pain", "Change in routine", "Visitor or phone call"];
+  const BEFORE_BASE = [
+    "Personal care or bathing",
+    "Mealtime",
+    "Noise or crowding",
+    "Seemed in pain",
+    "Change in routine",
+    "Visitor or phone call",
+  ];
   // F-41, on assumed approval: three causes the sensor literature names and the list lacked.
   const BEFORE_EXTRA = ["Too hot or too cold", "Slept badly last night", "Seemed unwell"];
-  export const BEFORE_OPTIONS = [...BEFORE_BASE, ...(study.extraBeforeChips ? BEFORE_EXTRA : []), "Nothing noticed", "Other"];
+  export const BEFORE_OPTIONS = [
+    ...BEFORE_BASE,
+    ...(study.extraBeforeChips ? BEFORE_EXTRA : []),
+    "Nothing noticed",
+    "Other",
+  ];
   ```
 - **Acceptance criteria:** switch off, the list is exactly today's eight in today's order; switch on, eleven, with "Nothing noticed" and "Other" still last; restore accepts all eleven values in either mode (a backup from a lab phone must restore on a caregiver phone); the sheet still fits above the keyboard at 360 by 640.
 - **Wording is the lab's to change.** "Seemed unwell" is a caregiver's impression, not a finding. The data dictionary says so.
@@ -1374,15 +1409,15 @@ A checklist, not a build. Every line needs a name and a date in the register. Al
 
 ## Part 6. Routines
 
-| When | What | Who |
-|---|---|---|
-| Every pull request | The route in 1.4. `simplify`, then `code-review`. `security-review` if it touches storage, export, restore, sign-in or backup protection | Claude |
-| Every lane B pull request | Also: both builds checked (caregiver and lab); the register row says "built on assumed approval, sign-off pending"; the description says how to undo | Claude |
-| Every merge | Deploy run green; step marked Done; steps stacked on it rebased | Claude |
-| When Dr. Gupta answers a row | One pull request: flip that switch in `src/study/settings.ts` or change the build to his answer; date in the register | Claude, Devin merges |
-| First week of each month | Merge the Dependabot minor-and-patch pull request; run the CMAI checks on the desktop | Devin |
-| Every quarter | Rerun `plans/whole-project-audit-prompt.md`; download a backup on the phone and restore it on a second device; review `ignore` entries in `dependabot.yml`; reread Part 7's "not now" rows and move any whose reason has gone | Devin and Claude |
-| Each release | `docs/process/release.md` | Devin |
+| When                         | What                                                                                                                                                                                                                          | Who                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Every pull request           | The route in 1.4. `simplify`, then `code-review`. `security-review` if it touches storage, export, restore, sign-in or backup protection                                                                                      | Claude               |
+| Every lane B pull request    | Also: both builds checked (caregiver and lab); the register row says "built on assumed approval, sign-off pending"; the description says how to undo                                                                          | Claude               |
+| Every merge                  | Deploy run green; step marked Done; steps stacked on it rebased                                                                                                                                                               | Claude               |
+| When Dr. Gupta answers a row | One pull request: flip that switch in `src/study/settings.ts` or change the build to his answer; date in the register                                                                                                         | Claude, Devin merges |
+| First week of each month     | Merge the Dependabot minor-and-patch pull request; run the CMAI checks on the desktop                                                                                                                                         | Devin                |
+| Every quarter                | Rerun `plans/whole-project-audit-prompt.md`; download a backup on the phone and restore it on a second device; review `ignore` entries in `dependabot.yml`; reread Part 7's "not now" rows and move any whose reason has gone | Devin and Claude     |
+| Each release                 | `docs/process/release.md`                                                                                                                                                                                                     | Devin                |
 
 ---
 
@@ -1392,115 +1427,115 @@ One table per discipline. Each gap is a step in Part 5 or a "not now" with its r
 
 ### 7.1 Research method
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| Is the main claim written down before the data exists, with the statistic and the pass mark? | The manual's "within 1 point on 88% of items" (p.7) is named in v4 but there is no protocol | 3.9 |
-| Is the comparison blind? | Caregivers see the app's ratings today, so a day-14 CMAI by the same person would lean on them (anchoring; inference from general measurement practice, not a CMAI source) | D-24, 5.4, switch `ratingsVisibleToCaregivers` |
-| Does logging change what is noticed? | Not addressed. A caregiver who taps all shift may rate higher at day 14 | 3.9 section 6: report it as a limit; cannot be designed away |
-| Does "no log" mean calm or nobody watching? | Only by the day ("Nothing to log today", D-11) | 5.6 watching hours, 5.10 label file |
-| Are times accurate enough to pair with sensors? | `at` and `loggedAt` exist; nothing checks the phone's clock | 5.8, 3.14, 4.7 (fewer late timestamps) |
-| Are sources read in full? | The scan read most at abstract level and says so | 3.10 |
-| Will it be reported to a standard? | None named | 3.9 section 7 (GRRAS; STARD if a model is graded) |
-| Who is an author, and how is AI use declared? | One README paragraph | 3.11 |
-| Is the rule reproducible later? | `RULE_VERSION` and `docs/test-cases.json` exist | 5.10 puts rule, format and app version in every file |
-| **Not now:** a second site, a power calculation by Claude, a public preregistration | | Dr. Gupta's calls. 3.9 leaves the blanks and the reasoning |
+| A professional would ask                                                                     | Where the project stands                                                                                                                                                   | In this plan                                                 |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Is the main claim written down before the data exists, with the statistic and the pass mark? | The manual's "within 1 point on 88% of items" (p.7) is named in v4 but there is no protocol                                                                                | 3.9                                                          |
+| Is the comparison blind?                                                                     | Caregivers see the app's ratings today, so a day-14 CMAI by the same person would lean on them (anchoring; inference from general measurement practice, not a CMAI source) | D-24, 5.4, switch `ratingsVisibleToCaregivers`               |
+| Does logging change what is noticed?                                                         | Not addressed. A caregiver who taps all shift may rate higher at day 14                                                                                                    | 3.9 section 6: report it as a limit; cannot be designed away |
+| Does "no log" mean calm or nobody watching?                                                  | Only by the day ("Nothing to log today", D-11)                                                                                                                             | 5.6 watching hours, 5.10 label file                          |
+| Are times accurate enough to pair with sensors?                                              | `at` and `loggedAt` exist; nothing checks the phone's clock                                                                                                                | 5.8, 3.14, 4.7 (fewer late timestamps)                       |
+| Are sources read in full?                                                                    | The scan read most at abstract level and says so                                                                                                                           | 3.10                                                         |
+| Will it be reported to a standard?                                                           | None named                                                                                                                                                                 | 3.9 section 7 (GRRAS; STARD if a model is graded)            |
+| Who is an author, and how is AI use declared?                                                | One README paragraph                                                                                                                                                       | 3.11                                                         |
+| Is the rule reproducible later?                                                              | `RULE_VERSION` and `docs/test-cases.json` exist                                                                                                                            | 5.10 puts rule, format and app version in every file         |
+| **Not now:** a second site, a power calculation by Claude, a public preregistration          |                                                                                                                                                                            | Dr. Gupta's calls. 3.9 leaves the blanks and the reasoning   |
 
 ### 7.2 Ethics and study conduct
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| Does any data describe caregivers? | Not today. After 5.2 and 5.6 it does: who logged, and when each code was with a resident | Stage 6 line 1; packet 3.1; built switched off |
-| Could a caregiver think a log reports an incident? | The app says "not a medical device" only | 1.10, P-12 |
-| Can free text carry a name? | "Other" before-notes and delete notes are free text | P-11: switch `freeTextNotes`; default kept, question in the packet |
-| Whose phone is it? | Unknown | P-10; Stage 6 |
-| What happens at the end? | Nothing written | Stage 6 last line; 3.2 |
-| **Not now:** consent screens inside the app | | Consent is the IRB's process on paper. An in-app checkbox would look like consent without being it |
+| A professional would ask                           | Where the project stands                                                                 | In this plan                                                                                       |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Does any data describe caregivers?                 | Not today. After 5.2 and 5.6 it does: who logged, and when each code was with a resident | Stage 6 line 1; packet 3.1; built switched off                                                     |
+| Could a caregiver think a log reports an incident? | The app says "not a medical device" only                                                 | 1.10, P-12                                                                                         |
+| Can free text carry a name?                        | "Other" before-notes and delete notes are free text                                      | P-11: switch `freeTextNotes`; default kept, question in the packet                                 |
+| Whose phone is it?                                 | Unknown                                                                                  | P-10; Stage 6                                                                                      |
+| What happens at the end?                           | Nothing written                                                                          | Stage 6 last line; 3.2                                                                             |
+| **Not now:** consent screens inside the app        |                                                                                          | Consent is the IRB's process on paper. An in-app checkbox would look like consent without being it |
 
 ### 7.3 Computer science
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| Is the scoring rule right for inputs nobody thought of? | 19 hand cases, 100% line coverage | 2.11 property tests |
-| Can two phones' data be joined without conflicts? | Logs have per-phone autoincrement IDs; restore dedupes by a four-field key | 5.1 gives every record a cross-phone ID and device ID. Records are never edited in place, so a join is a set union (3.13) |
-| Is time handled once, correctly? | Local time everywhere, DST tests exist, no offset stored | 5.1 `tzOffsetMin`, 5.10 both times, D-22 |
-| Is the rule separate from the screens? | Yes: `src/scoring/` is pure | Keep. 5.4 criterion 6 and 5.6 criterion 5 guard it |
-| **Not now:** formal proof of the rule; a CRDT library | | The rule is 223 lines and table-driven; properties cover it. Append-only records with unique IDs already merge without a library |
+| A professional would ask                                | Where the project stands                                                   | In this plan                                                                                                                     |
+| ------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Is the scoring rule right for inputs nobody thought of? | 19 hand cases, 100% line coverage                                          | 2.11 property tests                                                                                                              |
+| Can two phones' data be joined without conflicts?       | Logs have per-phone autoincrement IDs; restore dedupes by a four-field key | 5.1 gives every record a cross-phone ID and device ID. Records are never edited in place, so a join is a set union (3.13)        |
+| Is time handled once, correctly?                        | Local time everywhere, DST tests exist, no offset stored                   | 5.1 `tzOffsetMin`, 5.10 both times, D-22                                                                                         |
+| Is the rule separate from the screens?                  | Yes: `src/scoring/` is pure                                                | Keep. 5.4 criterion 6 and 5.6 criterion 5 guard it                                                                               |
+| **Not now:** formal proof of the rule; a CRDT library   |                                                                            | The rule is 223 lines and table-driven; properties cover it. Append-only records with unique IDs already merge without a library |
 
 ### 7.4 Development practice
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| Can unfinished or unapproved work merge without reaching users? | No. v4 held it on branches | 5.0 switches; lane B merges dark |
-| When it fails on a caregiver's phone, can anyone tell why? | No | 2.13 |
-| Is every dependency change reviewed? | Monthly Dependabot only | 2.12 |
-| Are releases deliberate and reversible? | Every merge deploys | 2.7 (v4) |
-| Do the checks cover Safari? | Chromium only | 2.6 (v4) |
-| Can someone else pick this up? | CLAUDE.md, no CONTRIBUTING | 3.8 (v4), 0.7 |
-| **Not now:** preview deploy per pull request | | GitHub Pages serves one site. The lab build runs locally and in Storybook. Revisit when the app moves to an ODU address (Stage 6) |
-| **Not now:** mutation testing | | See 2.11 |
-| **Not now:** error reporting service (Sentry and the like) | | It sends data off the phone. 2.13 is the version that sends nothing |
+| A professional would ask                                        | Where the project stands   | In this plan                                                                                                                      |
+| --------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Can unfinished or unapproved work merge without reaching users? | No. v4 held it on branches | 5.0 switches; lane B merges dark                                                                                                  |
+| When it fails on a caregiver's phone, can anyone tell why?      | No                         | 2.13                                                                                                                              |
+| Is every dependency change reviewed?                            | Monthly Dependabot only    | 2.12                                                                                                                              |
+| Are releases deliberate and reversible?                         | Every merge deploys        | 2.7 (v4)                                                                                                                          |
+| Do the checks cover Safari?                                     | Chromium only              | 2.6 (v4)                                                                                                                          |
+| Can someone else pick this up?                                  | CLAUDE.md, no CONTRIBUTING | 3.8 (v4), 0.7                                                                                                                     |
+| **Not now:** preview deploy per pull request                    |                            | GitHub Pages serves one site. The lab build runs locally and in Storybook. Revisit when the app moves to an ODU address (Stage 6) |
+| **Not now:** mutation testing                                   |                            | See 2.11                                                                                                                          |
+| **Not now:** error reporting service (Sentry and the like)      |                            | It sends data off the phone. 2.13 is the version that sends nothing                                                               |
 
 ### 7.5 Security
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| What is being protected, from whom? | Draft threat model on the lab thread's branch | 3.3 |
-| Does the PIN protect the data? | No, and it must not be described as if it did | 5.3 says so in words; phone passcode in Stage 6 |
-| Is the PIN stored and limited to a standard? | Not built | 5.3: PBKDF2 600,000 (OWASP), 10 tries (NIST SP 800-63B) |
-| Is the backup file safe in email? | Plain JSON, and the app suggests email | 5.11, and the message changes |
-| Can a restore file or a CSV attack the lab's machine? | Open in v4 | 1.2, 1.6 (v4) |
-| Are the build and deploy hardened? | Partly | 2.4 (v4), 2.12 |
-| Does anything leave the phone? | No network calls after load | Keep. Lane A test part 2. 2.13 keeps it true |
-| **Not now:** encrypting the database on the phone | | A key derived from a 4-digit PIN gives no real protection, and a long passphrase each shift fails the one-handed test. The phone's own encryption does this job. Revisit with passkeys |
-| **Not now:** passkeys (Face ID, Touch ID) | | See 5.3. Depends on P-10 |
-| **Not now:** Content-Security-Policy headers | | GitHub Pages cannot send them. Stage 6 (ODU address) |
+| A professional would ask                              | Where the project stands                      | In this plan                                                                                                                                                                           |
+| ----------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What is being protected, from whom?                   | Draft threat model on the lab thread's branch | 3.3                                                                                                                                                                                    |
+| Does the PIN protect the data?                        | No, and it must not be described as if it did | 5.3 says so in words; phone passcode in Stage 6                                                                                                                                        |
+| Is the PIN stored and limited to a standard?          | Not built                                     | 5.3: PBKDF2 600,000 (OWASP), 10 tries (NIST SP 800-63B)                                                                                                                                |
+| Is the backup file safe in email?                     | Plain JSON, and the app suggests email        | 5.11, and the message changes                                                                                                                                                          |
+| Can a restore file or a CSV attack the lab's machine? | Open in v4                                    | 1.2, 1.6 (v4)                                                                                                                                                                          |
+| Are the build and deploy hardened?                    | Partly                                        | 2.4 (v4), 2.12                                                                                                                                                                         |
+| Does anything leave the phone?                        | No network calls after load                   | Keep. Lane A test part 2. 2.13 keeps it true                                                                                                                                           |
+| **Not now:** encrypting the database on the phone     |                                               | A key derived from a 4-digit PIN gives no real protection, and a long passphrase each shift fails the one-handed test. The phone's own encryption does this job. Revisit with passkeys |
+| **Not now:** passkeys (Face ID, Touch ID)             |                                               | See 5.3. Depends on P-10                                                                                                                                                               |
+| **Not now:** Content-Security-Policy headers          |                                               | GitHub Pages cannot send them. Stage 6 (ODU address)                                                                                                                                   |
 
 ### 7.6 Database and backend
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| How many migrations will a study phone see? | Three so far, more implied | 5.1: one, version 4, with an upgrade test written first |
-| Is the upgrade tested on real-shaped old data? | No fixture | 5.1 `tests/fixtures/backup-v3.json` |
-| Is deletion consistent with "the record is the record"? | Logs soft-delete; patients hard-delete | 5.1 archive (D-20) |
-| Is the backup versioned and checked? | No version field | 5.1 `formatVersion`, 1.2 validation, 5.11 integrity |
-| Is there a path to a server that does not need a rewrite? | No | 3.13 options; 5.1 IDs make sync a union |
-| Is the export a stable contract? | Columns undocumented | 3.4, 5.10 (old columns keep name and order) |
-| **Not now:** a server, accounts, live sync | | Stop: no approved place for data (P-03, P-04). Designed in 3.13 |
-| **Not now:** moving off IndexedDB (SQLite in the browser) | | Dexie fits the size (thousands of rows per phone) and is tested. No problem to solve |
+| A professional would ask                                  | Where the project stands               | In this plan                                                                         |
+| --------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| How many migrations will a study phone see?               | Three so far, more implied             | 5.1: one, version 4, with an upgrade test written first                              |
+| Is the upgrade tested on real-shaped old data?            | No fixture                             | 5.1 `tests/fixtures/backup-v3.json`                                                  |
+| Is deletion consistent with "the record is the record"?   | Logs soft-delete; patients hard-delete | 5.1 archive (D-20)                                                                   |
+| Is the backup versioned and checked?                      | No version field                       | 5.1 `formatVersion`, 1.2 validation, 5.11 integrity                                  |
+| Is there a path to a server that does not need a rewrite? | No                                     | 3.13 options; 5.1 IDs make sync a union                                              |
+| Is the export a stable contract?                          | Columns undocumented                   | 3.4, 5.10 (old columns keep name and order)                                          |
+| **Not now:** a server, accounts, live sync                |                                        | Stop: no approved place for data (P-03, P-04). Designed in 3.13                      |
+| **Not now:** moving off IndexedDB (SQLite in the browser) |                                        | Dexie fits the size (thousands of rows per phone) and is tested. No problem to solve |
 
 ### 7.7 Frontend
 
-| A professional would ask | Where the project stands | In this plan |
-|---|---|---|
-| Will the phone keep the data? | The app never asks | 1.9 |
-| Does it work in Safari, where the study will run? | Unchecked | 2.6 WebKit; 2.10 manual pass on an iPhone |
-| How big is it? | Recharts is the largest piece and draws two simple charts | 4.3, 4.4: CSS bars, Recharts removed; 2.8 budget |
-| Is feedback right without sound or vibration? | `navigator.vibrate` does nothing on iPhone | 4.1: the visual confirmation carries it. Do not rely on vibration anywhere |
-| Is there one set of styles? | App styles plus `mk-` mockup styles | Stage 4 rule: no `mk-` in `src/ui` |
-| **Not now:** Spanish or other languages | | P-09 is open. Do now what is free: no text baked into images, no sentence built by joining fragments |
-| **Not now:** tablet layout | | Wait for P-10 |
-| **Not now:** native app | | The web app installs, works offline and needs no store review. Revisit only if 1.9 shows data being cleared on real phones |
+| A professional would ask                          | Where the project stands                                  | In this plan                                                                                                               |
+| ------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Will the phone keep the data?                     | The app never asks                                        | 1.9                                                                                                                        |
+| Does it work in Safari, where the study will run? | Unchecked                                                 | 2.6 WebKit; 2.10 manual pass on an iPhone                                                                                  |
+| How big is it?                                    | Recharts is the largest piece and draws two simple charts | 4.3, 4.4: CSS bars, Recharts removed; 2.8 budget                                                                           |
+| Is feedback right without sound or vibration?     | `navigator.vibrate` does nothing on iPhone                | 4.1: the visual confirmation carries it. Do not rely on vibration anywhere                                                 |
+| Is there one set of styles?                       | App styles plus `mk-` mockup styles                       | Stage 4 rule: no `mk-` in `src/ui`                                                                                         |
+| **Not now:** Spanish or other languages           |                                                           | P-09 is open. Do now what is free: no text baked into images, no sentence built by joining fragments                       |
+| **Not now:** tablet layout                        |                                                           | Wait for P-10                                                                                                              |
+| **Not now:** native app                           |                                                           | The web app installs, works offline and needs no store review. Revisit only if 1.9 shows data being cleared on real phones |
 
 ### 7.8 What nobody had on a list
 
-| Gap | In this plan |
-|---|---|
-| Training: the first five minutes decide whether a caregiver ever uses it | 3.12 |
-| A person to call | 3.12 (blank for the lab), Stage 6 |
-| Handover if Devin leaves the lab | 3.8, 3.11 |
-| End of study: getting data out and phones cleared | Stage 6, 3.2 |
-| A short list of what could sink the study | Below |
+| Gap                                                                      | In this plan                      |
+| ------------------------------------------------------------------------ | --------------------------------- |
+| Training: the first five minutes decide whether a caregiver ever uses it | 3.12                              |
+| A person to call                                                         | 3.12 (blank for the lab), Stage 6 |
+| Handover if Devin leaves the lab                                         | 3.8, 3.11                         |
+| End of study: getting data out and phones cleared                        | Stage 6, 3.2                      |
+| A short list of what could sink the study                                | Below                             |
 
 **Risks, shortest useful list.** Likelihood and impact are Claude's judgment, for Dr. Gupta and Devin to correct.
 
-| Risk | Likely | Impact | What limits it |
-|---|---|---|---|
-| Caregivers stop logging after week one | High | The study has no data | 3.12, 4.1, 4.6, 4.7, the internal pilot's kill rules |
-| A phone is lost or cleared mid-period | Medium | That resident's period is lost | 1.8, 1.9, 5.11 |
-| IRB says caregiver data needs its own consent | Medium | Watching hours and profiles stay off | They are switches; the study runs without them |
-| Dr. Gupta picks differently from an assumed answer | High, on some rows | Rework | Each lane B step states the undo; switches; no rating depends on any of it |
-| The count bands (D-01) are wrong | Unknown | Agreement fails | Bands are a table; 3.9 fixes the test first; RULE_VERSION records a change |
-| Real data lands in GitHub or a chat | Low | Serious | Rule 1.2; made-up data only; Stage 6 step |
+| Risk                                               | Likely             | Impact                               | What limits it                                                             |
+| -------------------------------------------------- | ------------------ | ------------------------------------ | -------------------------------------------------------------------------- |
+| Caregivers stop logging after week one             | High               | The study has no data                | 3.12, 4.1, 4.6, 4.7, the internal pilot's kill rules                       |
+| A phone is lost or cleared mid-period              | Medium             | That resident's period is lost       | 1.8, 1.9, 5.11                                                             |
+| IRB says caregiver data needs its own consent      | Medium             | Watching hours and profiles stay off | They are switches; the study runs without them                             |
+| Dr. Gupta picks differently from an assumed answer | High, on some rows | Rework                               | Each lane B step states the undo; switches; no rating depends on any of it |
+| The count bands (D-01) are wrong                   | Unknown            | Agreement fails                      | Bands are a table; 3.9 fixes the test first; RULE_VERSION records a change |
+| Real data lands in GitHub or a chat                | Low                | Serious                              | Rule 1.2; made-up data only; Stage 6 step                                  |
 
 ---
 
@@ -1510,39 +1545,39 @@ The test for every screen: a tired caregiver, mid-shift, one hand, a resident wh
 
 ### 8.1 What changes from round 3, and why
 
-| # | Finding in round 3 | Proposal | Step |
-|---|---|---|---|
-| U1 | Tabs are named for where data is (Log, Report, Score, Data). Report's "Two weeks" and Score both show the two-week table | Tabs named for the question: **Log, Today, Two weeks, Settings**. Score folds into Two weeks | 4.2 to 4.4, decision 8 |
-| U2 | Behaviors sit behind four group tabs. Twenty of 29 are hidden at any time, and a caregiver has to know that cursing is filed under "Aggressive" (factor table, manual p.7) | One page, all four groups, with a row of jump links that stays at the top | 4.6; first-click test V-15 before it merges |
-| U3 | "Most logged" is a fixed list in the mockup; if it reorders live, tiles move under the thumb | A written rule: top 3 over the last 14 days up to last midnight, fixed for the day, hidden under 3 | 4.1 |
-| U4 | An info button on each of 29 tiles: 29 small targets next to 29 large ones | One "What counts as each behavior?" button opening one searchable sheet | 4.1 (F-37) |
-| U5 | To set an earlier time the caregiver opens the log sheet before logging. Severe events are the ones logged late (inference; 3.9 measures it) | Log first, then chips on the confirmation: Just now, 5 min ago, 15 min ago, Earlier… | 4.7 |
-| U6 | Nothing says who is with the resident | One-line strip: "With P-03 since 2:05 PM", "I've left" | 5.6 (lane B) |
-| U7 | "5 today" is a label. Fixing a log means finding Report | "5 today ›" opens Today. Today is the one place to edit or remove | 4.1, 4.2 |
-| U8 | "Nothing to log today" is missing from the round 3 Log screen | It lives on Today's empty state, where the question "what happened today" is asked | 4.2 |
-| U9 | "Open (R4)" labels show on caregiver screens | Shown only in lab view | 4.8 |
-| U10 | Sign-in position in the flow is undecided | Once per shift, never between opening the app and a tile | 5.3 |
-| U11 | Small things: a database icon for Settings; a checkbox icon for Report; mixed icon stroke weights; slashed zeros outside codes; "Remove…" where the sheet also edits | Gear; sun and calendar; one stroke weight; slashed zero only in codes; "Edit…" | 4.0, Stage 4 rules |
-| U12 | Two weeks opens with the table; the answer a nurse wants is under it | Answer first: "So far this period" in one sentence, then the table, then detail | 4.3 |
-| U13 | Room number on the resident badge | Remove it (P-04: a room number with a date is identifying). The round 4 pictures still show it; 4.0 takes it out | 4.0 |
+| #   | Finding in round 3                                                                                                                                                         | Proposal                                                                                                         | Step                                        |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| U1  | Tabs are named for where data is (Log, Report, Score, Data). Report's "Two weeks" and Score both show the two-week table                                                   | Tabs named for the question: **Log, Today, Two weeks, Settings**. Score folds into Two weeks                     | 4.2 to 4.4, decision 8                      |
+| U2  | Behaviors sit behind four group tabs. Twenty of 29 are hidden at any time, and a caregiver has to know that cursing is filed under "Aggressive" (factor table, manual p.7) | One page, all four groups, with a row of jump links that stays at the top                                        | 4.6; first-click test V-15 before it merges |
+| U3  | "Most logged" is a fixed list in the mockup; if it reorders live, tiles move under the thumb                                                                               | A written rule: top 3 over the last 14 days up to last midnight, fixed for the day, hidden under 3               | 4.1                                         |
+| U4  | An info button on each of 29 tiles: 29 small targets next to 29 large ones                                                                                                 | One "What counts as each behavior?" button opening one searchable sheet                                          | 4.1 (F-37)                                  |
+| U5  | To set an earlier time the caregiver opens the log sheet before logging. Severe events are the ones logged late (inference; 3.9 measures it)                               | Log first, then chips on the confirmation: Just now, 5 min ago, 15 min ago, Earlier…                             | 4.7                                         |
+| U6  | Nothing says who is with the resident                                                                                                                                      | One-line strip: "With P-03 since 2:05 PM", "I've left"                                                           | 5.6 (lane B)                                |
+| U7  | "5 today" is a label. Fixing a log means finding Report                                                                                                                    | "5 today ›" opens Today. Today is the one place to edit or remove                                                | 4.1, 4.2                                    |
+| U8  | "Nothing to log today" is missing from the round 3 Log screen                                                                                                              | It lives on Today's empty state, where the question "what happened today" is asked                               | 4.2                                         |
+| U9  | "Open (R4)" labels show on caregiver screens                                                                                                                               | Shown only in lab view                                                                                           | 4.8                                         |
+| U10 | Sign-in position in the flow is undecided                                                                                                                                  | Once per shift, never between opening the app and a tile                                                         | 5.3                                         |
+| U11 | Small things: a database icon for Settings; a checkbox icon for Report; mixed icon stroke weights; slashed zeros outside codes; "Remove…" where the sheet also edits       | Gear; sun and calendar; one stroke weight; slashed zero only in codes; "Edit…"                                   | 4.0, Stage 4 rules                          |
+| U12 | Two weeks opens with the table; the answer a nurse wants is under it                                                                                                       | Answer first: "So far this period" in one sentence, then the table, then detail                                  | 4.3                                         |
+| U13 | Room number on the resident badge                                                                                                                                          | Remove it (P-04: a room number with a date is identifying). The round 4 pictures still show it; 4.0 takes it out | 4.0                                         |
 
 ### 8.2 The flow, with a tap budget
 
 The budget is the acceptance test. A step that adds a tap to any of the first three rows of this table needs a register row saying why.
 
-| Moment | Taps | Notes |
-|---|---|---|
-| App is open on the right resident; log a behavior | **1** | The tile. Nothing may sit in front of it: no sign-in mid-shift, no sheet, no confirm |
-| Wrong tile | 1 | Undo on the confirmation, 8 seconds |
-| It happened 15 minutes ago | 1 + 1 | Tile, then the chip |
-| Add what was happening just before | 1 + 2 | Tile, "Add detail", chip. Always optional |
-| Switch resident | 2 | Badge, row. Own residents first (5.2) |
-| Start of shift | PIN (4) + 0 | Lands on Log for the last resident used |
-| "What did I log today?" | 1 | "5 today ›" or the Today tab |
-| Fix a log from this morning | 3 | Today, the row, Edit |
-| "Nothing to log today" | 2 | Today tab, the button |
-| "How is P-03 doing?" | 1 | Two weeks tab, answer in the first sentence |
-| Day-14 rating | 1 + 29 + 1 | From the one-line prompt on Log |
+| Moment                                            | Taps        | Notes                                                                                |
+| ------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------ |
+| App is open on the right resident; log a behavior | **1**       | The tile. Nothing may sit in front of it: no sign-in mid-shift, no sheet, no confirm |
+| Wrong tile                                        | 1           | Undo on the confirmation, 8 seconds                                                  |
+| It happened 15 minutes ago                        | 1 + 1       | Tile, then the chip                                                                  |
+| Add what was happening just before                | 1 + 2       | Tile, "Add detail", chip. Always optional                                            |
+| Switch resident                                   | 2           | Badge, row. Own residents first (5.2)                                                |
+| Start of shift                                    | PIN (4) + 0 | Lands on Log for the last resident used                                              |
+| "What did I log today?"                           | 1           | "5 today ›" or the Today tab                                                         |
+| Fix a log from this morning                       | 3           | Today, the row, Edit                                                                 |
+| "Nothing to log today"                            | 2           | Today tab, the button                                                                |
+| "How is P-03 doing?"                              | 1           | Two weeks tab, answer in the first sentence                                          |
+| Day-14 rating                                     | 1 + 29 + 1  | From the one-line prompt on Log                                                      |
 
 ### 8.3 Rules of taste, so screens stay one family
 
@@ -1565,45 +1600,45 @@ Design review finds what an expert can see. It cannot tell whether a caregiver f
 
 From the scan "Missed connections in agitation detection" (link in project memory, `cmai-research-scan`). The scan's caution carries over: most sources were read at abstract level; step 3.10 checks them in full text. "Inference" marks a link the scan drew itself.
 
-| # | Proposal | Step | Register | Lane | Main source | Assumed answer |
-|---|---|---|---|---|---|---|
-| 1 | Watching hours: record when someone was with the resident | 5.6 | F-38, D-25 | B | Iaboni 2022, DOI 10.1002/dad2.12305; Khan 2021, arXiv 2104.09305 (preprint). Fix is inference | Starts on "I'm here" or first log; ends on tap, switch, sign-out or 4 h; source recorded |
-| 2 | Optional "it stopped" tap | 5.7 | F-39 | B | Iaboni 2022 (video-reviewed start and end) | Three continuous behaviors only; never read by scoring |
-| 3 | Clock check screen | 5.8 | F-40 | A | Standard practice; inference | Lab view only; stores nothing |
-| 4 | Three more "just before" chips | 5.9 | F-41 | B | Tartarini 2017, DOI 10.1177/1533317517704898; Tanev 2017, DOI 10.1176/appi.neuropsych.16090166; Capstick 2024, DOI 10.1038/s41746-023-00995-5 | "Too hot or too cold", "Slept badly last night", "Seemed unwell" |
-| 5 | Pattern card: what the logs suggest, in a sentence | 4.3 | F-42, D-18 | A (it shows what is already stored) | Bankole 2020, DOI 10.1177/1533317520906686; Husebo 2011, DOI 10.1136/bmj.d4065 for pain. Thresholds are inference | Thresholds as in 4.3 (20 or more logs), named constants, worded "often", never "because" |
-| 6 | Alert check | 7.1 | F-43 | Stop | Kleine Deters 2024, DOI 10.1016/j.pmcj.2024.101876 | Design note only |
-| also | Label file for sensor work | 5.10, 3.14 | D-23 | B | Scan section 3 (inference) | `labels.csv`: behavior, watched, unobserved |
-| also | Blind comparison design | 5.4, 3.9 | F-47, D-24 | B | Cohen-Mansfield and Libin 2004, DOI 10.1002/gps.1171 (abstract level) | Caregivers do not see ratings before the day-14 form |
+| #    | Proposal                                                  | Step       | Register   | Lane                                | Main source                                                                                                                                   | Assumed answer                                                                           |
+| ---- | --------------------------------------------------------- | ---------- | ---------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1    | Watching hours: record when someone was with the resident | 5.6        | F-38, D-25 | B                                   | Iaboni 2022, DOI 10.1002/dad2.12305; Khan 2021, arXiv 2104.09305 (preprint). Fix is inference                                                 | Starts on "I'm here" or first log; ends on tap, switch, sign-out or 4 h; source recorded |
+| 2    | Optional "it stopped" tap                                 | 5.7        | F-39       | B                                   | Iaboni 2022 (video-reviewed start and end)                                                                                                    | Three continuous behaviors only; never read by scoring                                   |
+| 3    | Clock check screen                                        | 5.8        | F-40       | A                                   | Standard practice; inference                                                                                                                  | Lab view only; stores nothing                                                            |
+| 4    | Three more "just before" chips                            | 5.9        | F-41       | B                                   | Tartarini 2017, DOI 10.1177/1533317517704898; Tanev 2017, DOI 10.1176/appi.neuropsych.16090166; Capstick 2024, DOI 10.1038/s41746-023-00995-5 | "Too hot or too cold", "Slept badly last night", "Seemed unwell"                         |
+| 5    | Pattern card: what the logs suggest, in a sentence        | 4.3        | F-42, D-18 | A (it shows what is already stored) | Bankole 2020, DOI 10.1177/1533317520906686; Husebo 2011, DOI 10.1136/bmj.d4065 for pain. Thresholds are inference                             | Thresholds as in 4.3 (20 or more logs), named constants, worded "often", never "because" |
+| 6    | Alert check                                               | 7.1        | F-43       | Stop                                | Kleine Deters 2024, DOI 10.1016/j.pmcj.2024.101876                                                                                            | Design note only                                                                         |
+| also | Label file for sensor work                                | 5.10, 3.14 | D-23       | B                                   | Scan section 3 (inference)                                                                                                                    | `labels.csv`: behavior, watched, unobserved                                              |
+| also | Blind comparison design                                   | 5.4, 3.9   | F-47, D-24 | B                                   | Cohen-Mansfield and Libin 2004, DOI 10.1002/gps.1171 (abstract level)                                                                         | Caregivers do not see ratings before the day-14 form                                     |
 
 ### 9.1 Register IDs this plan uses
 
 Step 0.8 adds every one of these to `docs/review-register.md`. None is settled by being listed.
 
-| ID | What | Step |
-|---|---|---|
-| F-30 to F-37, D-19 to D-22, P-08, P-09, V-13 | As proposed in v4, unchanged | as in v4 |
-| F-38 to F-43, D-23 | Research proposals and export format 2 (numbers shared with the lab readiness thread) | 5.6 to 5.10, 7.1, 4.3 |
-| D-24 | Do caregivers see the app's ratings? Assumed no, for the blind comparison | 5.0, 5.4, 4.3 |
-| D-25 | How a watch starts and ends | 5.6 |
-| F-44 | Database version 4 fields and tables | 5.1 |
-| F-45 | Caregiver profiles | 5.2 |
-| F-46 | On-phone PIN | 5.3 |
-| F-47 | Blind day-14 CMAI | 5.4 |
-| F-48 | Study settings | 5.0 |
-| F-49 | Tabs: Log, Today, Two weeks, Settings | 4.0, 4.2 to 4.4 |
-| F-50 | Log on one page | 4.6 |
-| F-51 | When-chips on the confirmation | 4.7 |
-| F-52 | Not used | |
-| F-53 | Ask the phone to keep data | 1.9 |
-| F-54 | Diagnostics | 2.13 |
-| F-10 | Backup protection (existing row) | 5.11 |
-| P-10 | Whose phones | Stage 6 |
-| P-11 | Free-text notes: keep, limit or remove | 5.0 |
-| P-12 | "This app tells no one" wording | 1.10 |
-| V-14 | Property tests | 2.11 |
-| V-15 | First-click test for Log on one page | 4.6 |
-| V-16 | Internal pilot with made-up data | 3.6 |
+| ID                                           | What                                                                                  | Step                  |
+| -------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------- |
+| F-30 to F-37, D-19 to D-22, P-08, P-09, V-13 | As proposed in v4, unchanged                                                          | as in v4              |
+| F-38 to F-43, D-23                           | Research proposals and export format 2 (numbers shared with the lab readiness thread) | 5.6 to 5.10, 7.1, 4.3 |
+| D-24                                         | Do caregivers see the app's ratings? Assumed no, for the blind comparison             | 5.0, 5.4, 4.3         |
+| D-25                                         | How a watch starts and ends                                                           | 5.6                   |
+| F-44                                         | Database version 4 fields and tables                                                  | 5.1                   |
+| F-45                                         | Caregiver profiles                                                                    | 5.2                   |
+| F-46                                         | On-phone PIN                                                                          | 5.3                   |
+| F-47                                         | Blind day-14 CMAI                                                                     | 5.4                   |
+| F-48                                         | Study settings                                                                        | 5.0                   |
+| F-49                                         | Tabs: Log, Today, Two weeks, Settings                                                 | 4.0, 4.2 to 4.4       |
+| F-50                                         | Log on one page                                                                       | 4.6                   |
+| F-51                                         | When-chips on the confirmation                                                        | 4.7                   |
+| F-52                                         | Not used                                                                              |                       |
+| F-53                                         | Ask the phone to keep data                                                            | 1.9                   |
+| F-54                                         | Diagnostics                                                                           | 2.13                  |
+| F-10                                         | Backup protection (existing row)                                                      | 5.11                  |
+| P-10                                         | Whose phones                                                                          | Stage 6               |
+| P-11                                         | Free-text notes: keep, limit or remove                                                | 5.0                   |
+| P-12                                         | "This app tells no one" wording                                                       | 1.10                  |
+| V-14                                         | Property tests                                                                        | 2.11                  |
+| V-15                                         | First-click test for Log on one page                                                  | 4.6                   |
+| V-16                                         | Internal pilot with made-up data                                                      | 3.6                   |
 
 ### 9.2 Standards cited in this plan
 
@@ -1616,4 +1651,3 @@ Checked on 2026-11-10 by reading the page, except where marked.
 - Koo and Li 2016, choosing and reporting an ICC: DOI 10.1016/j.jcm.2016.02.012
 - STARD 2015: DOI 10.1136/bmj.h5527
 - CRediT contributor roles: https://credit.niso.org/
-

@@ -1,0 +1,35 @@
+// Short names for the 29 CMAI behaviors, for tiles and charts where the full item name
+// does not fit. Our own wording; the full name and definition are in src/scoring/items.ts
+// and the manual page it gives. Shared by the app and the design mockup.
+
+export const SHORT_NAMES: Record<number, string> = {
+  1: "Pacing",
+  2: "Disrobing",
+  3: "Spitting",
+  4: "Cursing",
+  5: "Asking for help",
+  6: "Repeating",
+  7: "Hitting",
+  8: "Kicking",
+  9: "Grabbing",
+  10: "Pushing",
+  11: "Throwing",
+  12: "Strange noises",
+  13: "Screaming",
+  14: "Biting",
+  15: "Scratching",
+  16: "Trying to leave",
+  17: "Falling on purpose",
+  18: "Complaining",
+  19: "Negativism",
+  20: "Eating non-food",
+  21: "Hurting self/other",
+  22: "Handling things",
+  23: "Hiding things",
+  24: "Hoarding",
+  25: "Destroying",
+  26: "Mannerisms",
+  27: "Verbal sexual",
+  28: "Physical sexual",
+  29: "Restlessness",
+};

@@ -7,7 +7,7 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { GROUP_LABELS, type FactorGroup } from "../scoring/items";
 import { Icon, type IconName } from "../ui/Icon";
 import { ArrowRightLeft } from "lucide-react";
-import { BEHAVIOR_ICONS } from "./behavior-icons";
+import { BEHAVIOR_ICONS } from "../ui/behavior-icons";
 import {
   BEHAVIOR_SCORES,
   DEMO_CAREGIVER,
