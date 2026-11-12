@@ -41,14 +41,14 @@ Checks and deploy (`.github/workflows/pages.yml`): every pull request runs lint,
 
 ## How the code is organized
 
-| Folder | What's in it |
-|---|---|
-| `src/scoring/` | The CMAI items and the scoring engine. Pure functions, no screens or storage, so they can be tested and reused on other platforms. |
-| `src/data/` | Local storage (IndexedDB through Dexie), demo data, export, restore and delete. |
-| `src/ui/` | The four screens. |
-| `src/mockup/` | A design mockup of the five-step flow (Login, Log, Score, Report, Settings) for Storybook. Made-up data; not part of the app build. |
-| `docs/` | Scoring spec, hand-scorable test cases, research notes, agreement study materials (`agreement/`), audit reports (`audits/`), usability materials (`usability/`). |
-| `tests/` | Runs the engine against every case in `docs/test-cases.json`. |
+| Folder         | What's in it                                                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/scoring/` | The CMAI items and the scoring engine. Pure functions, no screens or storage, so they can be tested and reused on other platforms.                               |
+| `src/data/`    | Local storage (IndexedDB through Dexie), demo data, export, restore and delete.                                                                                  |
+| `src/ui/`      | The four screens.                                                                                                                                                |
+| `src/mockup/`  | A design mockup of the five-step flow (Login, Log, Score, Report, Settings) for Storybook. Made-up data; not part of the app build.                              |
+| `docs/`        | Scoring spec, hand-scorable test cases, research notes, agreement study materials (`agreement/`), audit reports (`audits/`), usability materials (`usability/`). |
+| `tests/`       | Runs the engine against every case in `docs/test-cases.json`.                                                                                                    |
 
 ## For the other platform builds
 
@@ -79,16 +79,16 @@ This is an interview prototype. Lab sign-off on scoring choices, author permissi
 
 Checks by someone or something other than the author (full list: register section V):
 
-| Check | Status |
-|---|---|
-| Lab approves the count-to-rating rule (`docs/scoring-spec.md`) | Deferred until lab adoption (D-01, D-02) |
-| Two independent raters score the 12 stories on paper; app within 1 point of each on 88%+ of items (manual p.7) | Materials ready (`docs/agreement/`), not run |
-| Recall check: did the literature search find the studies a published review included? | Done. The evidence map missed 11 of 11 studies in a Cochrane review (Möhler 2023), because it was scoped to the app's questions, not to interventions |
-| Every citation resolves and none is retracted | 31 of 40 sources Crossref-verified; none retracted. The other 9 are web pages, a protocol, or one paper whose DOI did not resolve (marked unverified) |
-| Lighthouse and axe (WCAG 2.2 AA) | Done: Lighthouse accessibility 100, axe 0 violations after fixes (`docs/audits/`) |
-| End-to-end check of the production build, including offline reload (headless Chromium) | Done 2026-10-23 (V-10) |
-| Offline test on a real iPhone | Passed 2026-10-23 (V-03): logging and saved data held in airplane mode. Scores and export offline not yet itemized |
-| Written permission from the CMAI author | Deferred until lab adoption (P-01) |
+| Check                                                                                                          | Status                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lab approves the count-to-rating rule (`docs/scoring-spec.md`)                                                 | Deferred until lab adoption (D-01, D-02)                                                                                                              |
+| Two independent raters score the 12 stories on paper; app within 1 point of each on 88%+ of items (manual p.7) | Materials ready (`docs/agreement/`), not run                                                                                                          |
+| Recall check: did the literature search find the studies a published review included?                          | Done. The evidence map missed 11 of 11 studies in a Cochrane review (Möhler 2023), because it was scoped to the app's questions, not to interventions |
+| Every citation resolves and none is retracted                                                                  | 31 of 40 sources Crossref-verified; none retracted. The other 9 are web pages, a protocol, or one paper whose DOI did not resolve (marked unverified) |
+| Lighthouse and axe (WCAG 2.2 AA)                                                                               | Done: Lighthouse accessibility 100, axe 0 violations after fixes (`docs/audits/`)                                                                     |
+| End-to-end check of the production build, including offline reload (headless Chromium)                         | Done 2026-10-23 (V-10)                                                                                                                                |
+| Offline test on a real iPhone                                                                                  | Passed 2026-10-23 (V-03): logging and saved data held in airplane mode. Scores and export offline not yet itemized                                    |
+| Written permission from the CMAI author                                                                        | Deferred until lab adoption (P-01)                                                                                                                    |
 
 ## Proposed, not built
 
@@ -105,7 +105,6 @@ Each waits on a lab decision or the agreement study (register section F).
 Every change follows [`docs/process/change-process.md`](docs/process/change-process.md): problem and evidence, shaped options, every state designed, verified in every mode, recorded. Design decisions that change navigation, data or scoring get a note in [`docs/design/notes/`](docs/design/notes/). What to build next, in what order, and which work may start now are in [`docs/process/build-plan.md`](docs/process/build-plan.md).
 
 Layouts are tried first in the mockup: `npm run storybook`, then change a screen's Controls panel (layout, columns, score order) or the Theme and Text switches in the toolbar. Saving `src/mockup/Screens.tsx` or `mockup.css` reloads the page. The mockup uses the app's tokens and scoring rule, so what works there carries over, but it is not the app: real screens change only through the review and one pull request per requirement.
-
 
 Visual design follows public health design systems (NHS, USWDS), Apple and Material patterns, and research on older users and patient identification. Light and dark mode are under Settings, Display, where "Match phone" (the default) follows the phone's Dark Mode. High contrast is there too, and turns on by itself when the phone's Increase Contrast setting is on. Palette, type and the reasons for each are in [`docs/design/design-brief.md`](docs/design/design-brief.md).
 

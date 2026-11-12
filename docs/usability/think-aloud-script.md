@@ -16,15 +16,15 @@ Practice (15 seconds): "Show me how you'd set an alarm on this phone, talking as
 
 Read each task aloud and hand over the phone. Do not show where to tap. Note time on task, wrong taps, hesitations, and quotes.
 
-| # | Task (read aloud) | Success looks like | Time limit |
-|---|---|---|---|
-| 1 | "You're caring for P-DEMO-A. He just hit you during a transfer. Record it." | Correct resident selected; "Hitting" tapped once; notices the confirmation | 1 min |
-| 2 | "Actually it happened a few minutes ago, during personal care. Add that if you can." | Opens "Add detail"; ticks "Time is approximate"; picks "Personal care or bathing" (the toast may close first: note it) | 1 min |
-| 3 | "Oops, that was meant for P-DEMO-B. Fix it." | Uses Undo, or switches resident and finds no way to move the log (note what they try) | 1 min |
-| 4 | "It's the end of your shift with P-DEMO-B and nothing happened today. Tell the app." | Finds "Nothing to log today" at the bottom of the Log screen | 1 min |
-| 5 | "Is P-DEMO-A's screaming getting better or worse? How sure are you?" | Scores screen; reads row 13 and its arrow; mentions the change rule or unlogged days | 1.5 min |
-| 6 | "The total went down. Does that mean his treatment is working?" | Reads the note that totals fall without treatment changes; names the behaviors that changed | 1 min |
-| 7 | "One of today's logs was tapped by mistake. Remove it." | Recent logs, Edit, Delete log; picks a reason and confirms (note whether the reason step reads as clear or as a hurdle) | 1 min |
+| #   | Task (read aloud)                                                                    | Success looks like                                                                                                      | Time limit |
+| --- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | "You're caring for P-DEMO-A. He just hit you during a transfer. Record it."          | Correct resident selected; "Hitting" tapped once; notices the confirmation                                              | 1 min      |
+| 2   | "Actually it happened a few minutes ago, during personal care. Add that if you can." | Opens "Add detail"; ticks "Time is approximate"; picks "Personal care or bathing" (the toast may close first: note it)  | 1 min      |
+| 3   | "Oops, that was meant for P-DEMO-B. Fix it."                                         | Uses Undo, or switches resident and finds no way to move the log (note what they try)                                   | 1 min      |
+| 4   | "It's the end of your shift with P-DEMO-B and nothing happened today. Tell the app." | Finds "Nothing to log today" at the bottom of the Log screen                                                            | 1 min      |
+| 5   | "Is P-DEMO-A's screaming getting better or worse? How sure are you?"                 | Scores screen; reads row 13 and its arrow; mentions the change rule or unlogged days                                    | 1.5 min    |
+| 6   | "The total went down. Does that mean his treatment is working?"                      | Reads the note that totals fall without treatment changes; names the behaviors that changed                             | 1 min      |
+| 7   | "One of today's logs was tapped by mistake. Remove it."                              | Recent logs, Edit, Delete log; picks a reason and confirms (note whether the reason step reads as clear or as a hurdle) | 1 min      |
 
 Neutral prompts only: "What are you thinking?", "What did you expect to happen?", "Keep talking, please." If stuck past the limit: "Thanks, let's move on." Never say whether they got it right.
 

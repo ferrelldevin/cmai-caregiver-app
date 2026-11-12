@@ -4,7 +4,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export interface Section { id: string; label: string; detail?: string; ariaLabel?: string }
+export interface Section {
+  id: string;
+  label: string;
+  detail?: string;
+  ariaLabel?: string;
+}
 
 const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -32,10 +37,13 @@ export function SectionNav({ sections, label }: { sections: Section[]; label: st
         if (el && el.getBoundingClientRect().top <= line) current = s.id;
       }
       // At the very bottom the last section is the one being read, even if it is short.
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = sections[sections.length - 1]?.id;
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4)
+        current = sections[sections.length - 1]?.id;
       setActive(current);
     };
-    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
@@ -63,7 +71,12 @@ export function SectionNav({ sections, label }: { sections: Section[]; label: st
     setActive(id);
     // Hold the highlight on the tapped chip while the page scrolls to it.
     if (jumping.current !== null) clearTimeout(jumping.current);
-    jumping.current = window.setTimeout(() => { jumping.current = null; }, reduceMotion() ? 50 : 700);
+    jumping.current = window.setTimeout(
+      () => {
+        jumping.current = null;
+      },
+      reduceMotion() ? 50 : 700,
+    );
     window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion() ? "auto" : "smooth" });
     // Move focus for keyboard and screen-reader users, without a second scroll.
     const heading = el.querySelector<HTMLElement>("h2, h3") ?? el;

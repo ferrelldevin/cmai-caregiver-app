@@ -4,7 +4,7 @@ Rule version: `cmai-count-rule-2`. Every score the app saves carries this label,
 
 - Rule 2 changes only how rating-7 clusters are found (section 3): they can now cross midnight. The count bands and every other rule are the same as rule 1.
 
-Source of truth: *Instruction Manual for the Cohen-Mansfield Agitation Inventory* (Cohen-Mansfield, 1991).
+Source of truth: _Instruction Manual for the Cohen-Mansfield Agitation Inventory_ (Cohen-Mansfield, 1991).
 
 **Page numbers.** Every "p." in this repo is the page number printed at the foot of the manual's page. In the lab's 37-page PDF of the manual these are the same as the PDF page index: the title page is PDF page 1, and every later page prints its own index (checked page by page with `pdftotext`). So p.7 means printed page 7 and PDF page 7. If you use a different copy of the manual, go by the printed number.
 
@@ -18,15 +18,15 @@ Source of truth: *Instruction Manual for the Cohen-Mansfield Agitation Inventory
 
 `N` = number of times the behavior was logged in the period.
 
-| Rating | Manual label (p.5) | Rule | Why this boundary |
-|---|---|---|---|
-| 1 | Never | N = 0 | |
-| 2 | Less than once a week | N = 1 | 1 in 2 weeks = half a week's worth |
-| 3 | Once or twice a week | N = 2 to 4 | 1 to 2 per week, times 2 weeks |
-| 4 | Several times a week | N = 5 to 13 | 3+ a week, but under once a day |
-| 5 | Once or twice a day | N = 14 to 28 | 1 to 2 per day, times 14 days |
-| 6 | Several times a day | N of 29 or more | 3+ a day on average |
-| 7 | Several times an hour | see section 3 | needs timing, not just a count |
+| Rating | Manual label (p.5)    | Rule            | Why this boundary                  |
+| ------ | --------------------- | --------------- | ---------------------------------- |
+| 1      | Never                 | N = 0           |                                    |
+| 2      | Less than once a week | N = 1           | 1 in 2 weeks = half a week's worth |
+| 3      | Once or twice a week  | N = 2 to 4      | 1 to 2 per week, times 2 weeks     |
+| 4      | Several times a week  | N = 5 to 13     | 3+ a week, but under once a day    |
+| 5      | Once or twice a day   | N = 14 to 28    | 1 to 2 per day, times 14 days      |
+| 6      | Several times a day   | N of 29 or more | 3+ a day on average                |
+| 7      | Several times an hour | see section 3   | needs timing, not just a count     |
 
 The manual says to "average over the past two weeks" when a behavior is irregular (p.4, instruction 10; p.5). Counting across the whole 14 days does exactly that.
 
@@ -86,16 +86,16 @@ The app labels every rating it shows **CMAI-based (app-derived)**. They come fro
 
 Tracked with IDs, evidence and sign-off in [review-register.md](review-register.md) (section D). This table is a summary.
 
-| Decision | Default in this build |
-|---|---|
-| Count-to-rating boundaries (section 2) | As in the table |
-| Rule for rating 7 (section 3) | 3+ logs in 60 minutes on 7+ of 14 days; a cluster crossing midnight counts for the day it starts |
-| Form version | 29-item long form, 1 to 7 scale |
-| Fixed or rolling 14-day periods | Fixed |
-| Code 8: separate code, or estimate the unprevented frequency (p.5 allows either) | Separate code |
-| Lead with total, or per-behavior | Per-behavior first, total secondary |
-| Factor set: nursing home (p.7) or community (p.7 to 8) | Nursing home |
-| Permission to reproduce the CMAI wording in an app (forms say "All rights reserved") | Ask before any real use |
+| Decision                                                                             | Default in this build                                                                            |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Count-to-rating boundaries (section 2)                                               | As in the table                                                                                  |
+| Rule for rating 7 (section 3)                                                        | 3+ logs in 60 minutes on 7+ of 14 days; a cluster crossing midnight counts for the day it starts |
+| Form version                                                                         | 29-item long form, 1 to 7 scale                                                                  |
+| Fixed or rolling 14-day periods                                                      | Fixed                                                                                            |
+| Code 8: separate code, or estimate the unprevented frequency (p.5 allows either)     | Separate code                                                                                    |
+| Lead with total, or per-behavior                                                     | Per-behavior first, total secondary                                                              |
+| Factor set: nursing home (p.7) or community (p.7 to 8)                               | Nursing home                                                                                     |
+| Permission to reproduce the CMAI wording in an app (forms say "All rights reserved") | Ask before any real use                                                                          |
 
 ## 9. How the spec is checked
 
@@ -103,24 +103,24 @@ Tracked with IDs, evidence and sign-off in [review-register.md](review-register.
 - `tests/engine.test.ts` runs the engine against every case. The expected answers were written by hand, never computed by the engine.
 - Each rule on this page is tested by a named check, listed below. `npm run check:docs` (run in CI) fails if a listed check is renamed or removed, so a rule cannot lose its test without this table changing in the same pull request. A new rule, or a change to one, updates this table and its check together.
 
-| Rule | Checked by (file: test name) |
-|---|---|
-| §2 Count to rating | `tests/engine.test.ts`: hand-scored rating cases (docs/test-cases.json) |
-| §2 Ratings rise with the count | `tests/engine.test.ts`: rating never goes down as the count goes up |
-| §3 Rating 7, cluster across midnight | `tests/engine.test.ts`: a cluster that crosses midnight counts once, on the day it starts |
-| §3 Rating 7, 60-minute limit | `tests/engine.test.ts`: logs 60+ minutes apart across midnight are not a cluster |
-| §5 Ratings come from the logs alone | `tests/engine.test.ts`: the app's rating comes from the logs alone and takes no override (D-14) |
-| §5 Old reviews never change a rating | `e2e/scores-period.cjs`: the old review of 4 is ignored |
-| §5 Deleted logs do not count | `tests/logs.test.ts`: a deleted log does not count, and the export keeps it with its reason |
-| §5 Deletes keep a reason and history | `tests/logs.test.ts`: records the delete in the change history, and an undo restores it with a second entry |
-| §6.1 Change marks | `tests/engine.test.ts`: a move of 2 or more points is marked at once |
-| §6.1 One 1-point move is not marked | `tests/engine.test.ts`: a single 1-point move is not marked: it is inside rater agreement |
-| §6.1 Codes 8 and 9 never marked | `tests/engine.test.ts`: never marks a move to or from code 8 or 9 |
-| §6.1 Each behavior row says how it moved | `e2e/scores-period.cjs`: says how it moved since P1 |
-| §6.2 to §6.4 Agitated status, group averages, total | `tests/engine.test.ts`: hand-scored summary cases (docs/test-cases.json) |
-| §6.4 Total shown, from logs alone | `e2e/scores-period.cjs`: P2 total is hand-expected 30 from logs alone |
-| §7 Fixed 14-day periods | `tests/engine.test.ts`: splits six weeks of logs into three windows, plus the open one |
-| §7 Calendar days across clock changes | `tests/dst.test.ts`: period lines stay at local midnight after a clock change |
-| §7 Unlogged days are unknown, not zero | `tests/engine.test.ts`: a finished window with no logs and no check-ins is 14 unlogged days, not 14 zeros |
-| §7 Today is never unlogged | `tests/engine.test.ts`: an open window counts only days that have ended, so today is never unlogged |
-| §7 In-progress periods left out of trends | `tests/scoreView.test.ts`: does not compare a period still in progress, or codes 8 and 9 |
+| Rule                                                | Checked by (file: test name)                                                                                |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| §2 Count to rating                                  | `tests/engine.test.ts`: hand-scored rating cases (docs/test-cases.json)                                     |
+| §2 Ratings rise with the count                      | `tests/engine.test.ts`: rating never goes down as the count goes up                                         |
+| §3 Rating 7, cluster across midnight                | `tests/engine.test.ts`: a cluster that crosses midnight counts once, on the day it starts                   |
+| §3 Rating 7, 60-minute limit                        | `tests/engine.test.ts`: logs 60+ minutes apart across midnight are not a cluster                            |
+| §5 Ratings come from the logs alone                 | `tests/engine.test.ts`: the app's rating comes from the logs alone and takes no override (D-14)             |
+| §5 Old reviews never change a rating                | `e2e/scores-period.cjs`: the old review of 4 is ignored                                                     |
+| §5 Deleted logs do not count                        | `tests/logs.test.ts`: a deleted log does not count, and the export keeps it with its reason                 |
+| §5 Deletes keep a reason and history                | `tests/logs.test.ts`: records the delete in the change history, and an undo restores it with a second entry |
+| §6.1 Change marks                                   | `tests/engine.test.ts`: a move of 2 or more points is marked at once                                        |
+| §6.1 One 1-point move is not marked                 | `tests/engine.test.ts`: a single 1-point move is not marked: it is inside rater agreement                   |
+| §6.1 Codes 8 and 9 never marked                     | `tests/engine.test.ts`: never marks a move to or from code 8 or 9                                           |
+| §6.1 Each behavior row says how it moved            | `e2e/scores-period.cjs`: says how it moved since P1                                                         |
+| §6.2 to §6.4 Agitated status, group averages, total | `tests/engine.test.ts`: hand-scored summary cases (docs/test-cases.json)                                    |
+| §6.4 Total shown, from logs alone                   | `e2e/scores-period.cjs`: P2 total is hand-expected 30 from logs alone                                       |
+| §7 Fixed 14-day periods                             | `tests/engine.test.ts`: splits six weeks of logs into three windows, plus the open one                      |
+| §7 Calendar days across clock changes               | `tests/dst.test.ts`: period lines stay at local midnight after a clock change                               |
+| §7 Unlogged days are unknown, not zero              | `tests/engine.test.ts`: a finished window with no logs and no check-ins is 14 unlogged days, not 14 zeros   |
+| §7 Today is never unlogged                          | `tests/engine.test.ts`: an open window counts only days that have ended, so today is never unlogged         |
+| §7 In-progress periods left out of trends           | `tests/scoreView.test.ts`: does not compare a period still in progress, or codes 8 and 9                    |

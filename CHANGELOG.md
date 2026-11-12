@@ -7,6 +7,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Added
+
 - Caregiver profiles, lab build only (F-45, R2): caregivers are a code and initials; a chip shows who is logging and switches in one tap; new records say who made them; My residents come first in the switcher. Who is logging is kept in the app's database, not in localStorage. `npm run checks` also tests the lab build.
 - Database version 4 (F-44): every log gets an ID that stays unique across phones, and new logs record the phone and its UTC offset. Backups are format 2 and never include PIN fields; format 1 backups still restore. In the lab build, deleting a patient who has logs archives them with a reason instead of erasing them (D-20). A phone that opens this version cannot go back to an older one without export, clear and restore.
 - Study settings (`src/study/settings.ts`, F-48): one switch per feature built before Dr. Gupta's sign-off. The normal build has them all off; `VITE_STUDY_MODE=lab` builds the lab version with them on. Settings > About shows which one is running.
@@ -32,6 +33,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
 
 ### Changed
+
 - Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
 - Change process and pull request template: screenshots go in the pull request description, not in the repository (B-17).
 - A new CI job, Dependency review, fails a pull request that adds a dependency with a known high-severity advisory.
@@ -40,12 +42,14 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
 ### Security
+
 - Vitest and its coverage tool upgraded to 5.1.0 and Vite to 6.4.6: the 3 critical and 1 high advisories in the test tools are gone. CI also fails on any critical advisory in any dependency.
 - GitHub Actions in `pages.yml` are pinned to full commit SHAs, so a moved tag cannot change what runs. Runs on `main` are never cancelled, and every job stops after 15 minutes.
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 - CSV export: a note that starts with `=`, `+`, `-`, `@`, a tab or a return gets a leading apostrophe, so Excel and Sheets show it as text instead of running it as a formula (F-34). A leading `'` in a note column means the note began with one of those characters.
 
 ### Fixed
+
 - Restore from backup checks every entry. A file with a name where a patient code belongs, a half item number, or a log for an unknown patient no longer gets into storage (where it made Export throw). Only the named fields are copied. The message says how many entries were left out (F-31).
 - Restore leaves out a review or "Nothing to log today" check-in whose key names a different patient, window or day than its own fields. Before, such an entry was stored under the key and could stand in for another patient's review.
 - Moving a log's time to before the patient's first day is refused with a message, and the old time stays. Before, the log silently dropped out of every period (F-32).
@@ -60,6 +64,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 No change to what a caregiver sees, the scoring rule (`cmai-count-rule-2`) or stored data.
 
 ### Removed
+
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
 ## [0.2.0]
