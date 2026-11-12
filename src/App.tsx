@@ -238,7 +238,6 @@ export default function App() {
   function pickPatient(id: string) {
     setChoosing(false);
     if (id === patientId) return;
-    setPatientId(id);
     // A period number belongs to one patient: Two weeks reopens on this patient's own choice.
     if (route.tab === "twoweeks") go(weeksRoute(id));
     setNotice(`Now on ${id}`);
