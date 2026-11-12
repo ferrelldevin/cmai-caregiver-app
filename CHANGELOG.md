@@ -8,6 +8,9 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- The backup message no longer suggests email or a cloud drive; it says to keep the file where the study team said (A-12).
+- Passphrase-protected backup, lab build only (F-10): Export asks for a passphrase of 12 or more characters and encrypts the backup, with the CSVs inside. Restore opens it, offline too.
+
 - CSV cells that start with =, +, -, @ get a leading ' so a spreadsheet cannot run them as formulas (F-34).
 - Export format 2, lab build only (D-23): more columns at the end of each CSV (unique ID, phone, caregiver, local time with offset), and three new files: labels, caregiver ratings and watches.
 

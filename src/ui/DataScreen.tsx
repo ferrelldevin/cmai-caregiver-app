@@ -8,6 +8,7 @@ import { ARCHIVE_REASONS, db, isActive, localMidnight, type Patient } from "../d
 import { loadDemoData } from "../data/seed";
 import { buildExport, download } from "../data/exporter";
 import { deletePatient, removeDemoData, restoreBackup, wouldArchive } from "../data/manage";
+import { backupFrom, bundle, isProtected, passProblem, protect, unprotect } from "../data/protect";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
 import { study, STUDY_MODE } from "../study/settings";
 import { asText } from "./diagnostics";
@@ -200,7 +201,66 @@ export function DataScreen({
     onChange();
   }
 
+  // Passphrase-protected backup (F-10, plan 5.11), lab build only.
+  const [askPass, setAskPass] = useState<"export" | "restore" | null>(null);
+  const [pass, setPass] = useState("");
+  const [busy, setBusy] = useState(false);
+  const pendingFile = useRef<string | null>(null);
+
+  async function exportProtected() {
+    const problem = passProblem(pass);
+    if (problem) return say("export", problem, "error");
+    setBusy(true);
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const out = await buildExport();
+      const csv = {
+        [`cmai-observations-${stamp}.csv`]: out.observationsCsv,
+        [`cmai-scores-${stamp}.csv`]: out.scoresCsv,
+        ...(out.labelsCsv ? { [`cmai-labels-${stamp}.csv`]: out.labelsCsv } : {}),
+        ...(out.caregiverRatingsCsv ? { [`cmai-caregiver-ratings-${stamp}.csv`]: out.caregiverRatingsCsv } : {}),
+        ...(out.watchesCsv ? { [`cmai-watches-${stamp}.csv`]: out.watchesCsv } : {}),
+      };
+      download(`cmai-backup-${stamp}.protected.json`, await protect(bundle(out.json, csv), pass), "application/json");
+      const t = Date.now();
+      try {
+        localStorage.setItem(LAST_EXPORT, String(t));
+      } catch {
+        /* private mode */
+      }
+      setLastExport(t);
+      setAskPass(null);
+      setPass("");
+      say("export", "Protected backup saved, with the CSVs inside. Keep this file where the study team told you to.");
+    } catch (e) {
+      say("export", `Export did not work: ${e instanceof Error ? e.message : e}.`, "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function restoreProtected() {
+    if (!pendingFile.current) return;
+    setBusy(true);
+    try {
+      const plain = await unprotect(pendingFile.current, pass);
+      pendingFile.current = null;
+      setAskPass(null);
+      setPass("");
+      await restoreText(backupFrom(plain));
+    } catch (e) {
+      say("export", e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function exportFile(kind: "json" | "observations" | "scores" | "watches" | "ratings" | "labels") {
+    if (kind === "json" && study.protectBackup) {
+      setAskPass("export");
+      setPass("");
+      return;
+    }
     try {
       const stamp = new Date().toISOString().slice(0, 10);
       const out = await buildExport();
@@ -217,10 +277,7 @@ export function DataScreen({
         /* private mode */
       }
       setLastExport(t);
-      say(
-        "export",
-        kind === "json" ? "Backup saved. Keep it somewhere safe, like your email or cloud drive." : "CSV saved.",
-      );
+      say("export", kind === "json" ? "Backup saved. Keep this file where the study team told you to." : "CSV saved.");
     } catch (e) {
       say(
         "export",
@@ -232,8 +289,20 @@ export function DataScreen({
 
   async function restore(file: File | undefined) {
     if (!file) return;
+    const text = await file.text();
+    if (fileInput.current) fileInput.current.value = "";
+    if (isProtected(text)) {
+      pendingFile.current = text;
+      setPass("");
+      setAskPass("restore");
+      return;
+    }
+    await restoreText(text);
+  }
+
+  async function restoreText(text: string) {
     try {
-      const r = await restoreBackup(await file.text());
+      const r = await restoreBackup(text);
       say(
         "export",
         `Restored ${r.patients} new patient${r.patients === 1 ? "" : "s"} and ${r.observations} new log${r.observations === 1 ? "" : "s"}. Logs already on this phone were kept and not doubled.${r.beforeStart > 0 ? ` ${r.beforeStart} log${r.beforeStart === 1 ? " is" : "s are"} from before the patient's first day on this phone and ${r.beforeStart === 1 ? "is" : "are"} not counted in any period.` : ""}${r.skipped > 0 ? ` ${r.skipped} entr${r.skipped === 1 ? "y" : "ies"} in the file ${r.skipped === 1 ? "was" : "were"} not valid and ${r.skipped === 1 ? "was" : "were"} left out.` : ""}`,
@@ -301,6 +370,52 @@ export function DataScreen({
                 onChange={(e) => restore(e.target.files?.[0])}
               />
             </div>
+            {askPass && (
+              <form
+                className="pass-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void (askPass === "export" ? exportProtected() : restoreProtected());
+                }}
+              >
+                <label htmlFor="pass" className="field-label">
+                  {askPass === "export" ? "Passphrase for this file" : "Passphrase that protects this file"}
+                </label>
+                <p className="muted small-print" id="pass-hint">
+                  {askPass === "export"
+                    ? "At least 12 characters; a short sentence is easiest. Write it down: without it the file cannot be opened, by anyone."
+                    : "The passphrase chosen when the file was made."}
+                </p>
+                {/* Shown, not hidden: it is typed once and must be written down correctly. */}
+                <input
+                  id="pass"
+                  type="text"
+                  aria-describedby="pass-hint"
+                  value={pass}
+                  onChange={(e) => setPass(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <div className="row wrap">
+                  <button type="submit" disabled={busy || !pass}>
+                    {busy ? "Working…" : askPass === "export" ? "Download protected backup" : "Open and restore"}
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setAskPass(null);
+                      setPass("");
+                      pendingFile.current = null;
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
             <p className="muted">
               Last export: <b>{lastExport ? `${ago(lastExport)} (${shortDate(lastExport)})` : "never"}</b>
             </p>
@@ -317,6 +432,12 @@ export function DataScreen({
                 Scores CSV
               </button>
             </div>
+            {study.protectBackup && (
+              <p className="msg error">
+                <Icon name="alert" size={18} /> These CSVs are not protected. Make them only on a lab machine; the
+                protected backup above already holds them.
+              </p>
+            )}
             {/* Export format 2 (D-23, plan 5.10), lab build only. */}
             {study.exportV2 && (
               <div className="row wrap">
