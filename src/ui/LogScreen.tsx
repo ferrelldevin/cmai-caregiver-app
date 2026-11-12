@@ -16,6 +16,7 @@ import { utcOffsetMin } from "../data/ids";
 import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
+import { backupReminder } from "../data/backupReminder";
 import { deleteLog, editLog, LogTimeError, restoreLog, stopLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
@@ -37,15 +38,26 @@ export const SAVE_FAILED = "That did not save. Check the phone has free space, t
 interface Props {
   patientId: string;
   observations: StoredObservation[];
+  demo: boolean; // the patient is made-up demo data
   onChange: () => void;
-  /** Opens the Today tab, where today's logs are listed and fixed. */
-  onToday: () => void;
   /** Periods whose two-week rating the caregiver logging now still has to give (F-47). Never a blocker. */
   ratingsDue?: number[];
   onRate?: (period: number) => void;
+  /** Opens the Today tab, where today's logs are listed and fixed. */
+  onToday: () => void;
+  onBackUp: () => void; // opens the Data screen's backup page
 }
 
-export function LogScreen({ patientId, observations, onChange, onToday, ratingsDue = [], onRate }: Props) {
+export function LogScreen({
+  patientId,
+  observations,
+  demo,
+  onChange,
+  onToday,
+  onBackUp,
+  ratingsDue = [],
+  onRate,
+}: Props) {
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
   const [group, setGroup] = useState<FactorGroup>("aggressive");
   const [toast, setToast] = useState<Toast | null>(null);
@@ -58,6 +70,13 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
 
   const now = Date.now();
   const todayStart = localMidnight(now);
+  let lastExport: number | null = null;
+  try {
+    lastExport = Number(localStorage.getItem("cmai-last-export")) || null;
+  } catch {
+    /* private mode: treated as never */
+  }
+  const reminder = backupReminder(now, lastExport, demo, observations.length);
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
   const loggedToday = [...todayCounts.values()].reduce((a, b) => a + b, 0);
@@ -310,6 +329,14 @@ export function LogScreen({ patientId, observations, onChange, onToday, ratingsD
         Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is
         one stretch of it.
       </p>
+      {reminder && (
+        <p className="backup-reminder muted">
+          {reminder}{" "}
+          <button className="ghost small" onClick={onBackUp}>
+            Back up
+          </button>
+        </p>
+      )}
       {frequent.length > 0 && (
         <section className="log-frequent" aria-labelledby="frequent-h">
           <h2 className="group-title" id="frequent-h">

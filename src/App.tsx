@@ -1,10 +1,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { LogScreen } from "./ui/LogScreen";
 import { TodayScreen } from "./ui/TodayScreen";
+import { TwoWeeksScreen } from "./ui/TwoWeeksScreen";
 import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
+import { addDays, localMidnight } from "./scoring/engine";
 import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
@@ -17,8 +19,6 @@ import { activeCaregivers, chooseLoggingCaregiver, myResidents, readLoggingCareg
 import type { Caregiver } from "./data/db";
 import { study } from "./study/settings";
 
-// The PIN needs caregivers to sign in as (plan 5.3).
-const PIN_ON = study.pin && study.caregiverProfiles;
 // Screens that most visits never open load on demand, so the first script stays small. The service worker
 // still caches each chunk, so they work offline after the first visit to the installed app.
 const DataScreen = lazy(() => import("./ui/DataScreen").then((m) => ({ default: m.DataScreen })));
@@ -26,18 +26,14 @@ const CaregiverPage = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ d
 const WhoSheet = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.WhoSheet })));
 const SignInScreen = lazy(() => import("./ui/SignInScreen").then((m) => ({ default: m.SignInScreen })));
 const RatingScreen = lazy(() => import("./ui/RatingScreen").then((m) => ({ default: m.RatingScreen })));
-// The charts library is only needed on Scores, so it loads there too.
-const ScoresScreen = lazy(() => import("./ui/ScoresScreen").then((m) => ({ default: m.ScoresScreen })));
-const ScoresLoading = ({ error }: { error?: string | null }) => (
-  <div className="loading" role="status">
-    {error ? "Scores are unavailable while saved data cannot be read." : "Loading scores…"}
-  </div>
-);
+
+// The PIN needs caregivers to sign in as (plan 5.3).
+const PIN_ON = study.pin && study.caregiverProfiles;
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
-  { id: "scores", label: "Score", title: "Score", icon: "chart" },
   { id: "today", label: "Today", title: "Today", icon: "today" },
+  { id: "twoweeks", label: "Two weeks", title: "Two weeks", icon: "twoweeks" },
   { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
 
@@ -57,15 +53,15 @@ export default function App() {
   const [restored, setRestored] = useState(false);
   const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
   const tab = route.tab;
-  // The Scores period chosen for each patient, so leaving Scores and coming back keeps it.
-  const scoresPeriod = useRef<Record<string, number>>({});
-  if (route.tab === "scores" && route.period && patientId) scoresPeriod.current[patientId] = route.period;
-  const scoresRoute = (id: string | null) => ({
-    tab: "scores" as const,
+  // The period chosen on Two weeks for each patient, so leaving and coming back keeps it.
+  const weeksPeriod = useRef<Record<string, number>>({});
+  if (route.tab === "twoweeks" && route.period && patientId) weeksPeriod.current[patientId] = route.period;
+  const weeksRoute = (id: string | null) => ({
+    tab: "twoweeks" as const,
     page: null,
-    period: id ? scoresPeriod.current[id] : undefined,
+    period: id ? weeksPeriod.current[id] : undefined,
   });
-  const setTab = (t: Tab) => go(t === "scores" ? scoresRoute(patientId) : { tab: t, page: null });
+  const setTab = (t: Tab) => go(t === "twoweeks" ? weeksRoute(patientId) : { tab: t, page: null });
   const { patients, observations, checkins, windows, refresh, loaded, everLoaded, error } = useCmaiData(patientId);
   const mainRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -88,6 +84,34 @@ export default function App() {
     if (patients.length && !patients.some((p) => p.id === patientId)) setPatientId(patients[0].id);
     if (!patients.length && patientId) setPatientId(null);
   }, [restored, loaded, patients, patientId]);
+
+  // "Today" is worked out when the data is read, so an app left open must read again when the day
+  // changes: at the next local midnight, and when the phone comes back to the app (F-35).
+  useEffect(() => {
+    let timer: number;
+    const arm = () => {
+      const t = Date.now();
+      timer = window.setTimeout(
+        () => {
+          refresh();
+          arm();
+        },
+        addDays(localMidnight(t), 1) - t + 50,
+      );
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      refresh();
+      window.clearTimeout(timer);
+      arm();
+    };
+    arm();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refresh]);
 
   // A new screen starts at the top, and screen readers land on its heading.
   useEffect(() => {
@@ -199,6 +223,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- logAs only reads state set alongside loggingAs
   }, [loggingAs]);
   const me = caregivers.find((c) => c.id === loggingAs);
+  const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
   // Two-week ratings the caregiver logging now still owes for the open resident (F-47, plan 5.4).
   const RATING_ON = study.blindCmai && study.caregiverProfiles;
   const [due, setDue] = useState<number[]>([]);
@@ -213,7 +238,6 @@ export default function App() {
       live = false;
     };
   }, [RATING_ON, duePatient, loggingAs, observations, route.rating]);
-  const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
 
   // The section bars pin just under the patient banner, so they need its height.
   useEffect(() => {
@@ -252,8 +276,8 @@ export default function App() {
     if (id === patientId) return;
     if (study.watchingHours) void endWatch("switch");
     setPatientId(id);
-    // A period number belongs to one patient: Scores reopens on this patient's own choice.
-    if (route.tab === "scores") go(scoresRoute(id));
+    // A period number belongs to one patient: Two weeks reopens on this patient's own choice.
+    if (route.tab === "twoweeks") go(weeksRoute(id));
     setNotice(`Now on ${id}`);
     setSwitched(true);
   }
@@ -281,6 +305,7 @@ export default function App() {
         Loading…
       </div>
     );
+
   // With the PIN on and caregivers on the phone, nothing of the app shows until someone signs in.
   if (PIN_ON && !caregiversLoaded) return null;
   if (PIN_ON && caregivers.length > 0 && (!loggingAs || signingIn)) {
@@ -323,7 +348,7 @@ export default function App() {
                   <b>{current.id}</b>
                   {current.demo && <span className="tag">demo</span>}
                   <span className="pt-meta">
-                    {tab === "scores" ? "Current: " : ""}
+                    {tab === "twoweeks" ? "Current: " : ""}
                     {periodLine}
                   </span>
                 </span>
@@ -356,7 +381,7 @@ export default function App() {
                 <b>{current.id}</b>
                 {current.demo && <span className="tag">demo</span>}
                 <span className="pt-meta">
-                  {tab === "scores" ? "Current: " : ""}
+                  {tab === "twoweeks" ? "Current: " : ""}
                   {periodLine}
                 </span>
               </span>
@@ -422,7 +447,13 @@ export default function App() {
             <span className="spinner" aria-hidden /> Loading…
           </div>
         ) : shown === "data" ? (
-          <Suspense fallback={<ScoresLoading />}>
+          <Suspense
+            fallback={
+              <div className="loading" role="status">
+                Loading…
+              </div>
+            }
+          >
             <DataScreen
               patients={patients}
               current={hasPatient ? patientId : null}
@@ -479,8 +510,10 @@ export default function App() {
           <LogScreen
             patientId={patientId!}
             observations={observations}
+            demo={!!current?.demo}
             onChange={refresh}
             onToday={() => setTab("today")}
+            onBackUp={() => go({ tab: "data", page: "backup" })}
             ratingsDue={due}
             onRate={
               RATING_ON
@@ -497,20 +530,21 @@ export default function App() {
             initialsOf={study.caregiverProfiles ? initialsOf : undefined}
           />
         ) : loaded && !error ? (
-          <Suspense fallback={<ScoresLoading />}>
-            <ScoresScreen
-              key={patientId}
-              patientId={patientId!}
-              windows={windows}
-              observations={observations}
-              hasActivity={observations.length > 0 || checkins.length > 0}
-              period={route.period}
-              onPeriod={(n) => go({ tab: "scores", page: null, period: n })}
-              onLog={() => setTab("log")}
-            />
-          </Suspense>
+          <TwoWeeksScreen
+            key={patientId}
+            windows={windows}
+            observations={observations}
+            checkins={checkins}
+            hasActivity={observations.length > 0 || checkins.length > 0}
+            period={route.period}
+            onPeriod={(n) => go({ tab: "twoweeks", page: null, period: n })}
+            onLog={() => setTab("log")}
+            onExport={() => go({ tab: "data", page: "backup" })}
+          />
         ) : (
-          <ScoresLoading error={error} />
+          <div className="loading" role="status">
+            {error ? "Two weeks is unavailable while saved data cannot be read." : "Loading…"}
+          </div>
         )}
       </main>
 

@@ -16,7 +16,7 @@ The CMAI isn't a count. It's a caregiver's look-back rating (1 to 7) of how ofte
 
 - **Log:** 29 tiles, one per CMAI behavior, each with an icon, a short name and today's count, in the four groups the manual uses (group tabs). "Most logged for this resident" puts the three behaviors logged most in the last two weeks on top. "What counts as each behavior?" opens one sheet with a short description of all 29 in our own words, what does not count, and the manual page for the full definition; holding a tile opens it at that behavior. A patient banner on every screen shows who is being logged for. You can undo a tap, or tap Edit to set when it happened (5 to 60 minutes ago, or a clock time), mark the time as approximate, or note what happened just before.
 - **Today:** today's logs by hour and by behavior. Each log has Edit, to fix its time or delete a mistake. Deleting asks for a reason and a confirm; the log is kept, marked deleted, and stops counting, and every edit and delete is in a change history. On a quiet day, "Nothing to log today" records that the day was quiet rather than missed.
-- **Scores:** one selected 14-day period at a time. The total (labeled secondary) and individual behavior ratings come first, with visible logged counts. Ratings come from the logs alone and nobody can change them, so they can be checked fairly against a caregiver's own rating. Coverage, agitation status, group averages and time-of-day counts belong to that period. Each behavior says how it moved since the period before. Previous/Next and period buttons change the range; the period is in the URL, so a reload or a shared link keeps it. Finished-period comparisons are available under History.
+- **Two weeks:** one 14-day period at a time, answer first: what is lower or higher than last period (finished periods only; the period in progress says "so far"), and the busiest time of day. Then each behavior's rating and count against last period (Show all 29 brings back the rest), logs per day (a day with no log and no check-in shows "?", not zero), time of day, behavior groups with the manual's agitated mark, patterns to look into, and History of finished periods. Ratings come from the logs alone and nobody can change them, so they can be checked fairly against a caregiver's own rating. The total sits in a small chip beside the title, labeled secondary, because the manual advises reading individual behaviors. Earlier and later arrows change the period, which is kept in the URL; old Score addresses still open it.
 - **Data:** a hub with patients on top and a row for each of the other jobs, each opening its own page. A welcome screen on first run; pseudonymous patient codes only, with delete (confirmed); six weeks of demo data, which can be removed; a backup file (JSON) that can be restored on this or another phone, plus CSVs (including check-ins and unlogged days per period); an install button where the browser supports it; Display settings for light, dark and high contrast; and a short page on how ratings are worked out.
 
 ## Run it
@@ -42,14 +42,14 @@ Checks and deploy (`.github/workflows/pages.yml`): every pull request runs lint,
 
 ## How the code is organized
 
-| Folder | What's in it |
-|---|---|
-| `src/scoring/` | The CMAI items and the scoring engine. Pure functions, no screens or storage, so they can be tested and reused on other platforms. |
-| `src/data/` | Local storage (IndexedDB through Dexie), demo data, export, restore and delete. |
-| `src/ui/` | The four screens. |
-| `src/mockup/` | A design mockup of the five-step flow (Login, Log, Score, Report, Settings) for Storybook. Made-up data; not part of the app build. |
-| `docs/` | Scoring spec, hand-scorable test cases, research notes, agreement study materials (`agreement/`), audit reports (`audits/`), usability materials (`usability/`). |
-| `tests/` | Runs the engine against every case in `docs/test-cases.json`. |
+| Folder         | What's in it                                                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/scoring/` | The CMAI items and the scoring engine. Pure functions, no screens or storage, so they can be tested and reused on other platforms.                               |
+| `src/data/`    | Local storage (IndexedDB through Dexie), demo data, export, restore and delete.                                                                                  |
+| `src/ui/`      | The four screens.                                                                                                                                                |
+| `src/mockup/`  | A design mockup of the five-step flow (Login, Log, Score, Report, Settings) for Storybook. Made-up data; not part of the app build.                              |
+| `docs/`        | Scoring spec, hand-scorable test cases, research notes, agreement study materials (`agreement/`), audit reports (`audits/`), usability materials (`usability/`). |
+| `tests/`       | Runs the engine against every case in `docs/test-cases.json`.                                                                                                    |
 
 ## For the other platform builds
 
@@ -80,16 +80,16 @@ This is an interview prototype. Lab sign-off on scoring choices, author permissi
 
 Checks by someone or something other than the author (full list: register section V):
 
-| Check | Status |
-|---|---|
-| Lab approves the count-to-rating rule (`docs/scoring-spec.md`) | Deferred until lab adoption (D-01, D-02) |
-| Two independent raters score the 12 stories on paper; app within 1 point of each on 88%+ of items (manual p.7) | Materials ready (`docs/agreement/`), not run |
-| Recall check: did the literature search find the studies a published review included? | Done. The evidence map missed 11 of 11 studies in a Cochrane review (Möhler 2023), because it was scoped to the app's questions, not to interventions |
-| Every citation resolves and none is retracted | 31 of 40 sources Crossref-verified; none retracted. The other 9 are web pages, a protocol, or one paper whose DOI did not resolve (marked unverified) |
-| Lighthouse and axe (WCAG 2.2 AA) | Done: Lighthouse accessibility 100, axe 0 violations after fixes (`docs/audits/`) |
-| End-to-end check of the production build, including offline reload (headless Chromium) | Done 2026-10-23 (V-10) |
-| Offline test on a real iPhone | Passed 2026-10-23 (V-03): logging and saved data held in airplane mode. Scores and export offline not yet itemized |
-| Written permission from the CMAI author | Deferred until lab adoption (P-01) |
+| Check                                                                                                          | Status                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lab approves the count-to-rating rule (`docs/scoring-spec.md`)                                                 | Deferred until lab adoption (D-01, D-02)                                                                                                              |
+| Two independent raters score the 12 stories on paper; app within 1 point of each on 88%+ of items (manual p.7) | Materials ready (`docs/agreement/`), not run                                                                                                          |
+| Recall check: did the literature search find the studies a published review included?                          | Done. The evidence map missed 11 of 11 studies in a Cochrane review (Möhler 2023), because it was scoped to the app's questions, not to interventions |
+| Every citation resolves and none is retracted                                                                  | 31 of 40 sources Crossref-verified; none retracted. The other 9 are web pages, a protocol, or one paper whose DOI did not resolve (marked unverified) |
+| Lighthouse and axe (WCAG 2.2 AA)                                                                               | Done: Lighthouse accessibility 100, axe 0 violations after fixes (`docs/audits/`)                                                                     |
+| End-to-end check of the production build, including offline reload (headless Chromium)                         | Done 2026-10-23 (V-10)                                                                                                                                |
+| Offline test on a real iPhone                                                                                  | Passed 2026-10-23 (V-03): logging and saved data held in airplane mode. Scores and export offline not yet itemized                                    |
+| Written permission from the CMAI author                                                                        | Deferred until lab adoption (P-01)                                                                                                                    |
 
 ## Proposed, not built
 
@@ -106,7 +106,6 @@ Each waits on a lab decision or the agreement study (register section F).
 Every change follows [`docs/process/change-process.md`](docs/process/change-process.md): problem and evidence, shaped options, every state designed, verified in every mode, recorded. Design decisions that change navigation, data or scoring get a note in [`docs/design/notes/`](docs/design/notes/). What to build next, in what order, and which work may start now are in [`docs/process/build-plan.md`](docs/process/build-plan.md).
 
 Layouts are tried first in the mockup: `npm run storybook`, then change a screen's Controls panel (layout, columns, score order) or the Theme and Text switches in the toolbar. Saving `src/mockup/Screens.tsx` or `mockup.css` reloads the page. The mockup uses the app's tokens and scoring rule, so what works there carries over, but it is not the app: real screens change only through the review and one pull request per requirement.
-
 
 Visual design follows public health design systems (NHS, USWDS), Apple and Material patterns, and research on older users and patient identification. Light and dark mode are under Settings, Display, where "Match phone" (the default) follows the phone's Dark Mode. High contrast is there too, and turns on by itself when the phone's Increase Contrast setting is on. Palette, type and the reasons for each are in [`docs/design/design-brief.md`](docs/design/design-brief.md).
 

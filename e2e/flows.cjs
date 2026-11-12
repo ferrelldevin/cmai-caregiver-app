@@ -11,6 +11,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.goto(URL);
   await p.getByRole("heading", { name: "Welcome to CMAI Tracker" }).waitFor();
   ok(true, "first run shows welcome");
+  ok(await p.getByText("This app tells no one.").isVisible(), "welcome says the app tells no one (P-12)");
   // add patient via Enter key, lower case
   await p.getByRole("button", { name: "Add a patient" }).click();
   ok(await p.evaluate(() => document.activeElement?.id) === "new-code", "Add a patient focuses code field");
@@ -24,9 +25,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByLabel("New patient code").fill("p-07"); await p.keyboard.press("Enter");
   await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor(); ok((await p.locator(".pt-id b").textContent()) === "P-07", "Enter adds P-07 and opens Log with P-07 in the banner");
   // empty states
-  await p.locator("nav.tabs button", { hasText: "Score" }).click();
-  await p.getByText("No logs yet for this patient.").waitFor(); ok(true, "Scores empty state");
-  await p.screenshot({ path: `${OUT}/flow-01-scores-empty.png` });
+  await p.locator("nav.tabs button", { hasText: "Two weeks" }).click();
+  await p.getByText("No logs yet for this patient.").waitFor(); ok(true, "Two weeks empty state");
+  await p.screenshot({ path: `${OUT}/flow-01-twoweeks-empty.png` });
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // log, double tap guard
   const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
@@ -114,6 +115,14 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.keyboard.press("Escape");
   ok(!(await sheet.isVisible()), "Esc closes the sheet");
   await p.mouse.click(10, 300);
+  await p.locator("nav.tabs button", { hasText: "Log" }).click(); // the reminder is on the Log screen
+  // A real patient with logs and no export gets the quiet backup line, and it opens the backup page (F-36)
+  const reminder = p.locator(".backup-reminder");
+  await reminder.waitFor();
+  ok((await reminder.textContent()).includes("Last backup: never."), "real patient with logs and no export: backup line shows");
+  await reminder.getByRole("button", { name: "Back up" }).click();
+  await p.getByRole("button", { name: "Download backup" }).waitFor(); ok(true, "the backup line opens the backup page");
+  await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // data: demo, export, restore, delete patient
   await p.locator("nav.tabs button", { hasText: "Settings" }).click();
   await p.getByRole("link", { name: /^Demo data/ }).click();
@@ -177,10 +186,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.locator(".acc-head", { hasText: "Hitting" }).click();
   ok((await p.locator(".acc-body li").first().textContent()).includes("Mealtime"), "restored P-07 log keeps details");
   // offline reload
-  await p.locator("nav.tabs button", { hasText: "Score" }).click();
+  await p.locator("nav.tabs button", { hasText: "Two weeks" }).click();
   await p.reload(); await p.waitForTimeout(1500);
-  await ctx.setOffline(true); await p.reload(); await p.getByRole("heading", { name: /^Period \d+ scores/ }).waitFor({ timeout: 8000 });
-  ok(true, "reload offline works, and stays on Scores");
+  await ctx.setOffline(true); await p.reload(); await p.locator(".pnav-label", { hasText: /Period \d+ ·/ }).waitFor({ timeout: 8000 });
+  ok(true, "reload offline works, and stays on Two weeks");
   await ctx.setOffline(false);
   ok(errs.length === 0, "no console errors " + JSON.stringify(errs));
   await b.close();

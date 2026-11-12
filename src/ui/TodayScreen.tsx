@@ -121,6 +121,7 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
 
   // "It stopped" (F-39): the end of a stretch, now. Optional and never scored.
   async function stopped(o: SavedObs) {
+    setSaveError(false);
     try {
       await stopLog(o);
     } catch (e) {

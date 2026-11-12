@@ -4,7 +4,8 @@ import { parseRoute, routeHash } from "../src/ui/route";
 
 describe("routes", () => {
   it("reads each tab", () => {
-    for (const tab of ["log", "scores", "data"] as const) expect(parseRoute(`#/${tab}`)).toEqual({ tab, page: null });
+    for (const tab of ["log", "today", "twoweeks", "data"] as const)
+      expect(parseRoute(`#/${tab}`)).toEqual({ tab, page: null });
   });
 
   it("treats the removed #/review screen as unknown, so it lands on the start screen", () => {
@@ -34,16 +35,31 @@ describe("routes", () => {
   });
 });
 
-describe("Scores period in the URL", () => {
-  it("reads a period", () => {
-    expect(parseRoute("#/scores/p3")).toEqual({ tab: "scores", page: null, period: 3 });
+describe("Two weeks period in the URL (F-28)", () => {
+  it("reads the tab and a period", () => {
+    expect(parseRoute("#/twoweeks")).toEqual({ tab: "twoweeks", page: null });
+    expect(parseRoute("#/twoweeks/p2")).toEqual({ tab: "twoweeks", page: null, period: 2 });
+  });
+  it("drops a period it cannot read", () => {
+    for (const h of ["#/twoweeks/p0", "#/twoweeks/2", "#/twoweeks/backup"])
+      expect(parseRoute(h)).toEqual({ tab: "twoweeks", page: null });
+  });
+  it("writes what it reads", () => {
+    for (const h of ["#/twoweeks", "#/twoweeks/p4"]) expect(routeHash(parseRoute(h)!)).toBe(h);
+  });
+});
+
+describe("old Score addresses (Score folded into Two weeks, build plan 4.4)", () => {
+  it("opens Two weeks, keeping the period", () => {
+    expect(parseRoute("#/scores")).toEqual({ tab: "twoweeks", page: null });
+    expect(parseRoute("#/scores/p3")).toEqual({ tab: "twoweeks", page: null, period: 3 });
   });
   it("drops a period it cannot read", () => {
     for (const h of ["#/scores/p0", "#/scores/3", "#/scores/px", "#/scores/backup"])
-      expect(parseRoute(h)).toEqual({ tab: "scores", page: null });
+      expect(parseRoute(h)).toEqual({ tab: "twoweeks", page: null });
   });
-  it("writes what it reads", () => {
-    for (const h of ["#/scores", "#/scores/p2"]) expect(routeHash(parseRoute(h)!)).toBe(h);
+  it("is written as the Two weeks address", () => {
+    expect(routeHash(parseRoute("#/scores/p2")!)).toBe("#/twoweeks/p2");
     expect(routeHash({ tab: "log", page: null, period: 2 })).toBe("#/log");
   });
 });

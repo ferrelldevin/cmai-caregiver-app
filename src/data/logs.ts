@@ -71,7 +71,8 @@ export async function editLog(obs: Saved, change: Partial<StoredObservation>, no
     // F-39: only the behaviors that come in stretches have an end, and it is never before the start.
     const next = { ...current, ...change };
     if (next.endedAt !== undefined) {
-      if (!ITEMS[current.itemId - 1].continuous) throw new LogTimeError("Only pacing, mannerisms and restlessness have an end time.");
+      if (!ITEMS[current.itemId - 1].continuous)
+        throw new LogTimeError("Only pacing, mannerisms and restlessness have an end time.");
       if (next.endedAt < next.at) throw new LogTimeError(ENDS_BEFORE_START);
     }
     const from: Partial<StoredObservation> = {};

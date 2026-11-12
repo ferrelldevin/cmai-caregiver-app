@@ -64,7 +64,14 @@ export async function protect(plain: string, pass: string, iterations = PROTECT_
   if (problem) throw new Error(problem);
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const header: Header = { app: MAGIC, version: 1, kdf: "PBKDF2-HMAC-SHA256", iterations, salt: b64(salt), iv: b64(iv) };
+  const header: Header = {
+    app: MAGIC,
+    version: 1,
+    kdf: "PBKDF2-HMAC-SHA256",
+    iterations,
+    salt: b64(salt),
+    iv: b64(iv),
+  };
   const key = await keyFrom(pass, salt, iterations);
   const data = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv as BufferSource, additionalData: headerBytes(header) as BufferSource },
@@ -85,11 +92,13 @@ export async function unprotect(text: string, pass: string): Promise<string> {
   } catch {
     throw new Error(WRONG);
   }
-  if (f.app !== MAGIC || f.version !== 1 || f.kdf !== "PBKDF2-HMAC-SHA256") throw new Error("This is not a protected CMAI Tracker file.");
+  if (f.app !== MAGIC || f.version !== 1 || f.kdf !== "PBKDF2-HMAC-SHA256")
+    throw new Error("This is not a protected CMAI Tracker file.");
   // A changed count could make opening take forever, or make the key weak: accept only sane values.
   if (!Number.isInteger(f.iterations) || f.iterations < 100_000 || f.iterations > 10_000_000) throw new Error(WRONG);
   try {
-    const salt = unb64(f.salt), iv = unb64(f.iv);
+    const salt = unb64(f.salt),
+      iv = unb64(f.iv);
     if (salt.length !== 16 || iv.length !== 12) throw new Error(WRONG);
     const key = await keyFrom(pass, salt, f.iterations);
     const plain = await crypto.subtle.decrypt(

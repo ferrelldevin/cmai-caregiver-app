@@ -259,13 +259,24 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                   </label>
                   <span className="row ended-row">
                     {obs.endedAt !== undefined && (
-                      <button className="ghost small" aria-label="Clear when it stopped" onClick={() => onPatch({ endedAt: undefined })}>
+                      <button
+                        className="ghost small"
+                        aria-label="Clear when it stopped"
+                        onClick={() => onPatch({ endedAt: undefined })}
+                      >
                         Clear
                       </button>
                     )}
                     <span className="time-pill">
                       <Icon name="clock" size={18} />
-                      <input id="ls-ended" type="time" value={obs.endedAt !== undefined ? hhmm(obs.endedAt) : ""} onChange={(e) => onPatch({ endedAt: e.target.value ? endFromClock(e.target.value, obs.at) : undefined })} />
+                      <input
+                        id="ls-ended"
+                        type="time"
+                        value={obs.endedAt !== undefined ? hhmm(obs.endedAt) : ""}
+                        onChange={(e) =>
+                          onPatch({ endedAt: e.target.value ? endFromClock(e.target.value, obs.at) : undefined })
+                        }
+                      />
                     </span>
                   </span>
                 </div>
