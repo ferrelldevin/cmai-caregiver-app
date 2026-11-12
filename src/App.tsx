@@ -181,6 +181,7 @@ export default function App() {
     };
   }, [loggingAs]);
   const me = caregivers.find((c) => c.id === loggingAs);
+  const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
 
   // The section bars pin just under the patient banner, so they need its height.
   useEffect(() => {
@@ -400,7 +401,13 @@ export default function App() {
             onBackUp={() => go({ tab: "data", page: "backup" })}
           />
         ) : shown === "today" ? (
-          <TodayScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
+          <TodayScreen
+            patientId={patientId!}
+            observations={observations}
+            checkins={checkins}
+            onChange={refresh}
+            initialsOf={study.caregiverProfiles ? initialsOf : undefined}
+          />
         ) : loaded && !error ? (
           <TwoWeeksScreen
             key={patientId}
