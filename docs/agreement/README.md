@@ -10,18 +10,18 @@ Does the app's count-to-rating rule give the same 1 to 7 rating a person would g
 
 ## Files
 
-| File | For | What it is |
-|---|---|---|
-| `vignettes.md` | Raters | The 12 stories and the rating scale. No app output. |
-| `rating-sheet.html` | Raters | Printable packet with a blank 1 to 9 grid per story. Open in a browser and print. |
-| `human-ratings-template.csv` | Organizer | Blank sheet for both raters' answers (48 rows). |
-| `vignettes.json` | Organizer | Every event as a timestamped log, plus design notes. |
-| `app-ratings.csv` | Organizer | Each story run through the app's engine (`cmai-count-rule-2`). |
-| `analyze.py` | Organizer | Quadratic weighted kappa, percent within 1 point, codes 8/9 table, Bland-Altman plots. Python 3 standard library only. |
-| `robustness.md`, `robustness-output/` | Lab | Missed-log simulation results and raw tables. |
-| `scripts/build_vignettes.py` | Organizer | Single source for the stories; regenerates the four files above it. |
-| `scripts/score-vignettes.ts` | Organizer | Writes `app-ratings.csv` from the app's own engine. |
-| `scripts/simulate-missing-logs.ts` | Organizer | The Monte Carlo simulation. |
+| File                                  | For       | What it is                                                                                                             |
+| ------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `vignettes.md`                        | Raters    | The 12 stories and the rating scale. No app output.                                                                    |
+| `rating-sheet.html`                   | Raters    | Printable packet with a blank 1 to 9 grid per story. Open in a browser and print.                                      |
+| `human-ratings-template.csv`          | Organizer | Blank sheet for both raters' answers (48 rows).                                                                        |
+| `vignettes.json`                      | Organizer | Every event as a timestamped log, plus design notes.                                                                   |
+| `app-ratings.csv`                     | Organizer | Each story run through the app's engine (`cmai-count-rule-2`).                                                         |
+| `analyze.py`                          | Organizer | Quadratic weighted kappa, percent within 1 point, codes 8/9 table, Bland-Altman plots. Python 3 standard library only. |
+| `robustness.md`, `robustness-output/` | Lab       | Missed-log simulation results and raw tables.                                                                          |
+| `scripts/build_vignettes.py`          | Organizer | Single source for the stories; regenerates the four files above it.                                                    |
+| `scripts/score-vignettes.ts`          | Organizer | Writes `app-ratings.csv` from the app's own engine.                                                                    |
+| `scripts/simulate-missing-logs.ts`    | Organizer | The Monte Carlo simulation.                                                                                            |
 
 ## Rule 2 note
 

@@ -14,7 +14,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
 
   await p.goto(URL);
   await p.getByRole("button", { name: "Try demo data" }).click();
-  await p.getByRole("button", { name: /^7 Hitting/ }).waitFor();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
   await shot("sw-01-log");
   ok((await banner().getAttribute("aria-haspopup")) === "dialog", "banner is a button that opens a dialog");
   await banner().click();

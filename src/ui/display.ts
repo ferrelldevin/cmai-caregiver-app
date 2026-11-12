@@ -33,7 +33,9 @@ function write(key: string, value: string) {
   try {
     if (value === "auto") localStorage.removeItem(key);
     else localStorage.setItem(key, value);
-  } catch { /* private mode: still applies for this visit */ }
+  } catch {
+    /* private mode: still applies for this visit */
+  }
 }
 
 export const getThemePref = (): ThemePref => read(THEME_KEY, ["light", "dark"] as const);
@@ -60,8 +62,11 @@ export function applyDisplay() {
   root.dataset.theme = theme;
   if (high) root.dataset.contrast = "high";
   else delete root.dataset.contrast;
-  document.querySelector?.('meta[name="theme-color"]')?.setAttribute("content", BAR_COLOR[high ? (`${theme}-high` as const) : theme]);
-  if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("no-transitions")));
+  document
+    .querySelector?.('meta[name="theme-color"]')
+    ?.setAttribute("content", BAR_COLOR[high ? (`${theme}-high` as const) : theme]);
+  if (typeof requestAnimationFrame === "function")
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("no-transitions")));
   listeners.forEach((l) => l());
 }
 
