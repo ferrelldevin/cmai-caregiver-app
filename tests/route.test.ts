@@ -63,3 +63,9 @@ describe("old Score addresses (Score folded into Two weeks, build plan 4.4)", ()
     expect(routeHash({ tab: "log", page: null, period: 2 })).toBe("#/log");
   });
 });
+
+describe("pages behind a study switch", () => {
+  it("the caregivers page does not exist in the caregiver build (R2 switched off)", () => {
+    expect(parseRoute("#/data/caregivers")).toEqual({ tab: "data", page: null });
+  });
+});

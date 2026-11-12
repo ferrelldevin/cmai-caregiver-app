@@ -2,6 +2,7 @@
 // Nothing leaves the device unless the caregiver presses Export.
 
 import Dexie, { type Table } from "dexie";
+import { study } from "../study/settings";
 import { newId } from "./ids";
 
 /** Why a patient was archived instead of erased (D-20). A pick list, so no names get typed. */
@@ -85,7 +86,7 @@ export interface CheckIn extends Made {
   at: number; // when it was tapped
 }
 
-/** One row per setting of this copy of the app. Rows: "deviceId", "createdAt". */
+/** One row per setting of this copy of the app. Rows: "deviceId", "createdAt", "lastCaregiver". */
 export interface Meta {
   key: string;
   value: string | number;
@@ -218,8 +219,18 @@ let deviceId: string | undefined;
 /** This phone's ID, once the database has opened. */
 export const thisDevice = () => deviceId;
 
-/** What a new record made on this phone carries about where it was made. `by` comes with R2 (5.2). */
-export const madeHere = (): Made => (deviceId ? { deviceId } : {});
+// The caregiver logging on this phone now (R2, plan 5.2). Set by src/data/caregivers.ts; only
+// read while caregiver profiles are switched on, so the caregiver build never writes `by`.
+let caregiverId: string | undefined;
+export const setLoggingCaregiver = (id: string | undefined) => {
+  caregiverId = id;
+};
+
+/** What a new record made on this phone carries about who made it and where. */
+export const madeHere = (): Made => ({
+  ...(study.caregiverProfiles && caregiverId ? { by: caregiverId } : {}),
+  ...(deviceId ? { deviceId } : {}),
+});
 
 export const db = new CmaiDb();
 

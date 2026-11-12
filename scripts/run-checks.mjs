@@ -13,6 +13,11 @@ const PORT = 4173;
 // 127.0.0.1, not "localhost": inside the CI container "localhost" can resolve to an address the server is not on.
 const HOST = "127.0.0.1";
 const URL = `http://${HOST}:${PORT}/`;
+// The lab build (src/study/settings.ts): features built before Dr. Gupta's sign-off, switched on.
+// Its checks run against a second preview, so the caregiver build above is tested exactly as phones get it.
+const LAB_PORT = 4174;
+const LAB_URL = `http://${HOST}:${LAB_PORT}/`;
+const LAB_DIR = "dist-lab";
 // file is the script; out, when set, is the file it writes instead of a screenshot folder.
 const CHECKS = [
   { name: "flows", file: "e2e/flows.cjs" },
@@ -27,6 +32,7 @@ const CHECKS = [
   { name: "screenshots", file: "e2e/screenshots.cjs" },
   { name: "accessibility", file: "docs/audits/axe-run.cjs", out: "axe-wcag22aa.json" },
 ];
+const LAB_CHECKS = [{ name: "lab: caregivers", file: "e2e/caregivers.cjs" }];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");
 const OUT = path.join(os.tmpdir(), "cmai-e2e");
@@ -42,10 +48,11 @@ function setup() {
     ["Install dependencies", "npm", ["ci"]],
     ["Install Chromium", "npx", ["playwright", "install", "chromium"]],
     ["Build", "npm", ["run", "build"]],
+    ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab" }],
   ].filter(([name]) => !(name === "Install Chromium" && process.env.CHROME)); // CHROME points at a browser already on the machine
-  for (const [name, cmd, args] of steps) {
+  for (const [name, cmd, args, env] of steps) {
     say(name);
-    const r = run(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
+    const r = run(cmd, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, ...env } });
     if (r.status !== 0) return `${name} failed:\n${tail(clean(r.stderr || r.stdout || String(r.error)))}`;
   }
   return null;
@@ -55,34 +62,39 @@ const tail = (text, n = 15) => text.trim().split(/\r?\n/).slice(-n).join("\n");
 // eslint-disable-next-line no-control-regex -- strips terminal color codes (ESC [ ... m) from tool output
 const clean = (text = "") => text.replace(/\x1b\[[0-9;]*m/g, "");
 
-async function startServer() {
+async function startServer(port = PORT, outDir = "dist") {
+  const url = `http://${HOST}:${port}/`;
   const vite = path.join(ROOT, "node_modules", "vite", "bin", "vite.js");
-  const server = spawn(process.execPath, [vite, "preview", "--host", HOST, "--port", String(PORT), "--strictPort"], {
-    cwd: ROOT,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const server = spawn(
+    process.execPath,
+    [vite, "preview", "--host", HOST, "--port", String(port), "--strictPort", "--outDir", outDir],
+    {
+      cwd: ROOT,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   let log = "";
   server.stdout.on("data", (d) => (log += d));
   server.stderr.on("data", (d) => (log += d));
   for (let i = 0; i < 60; i++) {
     if (server.exitCode !== null) throw new Error(`The preview server stopped:\n${tail(log)}`);
     try {
-      if ((await fetch(URL)).ok) return server;
+      if ((await fetch(url)).ok) return server;
     } catch {
       // not answering yet; try again
     }
     await new Promise((r) => setTimeout(r, 500));
   }
   server.kill();
-  throw new Error(`The preview server did not answer on port ${PORT} within 30 seconds:\n${tail(log)}`);
+  throw new Error(`The preview server did not answer on port ${port} within 30 seconds:\n${tail(log)}`);
 }
 
-function runCheck({ name, file, out: outFile }) {
+function runCheck({ name, file, out: outFile }, url = URL) {
   say(`Running ${name}`);
-  const dir = path.join(OUT, name);
+  const dir = path.join(OUT, name.replace(/[^a-z0-9-]+/gi, "-"));
   fs.mkdirSync(dir, { recursive: true });
   const out = outFile ? path.join(dir, outFile) : dir;
-  const r = spawnSync(process.execPath, [path.join(ROOT, file), URL, out], {
+  const r = spawnSync(process.execPath, [path.join(ROOT, file), url, out], {
     cwd: ROOT,
     encoding: "utf8",
     timeout: 10 * 60_000,
@@ -143,14 +155,17 @@ function pushReport(file) {
 const results = [];
 let setupError = setup();
 if (!setupError) {
-  let server;
+  let server, labServer;
   try {
     server = await startServer();
     for (const check of CHECKS) results.push(runCheck(check));
+    labServer = await startServer(LAB_PORT, LAB_DIR);
+    for (const check of LAB_CHECKS) results.push(runCheck(check, LAB_URL));
   } catch (e) {
     setupError = e.message;
   } finally {
     server?.kill();
+    labServer?.kill();
   }
 }
 

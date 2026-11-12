@@ -8,9 +8,10 @@
 // A reload lands on the same screen.
 
 import { useEffect, useRef, useState } from "react";
+import { study } from "../study/settings";
 
 export type Tab = "log" | "today" | "twoweeks" | "data";
-export type DataPage = "backup" | "display" | "safe" | "demo" | "about";
+export type DataPage = "backup" | "display" | "safe" | "demo" | "about" | "caregivers";
 /** `period` is 1-based, as people read it ("Period 3"); absent means the default period. */
 export interface Route {
   tab: Tab;
@@ -19,7 +20,15 @@ export interface Route {
 }
 
 const TABS: readonly Tab[] = ["log", "today", "twoweeks", "data"];
-const PAGES: readonly DataPage[] = ["backup", "display", "safe", "demo", "about"];
+// The caregivers page exists only while caregiver profiles are switched on (R2, plan 5.2).
+const PAGES: readonly DataPage[] = [
+  "backup",
+  "display",
+  "safe",
+  "demo",
+  "about",
+  ...(study.caregiverProfiles ? (["caregivers"] as const) : []),
+];
 
 export function parseRoute(hash: string): Route | null {
   const [name, page] = hash.replace(/^#\/?/, "").split("/");

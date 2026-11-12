@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import { askToKeepData } from "./data/persist";
+import { loadLoggingCaregiver } from "./data/caregivers";
 import { ErrorBoundary } from "./ui/ErrorScreen";
 import { listenForErrors } from "./ui/diagnostics";
 import { listenForDisplay } from "./ui/display";
@@ -17,12 +18,16 @@ listenForInstall();
 listenForDisplay();
 listenForErrors();
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
+// Who is logging lives in the database; read it before the first draw.
+// If the database cannot be read, the app opens with nobody chosen and shows its own error.
+void loadLoggingCaregiver().finally(() =>
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>,
+  ),
 );
 
 // After the first paint, and never blocking it.
