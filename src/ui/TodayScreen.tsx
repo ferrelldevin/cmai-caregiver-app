@@ -28,9 +28,11 @@ interface Props {
   observations: StoredObservation[];
   checkins: CheckIn[];
   onChange: () => void;
+  /** Caregiver code to initials, when caregiver profiles are on (R2): each log says who made it. */
+  initialsOf?: Record<string, string>;
 }
 
-export function TodayScreen({ patientId, observations, checkins, onChange }: Props) {
+export function TodayScreen({ patientId, observations, checkins, onChange, initialsOf }: Props) {
   const [open, setOpen] = useState<number | null>(null);
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
   const [deleted, setDeleted] = useState<SavedObs | null>(null);
@@ -228,6 +230,7 @@ export function TodayScreen({ patientId, observations, checkins, onChange }: Pro
                           <span className="acc-time">
                             {timeOfDay(o.at)}
                             {o.approx ? " (about)" : ""}
+                            {initialsOf && o.by ? ` · by ${initialsOf[o.by] ?? o.by}` : ""}
                           </span>
                           <span className="muted acc-before">
                             {o.before ? `before: ${o.before}${o.beforeNote ? ` (${o.beforeNote})` : ""}` : ""}
