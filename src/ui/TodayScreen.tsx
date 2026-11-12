@@ -7,7 +7,7 @@
 
 import { useEffect, useState, type MouseEvent } from "react";
 import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
-import { deleteLog, editLog, LogTimeError, restoreLog } from "../data/logs";
+import { deleteLog, editLog, LogTimeError, restoreLog, stopLog } from "../data/logs";
 import { dayLogs, logsByHour } from "../scoring/day";
 import { watchedMinutesByHour } from "../scoring/coverage";
 import { watchesFor } from "../data/watches";
@@ -117,6 +117,19 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
       setEditing(before);
       setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
     }
+  }
+
+  // "It stopped" (F-39): the end of a stretch, now. Optional and never scored.
+  async function stopped(o: SavedObs) {
+    setSaveError(false);
+    try {
+      await stopLog(o);
+    } catch (e) {
+      record(e);
+      setSaveError(true);
+      return;
+    }
+    onChange();
   }
 
   async function remove(o: SavedObs, reason: string, note?: string) {
@@ -265,11 +278,21 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
                           <span className="acc-time">
                             {timeOfDay(o.at)}
                             {o.approx ? " (about)" : ""}
+                            {study.stoppedTap && o.endedAt !== undefined ? ` to ${timeOfDay(o.endedAt)}` : ""}
                             {initialsOf && o.by ? ` · by ${initialsOf[o.by] ?? o.by}` : ""}
                           </span>
                           <span className="muted acc-before">
                             {o.before ? `before: ${o.before}${o.beforeNote ? ` (${o.beforeNote})` : ""}` : ""}
                           </span>
+                          {study.stoppedTap && ITEMS[itemId - 1].continuous && o.endedAt === undefined && (
+                            <button
+                              className="ghost small"
+                              aria-label={`It stopped: ${SHORT_NAMES[itemId]} from ${timeOfDay(o.at)}`}
+                              onClick={() => stopped(o as SavedObs)}
+                            >
+                              It stopped
+                            </button>
+                          )}
                           <button
                             className="ghost small"
                             aria-label={`Edit ${ITEMS[itemId - 1].name} at ${timeOfDay(o.at)}`}
@@ -317,7 +340,10 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
         error={editError}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          setEditError(null);
+        }}
       />
     </div>
   );

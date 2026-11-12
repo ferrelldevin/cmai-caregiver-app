@@ -17,7 +17,7 @@ import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
 import { backupReminder } from "../data/backupReminder";
-import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
+import { deleteLog, editLog, LogTimeError, restoreLog, stopLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
@@ -156,6 +156,16 @@ export function LogScreen({
     }
     setToast(null);
     setHeld(false);
+    onChange();
+  }
+
+  // "It stopped" (F-39): the end of a stretch, now. The confirmation stays, showing both times.
+  const stoppable = (t: Toast) =>
+    t.kind === "logged" && study.stoppedTap && !!ITEMS[t.obs.itemId - 1].continuous && t.obs.endedAt === undefined;
+  async function stopped(o: SavedObs) {
+    const now = Date.now();
+    await stopLog(o, now);
+    setToast({ kind: "logged", obs: { ...o, endedAt: now } });
     onChange();
   }
 
@@ -362,7 +372,7 @@ export function LogScreen({
 
       {toast && (
         <div
-          className="snackbar"
+          className={stoppable(toast) ? "snackbar three" : "snackbar"}
           role="status"
           onPointerEnter={() => setHeld(true)}
           onPointerLeave={() => setHeld(false)}
@@ -381,9 +391,15 @@ export function LogScreen({
               {toast.kind === "deleted" && "Deleted · "}
               {toast.obs.patientId} · {timeOfDay(toast.obs.at)}
               {toast.obs.approx ? " (about)" : ""}
+              {toast.obs.endedAt !== undefined ? ` to ${timeOfDay(toast.obs.endedAt)}` : ""}
             </span>
           </span>
           <span className="snackbar-actions">
+            {stoppable(toast) && (
+              <button className="snackbar-btn" onClick={() => stopped(toast.obs)}>
+                It stopped
+              </button>
+            )}
             {toast.kind === "logged" && (
               <button className="snackbar-btn" onClick={(e) => edit(toast.obs, e)}>
                 Edit
@@ -404,7 +420,10 @@ export function LogScreen({
         error={editError}
         onPatch={patch}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          setEditError(null);
+        }}
       />
     </div>
   );

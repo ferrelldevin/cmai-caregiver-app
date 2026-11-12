@@ -2,6 +2,7 @@
 // change history in the same transaction, so the history and the log can't disagree.
 // A delete only marks the log (soft delete); scoring skips marked logs (design note 007).
 
+import { ITEMS } from "../scoring/items";
 import { db, madeHere, type LogChange, type StoredObservation } from "./db";
 
 /** Why a log was removed. A pick list, so reasons can be counted and no names get typed. */
@@ -16,7 +17,9 @@ export const DELETE_REASONS = [
 export const UNDO_REASON = "Undone right after logging";
 
 type Saved = StoredObservation & { id: number };
-const EDITABLE = ["at", "approx", "before", "beforeNote"] as const;
+const EDITABLE = ["at", "approx", "before", "beforeNote", "endedAt"] as const;
+/** Shown when a change would put the end of a stretch before its start (F-39). */
+export const ENDS_BEFORE_START = "It can't stop before it started. Check both times.";
 const EDIT_MERGE_MS = 5 * 60_000;
 
 /** A change the caregiver can fix, with a message to show as it is (not a storage failure). */
@@ -65,6 +68,13 @@ export async function editLog(obs: Saved, change: Partial<StoredObservation>, no
       });
       throw new LogTimeError(`This patient's first day in the app is ${day}. A log can't be earlier than that.`);
     }
+    // F-39: only the behaviors that come in stretches have an end, and it is never before the start.
+    const next = { ...current, ...change };
+    if (next.endedAt !== undefined) {
+      if (!ITEMS[current.itemId - 1].continuous)
+        throw new LogTimeError("Only pacing, mannerisms and restlessness have an end time.");
+      if (next.endedAt < next.at) throw new LogTimeError(ENDS_BEFORE_START);
+    }
     const from: Partial<StoredObservation> = {};
     const to: Partial<StoredObservation> = {};
     for (const k of EDITABLE) {
@@ -101,3 +111,6 @@ function record({ from, to, ...c }: LogChange) {
     ...(to ? { to: clean(to) } : {}),
   });
 }
+
+/** "It stopped" (F-39, plan 5.7): the end of a stretch of pacing, mannerisms or restlessness, now. Never read by scoring. */
+export const stopLog = (obs: Saved, now = Date.now()) => editLog(obs, { endedAt: now }, now);

@@ -40,6 +40,14 @@ const hhmm = (t: number) => {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
+/** A clock time typed for the end of a stretch (F-39): the same calendar day as its start. An end before the start is refused when saved. */
+export function endFromClock(value: string, at: number) {
+  const [h, m] = value.split(":").map(Number);
+  const d = new Date(at);
+  d.setHours(h, m, 0, 0);
+  return d.getTime();
+}
+
 /** A clock time typed for a log: the same day it was logged, or the day before if that time came after the log. */
 export function fromClock(value: string, loggedAt: number) {
   const [h, m] = value.split(":").map(Number);
@@ -242,6 +250,37 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                   onChange={(e) => onPatch({ approx: e.target.checked })}
                 />
               </label>
+              {/* F-39, on assumed approval: when a stretch of pacing, mannerisms or restlessness stopped. Optional, never scored. */}
+              {study.stoppedTap && item?.continuous && (
+                <div className="form-row ended">
+                  <label htmlFor="ls-ended" className="ended-label">
+                    It stopped
+                    <span className="form-hint">Optional</span>
+                  </label>
+                  <span className="row ended-row">
+                    {obs.endedAt !== undefined && (
+                      <button
+                        className="ghost small"
+                        aria-label="Clear when it stopped"
+                        onClick={() => onPatch({ endedAt: undefined })}
+                      >
+                        Clear
+                      </button>
+                    )}
+                    <span className="time-pill">
+                      <Icon name="clock" size={18} />
+                      <input
+                        id="ls-ended"
+                        type="time"
+                        value={obs.endedAt !== undefined ? hhmm(obs.endedAt) : ""}
+                        onChange={(e) =>
+                          onPatch({ endedAt: e.target.value ? endFromClock(e.target.value, obs.at) : undefined })
+                        }
+                      />
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
           </section>
 
