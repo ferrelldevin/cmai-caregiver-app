@@ -15,6 +15,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - New Today tab (F-27): today's logs by hour and by behavior, where a log is fixed or removed. Recent logs and "Nothing to log today" moved there from Log.
 
 ### Added
+
 - Every file is now formatted with Prettier, and `npm run lint` fails on unformatted files (so CI does too). No logic changed.
 
 - Study settings (`src/study/settings.ts`, F-48): one switch per feature built before Dr. Gupta's sign-off. The normal build has them all off; `VITE_STUDY_MODE=lab` builds the lab version with them on. Settings > About shows which one is running.
