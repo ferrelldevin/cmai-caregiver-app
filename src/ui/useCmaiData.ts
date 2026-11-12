@@ -3,7 +3,14 @@
 // Deleted logs are left out here, so no screen counts them. Scores come from the logs only.
 
 import { useCallback, useEffect, useState } from "react";
-import { appRatings, scoreAllWindows, summarize, unloggedDays, type Summary, type WindowScore } from "../scoring/engine";
+import {
+  appRatings,
+  scoreAllWindows,
+  summarize,
+  unloggedDays,
+  type Summary,
+  type WindowScore,
+} from "../scoring/engine";
 import { db, isLive, type CheckIn, type Patient, type StoredObservation } from "../data/db";
 
 export interface ScoredWindow {
@@ -63,5 +70,14 @@ export function useCmaiData(patientId: string | null) {
 
   // `loaded` is true only once the data on hand belongs to the patient asked for, so a
   // caller never mistakes the last patient's list for the new one's.
-  return { patients, observations, checkins, windows, refresh, loaded: loadedFor === patientId, everLoaded: loadedFor !== undefined, error };
+  return {
+    patients,
+    observations,
+    checkins,
+    windows,
+    refresh,
+    loaded: loadedFor === patientId,
+    everLoaded: loadedFor !== undefined,
+    error,
+  };
 }

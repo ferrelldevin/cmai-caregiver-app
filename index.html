@@ -13,9 +13,15 @@
       // Set the theme before the first paint so the app never flashes the wrong one.
       // Mirrors applyDisplay() in src/ui/display.ts; keep the two in step.
       (function () {
-        var t = null, c = null;
-        try { t = localStorage.getItem("cmai-theme"); c = localStorage.getItem("cmai-contrast"); } catch (e) {}
-        var mq = function (q) { return !!(window.matchMedia && window.matchMedia(q).matches); };
+        var t = null,
+          c = null;
+        try {
+          t = localStorage.getItem("cmai-theme");
+          c = localStorage.getItem("cmai-contrast");
+        } catch (e) {}
+        var mq = function (q) {
+          return !!(window.matchMedia && window.matchMedia(q).matches);
+        };
         var theme = t === "light" || t === "dark" ? t : mq("(prefers-color-scheme: dark)") ? "dark" : "light";
         var high = c === "high" || (c !== "standard" && mq("(prefers-contrast: more)"));
         var root = document.documentElement;
