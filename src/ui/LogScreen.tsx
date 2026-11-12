@@ -37,12 +37,24 @@ interface Props {
   observations: StoredObservation[];
   demo: boolean; // the patient is made-up demo data
   onChange: () => void;
+  /** Periods whose two-week rating the caregiver logging now still has to give (F-47). Never a blocker. */
+  ratingsDue?: number[];
+  onRate?: (period: number) => void;
   /** Opens the Today tab, where today's logs are listed and fixed. */
   onToday: () => void;
   onBackUp: () => void; // opens the Data screen's backup page
 }
 
-export function LogScreen({ patientId, observations, demo, onChange, onToday, onBackUp }: Props) {
+export function LogScreen({
+  patientId,
+  observations,
+  demo,
+  onChange,
+  onToday,
+  onBackUp,
+  ratingsDue = [],
+  onRate,
+}: Props) {
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
   const [group, setGroup] = useState<FactorGroup>("aggressive");
   const [toast, setToast] = useState<Toast | null>(null);
@@ -250,6 +262,17 @@ export function LogScreen({ patientId, observations, demo, onChange, onToday, on
           <Icon name="chevron" size={16} className="today-count-chev" />
         </button>
       </div>
+      {onRate && ratingsDue.length > 0 && (
+        <div className="due-line">
+          <p>
+            Two-week rating due for {patientId}
+            {ratingsDue.length > 1 ? ` (period ${ratingsDue[0]})` : ""}
+          </p>
+          <button className="small" onClick={() => onRate(ratingsDue[0])}>
+            Rate
+          </button>
+        </div>
+      )}
       <p className="hint">
         Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is
         one stretch of it.

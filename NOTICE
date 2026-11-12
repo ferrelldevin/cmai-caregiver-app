@@ -6,7 +6,8 @@ except as noted below.
 Cohen-Mansfield Agitation Inventory (CMAI)
 The CMAI item names, behavior definitions, and rating scale anchors in
 src/scoring/items.ts and src/scoring/engine.ts (and any text derived from them shown
-in the app) are adapted from the Instruction Manual for the Cohen-Mansfield Agitation
+in the app, including the 1 to 7 frequency labels and codes 8 and 9 on the caregiver's
+two-week rating form in src/ui/RatingScreen.tsx) are adapted from the Instruction Manual for the Cohen-Mansfield Agitation
 Inventory, (c) 1991 Jiska Cohen-Mansfield; forms (c) 1986 Cohen-Mansfield, all rights
 reserved. This material is NOT covered by the MIT License. The CMAI may be used free of
 charge for non-commercial purposes; other uses require permission from the author

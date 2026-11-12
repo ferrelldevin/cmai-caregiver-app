@@ -2630,3 +2630,120 @@ button.text-danger {
 [data-contrast="high"] .pin-dots span {
   border-color: var(--text);
 }
+
+/* The caregiver's two-week rating (F-47, plan 5.4). */
+.rating {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-bottom: var(--s5);
+}
+.rate-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+.rate-row {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: var(--s3);
+}
+.rate-name {
+  font-weight: 700;
+  margin: 0 0 var(--s1);
+}
+.rate-scale {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: var(--s2);
+}
+.rate-codes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.rate-btn {
+  min-height: 44px;
+  padding: 0;
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--rule-strong);
+}
+.rate-btn.wide {
+  padding: 0 var(--s2);
+  font-size: var(--fs-sm);
+}
+@media (hover: hover) {
+  .rate-btn:hover {
+    background: var(--hover);
+  }
+}
+.rate-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+.rate-label {
+  min-height: 1.3em;
+  margin: 2px 0;
+  font-size: var(--fs-sm);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.rate-foot {
+  position: sticky;
+  bottom: calc(var(--tabs-h, 88px) + env(safe-area-inset-bottom));
+  background: var(--bg);
+  padding: var(--s2) 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  border-top: 1px solid var(--rule);
+}
+.rate-foot > .msg,
+.rate-foot > .small-print {
+  flex-basis: 100%;
+  margin: 0;
+}
+.rate-progress {
+  margin: 0;
+  font-weight: 600;
+}
+.due-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+  margin: var(--s2) 0;
+}
+.due-line p {
+  margin: 0;
+  font-weight: 600;
+}
+table.cmp {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+table.cmp th,
+table.cmp td {
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--rule);
+}
+table.cmp td {
+  text-align: center;
+}
+[data-contrast="high"] .rate-btn {
+  border-color: var(--text);
+}
