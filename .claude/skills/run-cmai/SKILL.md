@@ -15,7 +15,7 @@ npm run build
 npx vite preview --port 4173 --strictPort
 ```
 
-Open http://localhost:4173/ (base is `./`, so not `/cmai-tracker/`). If port 4173 is taken, stop the other preview first; `scripts/run-checks.mjs` uses the same port.
+Open http://localhost:4173/ (base is `./`, so not `/cmai-caregiver-app/`). If port 4173 is taken, stop the other preview first; `scripts/run-checks.mjs` uses the same port.
 
 Drive it with Playwright Chromium (`require('playwright')`), or set `CHROME` to a Chromium binary. Cloud sessions cannot reach the GitHub Pages site, so always use the local preview.
 
