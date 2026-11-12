@@ -15,7 +15,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.goto(URL);
   await p.getByRole("button", { name: "Try demo data" }).click();
   await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
-  ok((await p.locator("nav.tabs button").allTextContents()).join(",") === "Log,Score,Today,Settings", "the bar reads Log, Score, Today, Settings");
+  ok((await p.locator("nav.tabs button").allTextContents()).join(",") === "Log,Score,Today,Two weeks,Settings", "the bar reads Log, Score, Today, Two weeks, Settings");
 
   // Nothing logged yet today: say so, and offer the quiet-day check-in (moved here from Log).
   await tab("Today");

@@ -33,6 +33,6 @@ are from Paul Tol's "muted" qualitative palette (https://personal.sron.nl/~pault
 for color-blind readers.
 
 App icons
-The Switch, Settings and Today icons in src/ui/Icon.tsx are redrawn from Lucide's
-"arrow-right-left", "settings-2" and "calendar" (https://lucide.dev), ISC License, (c) Lucide
+The Switch, Settings, Today and Two weeks icons in src/ui/Icon.tsx are redrawn from Lucide's
+"arrow-right-left", "settings-2", "calendar" and "calendar-range" (https://lucide.dev), ISC License, (c) Lucide
 Contributors.
