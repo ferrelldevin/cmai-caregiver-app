@@ -6,6 +6,14 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ## [Unreleased]
 
+### Added
+
+- Database version 4 (F-44): every log gets an ID that stays unique across phones, and new logs record the phone and its UTC offset. Backups are format 2 and never include PIN fields; format 1 backups still restore. In the lab build, deleting a patient who has logs archives them with a reason instead of erasing them (D-20). A phone that opens this version cannot go back to an older one without export, clear and restore.
+
+### Fixed
+
+- Restore leaves out a review or "Nothing to log today" check-in whose key names a different patient, window or day than its own fields. Before, such an entry was stored under the key and could stand in for another patient's review.
+
 ## [0.3.0] - 2026-11-12
 
 ### Changed

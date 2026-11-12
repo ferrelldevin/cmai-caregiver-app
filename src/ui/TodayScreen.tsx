@@ -6,7 +6,7 @@
 // two weeks (manual p.2, p.5).
 
 import { useEffect, useState, type MouseEvent } from "react";
-import { checkInKey, db, localMidnight, type CheckIn, type StoredObservation } from "../data/db";
+import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
 import { deleteLog, editLog, LogTimeError, restoreLog } from "../data/logs";
 import { dayLogs, logsByHour } from "../scoring/day";
 import { ITEMS } from "../scoring/items";
@@ -66,7 +66,7 @@ export function TodayScreen({ patientId, observations, checkins, onChange }: Pro
     setSaveError(false);
     try {
       if (checkedIn) await db.checkins.delete(key);
-      else await db.checkins.put({ key, patientId, day: today, at: Date.now() });
+      else await db.checkins.put({ key, patientId, day: today, at: Date.now(), ...madeHere() });
     } catch (e) {
       record(e);
       setSaveError(true);

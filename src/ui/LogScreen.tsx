@@ -11,7 +11,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring/items";
 import { mostLogged } from "./mostLogged";
-import { db, localMidnight, type StoredObservation } from "../data/db";
+import { db, localMidnight, madeHere, type StoredObservation } from "../data/db";
+import { utcOffsetMin } from "../data/ids";
 import { backupReminder } from "../data/backupReminder";
 import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
@@ -85,7 +86,7 @@ export function LogScreen({ patientId, observations, demo, onChange, onToday, on
     // A double tap on the same card within 0.6 s is almost always one event.
     if (lastTap.current && lastTap.current.itemId === itemId && t - lastTap.current.t < 600) return;
     lastTap.current = { itemId, t };
-    const obs = { patientId, itemId, at: t, loggedAt: t };
+    const obs = { patientId, itemId, at: t, loggedAt: t, ...madeHere(), tzOffsetMin: utcOffsetMin(t) };
     setSaveError(false);
     let id: number;
     try {

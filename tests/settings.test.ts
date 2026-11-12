@@ -13,6 +13,7 @@ const TODAY = {
   extraBeforeChips: false,
   freeTextNotes: true,
   protectBackup: false,
+  archivePatients: false,
 };
 
 describe("study settings", () => {
@@ -35,6 +36,7 @@ describe("study settings", () => {
     const lab = settingsFor("lab");
     expect(lab.labView && lab.caregiverProfiles && lab.pin && lab.blindCmai).toBe(true);
     expect(lab.watchingHours && lab.stoppedTap && lab.extraBeforeChips && lab.protectBackup).toBe(true);
+    expect(lab.archivePatients).toBe(true);
     expect(lab.ratingsVisibleToCaregivers).toBe(false);
   });
 

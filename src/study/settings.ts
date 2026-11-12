@@ -13,6 +13,7 @@ export interface StudySettings {
   extraBeforeChips: boolean; // F-41 (plan 5.9)
   freeTextNotes: boolean; // P-11
   protectBackup: boolean; // F-10 (plan 5.11)
+  archivePatients: boolean; // D-20 (plan 5.1): a patient with real logs is archived, not erased
 }
 
 const CAREGIVER: StudySettings = {
@@ -26,6 +27,7 @@ const CAREGIVER: StudySettings = {
   extraBeforeChips: false,
   freeTextNotes: true, // today's behavior
   protectBackup: false,
+  archivePatients: false,
 };
 
 const LAB: StudySettings = {
@@ -39,6 +41,7 @@ const LAB: StudySettings = {
   extraBeforeChips: true,
   freeTextNotes: true,
   protectBackup: true,
+  archivePatients: true,
 };
 
 export type StudyMode = "caregiver" | "lab";

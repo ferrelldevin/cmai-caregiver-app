@@ -164,7 +164,7 @@ describe("restore checks every entry (F-31)", () => {
 
   it("checks reviews, check-ins and change history the same way", () => {
     const good = {
-      key: "P-01|1|7",
+      key: `P-01|${T0}|7`,
       patientId: "P-01",
       windowStart: T0,
       itemId: 7,
@@ -183,11 +183,15 @@ describe("restore checks every entry (F-31)", () => {
           { ...good, derived: "2" },
           { ...good, itemId: 30 },
           { ...good, patientId: "a name" },
+          { ...good, key: `P-02|${T0}|7` },
+          { ...good, key: `P-01|${T0}|8` },
         ],
         checkins: [
-          { key: "k", patientId: "P-01", day: T0, at: T0 },
-          { key: "k", patientId: "P-01", day: "x", at: T0 },
+          { key: `P-01|${T0}`, patientId: "P-01", day: T0, at: T0 },
+          { key: `P-01|${T0}`, patientId: "P-01", day: "x", at: T0 },
           { key: "", patientId: "P-01", day: T0, at: T0 },
+          { key: `P-02|${T0}`, patientId: "P-01", day: T0, at: T0 },
+          { key: `P-01|${T0 + DAY}`, patientId: "P-01", day: T0, at: T0 },
         ],
         changes: [
           {
@@ -210,7 +214,7 @@ describe("restore checks every entry (F-31)", () => {
     expect(b.changes).toHaveLength(2);
     expect(b.changes[0].to).toEqual({ approx: true });
     expect(b.changes[1]).not.toHaveProperty("to");
-    expect(b.skipped).toBe(5 + 2 + 2);
+    expect(b.skipped).toBe(7 + 4 + 2);
   });
 
   it("rejects logs with a bad id, flag or demo mark", () => {
@@ -240,8 +244,10 @@ describe("restore checks every entry (F-31)", () => {
       JSON.stringify({
         patients: [],
         observations: [],
-        reviews: [{ key: "k", patientId: "P-55", windowStart: T0, itemId: 7, choice: 8, derived: 2, reviewedAt: T0 }],
-        checkins: [{ key: "k", patientId: "P-55", day: T0, at: T0 }],
+        reviews: [
+          { key: `P-55|${T0}|7`, patientId: "P-55", windowStart: T0, itemId: 7, choice: 8, derived: 2, reviewedAt: T0 },
+        ],
+        checkins: [{ key: `P-55|${T0}`, patientId: "P-55", day: T0, at: T0 }],
         changes: [{ observationId: 1, patientId: "P-55", action: "edit", at: T0 }],
       }),
     );
@@ -295,5 +301,150 @@ describe("deleting", () => {
     expect(await removeDemoData()).toBe(1);
     expect((await db.patients.toArray()).map((p) => p.id)).toEqual(["P-01"]);
     expect(await db.observations.count()).toBe(3);
+  });
+});
+
+describe("restore checks version 4 fields (F-44, plan 5.1)", () => {
+  const T = T0 + DAY;
+  const UID = "0b8f2c1e-1a2b-4c3d-8e9f-0a1b2c3d4e5f";
+  const log = { patientId: "P-01", itemId: 3, at: T, loggedAt: T };
+  const parse = (extra: Record<string, unknown>) =>
+    parseBackup(JSON.stringify({ patients: [{ id: "P-01", anchor: T0 }], observations: [], ...extra }), T0 + 10 * DAY);
+
+  it("keeps good version 4 log fields", () => {
+    const good = { ...log, uid: UID, deviceId: UID, by: "C-02", tzOffsetMin: -300, endedAt: T + 60_000 };
+    const r = parse({ observations: [good] });
+    expect(r.skipped).toBe(0);
+    expect(r.observations[0]).toEqual(good);
+  });
+
+  it("rejects bad version 4 log fields", () => {
+    const bad = [
+      { ...log, uid: "short" },
+      { ...log, uid: 42 },
+      { ...log, deviceId: "has spaces in it" },
+      { ...log, by: "Jane" },
+      { ...log, by: "C-1" },
+      { ...log, tzOffsetMin: 900 },
+      { ...log, tzOffsetMin: 1.5 },
+      { ...log, endedAt: T - 1 },
+    ];
+    expect(parse({ observations: bad })).toMatchObject({ observations: [], skipped: bad.length });
+  });
+
+  it("checks archived patients, colors, and who made check-ins and changes", () => {
+    const patients = [
+      { id: "P-01", anchor: T0, archivedAt: T, archiveReason: "Left the study", archiveNote: "moved", color: 3 },
+      { id: "P-02", anchor: T0, archivedAt: T },
+      { id: "P-03", anchor: T0, archiveReason: "Duplicate" },
+      { id: "P-04", anchor: T0, archivedAt: T, archiveReason: "Gone" },
+      { id: "P-05", anchor: T0, color: 64 },
+      { id: "P-06", anchor: T0, archivedAt: T, archiveReason: "Other", archiveNote: "x".repeat(121) },
+    ];
+    const r = parseBackup(
+      JSON.stringify({
+        patients,
+        observations: [],
+        checkins: [
+          { key: `P-01|${T}`, patientId: "P-01", day: T, at: T, by: "C-01", deviceId: UID },
+          { key: `P-01|${T}`, patientId: "P-01", day: T, at: T, by: "nurse" },
+        ],
+        changes: [
+          { observationId: 1, patientId: "P-01", action: "edit", at: T, by: "C-01" },
+          { observationId: 1, patientId: "P-01", action: "edit", at: T, deviceId: "bad id" },
+        ],
+      }),
+      T0 + 10 * DAY,
+    );
+    expect(r.patients).toEqual([patients[0]]);
+    expect(r.checkins).toHaveLength(1);
+    expect(r.changes).toEqual([{ observationId: 1, patientId: "P-01", action: "edit", at: T, by: "C-01" }]);
+    expect(r.skipped).toBe(5 + 1 + 1);
+  });
+
+  it("checks caregivers, assignments, watches and caregiver ratings", () => {
+    const rating = {
+      uid: UID,
+      patientId: "P-01",
+      windowStart: T0,
+      answers: { 1: 2, 29: 9 },
+      startedAt: T,
+      ruleVersion: "cmai-count-rule-2",
+    };
+    const watch = { uid: UID, patientId: "P-01", start: T, startSource: "tap" };
+    const r = parse({
+      caregivers: [
+        { id: "C-01", initials: "JM", createdAt: T, archivedAt: T },
+        { id: "C-02", initials: "Jane", createdAt: T },
+        { id: "Bob", initials: "BB", createdAt: T },
+        { id: "C-03", initials: "AB", createdAt: T, archivedAt: 5 },
+      ],
+      assignments: [
+        { caregiverId: "C-01", patientId: "P-01", order: 0, at: T },
+        { caregiverId: "C-01", patientId: "P-01", order: -1, at: T },
+        { caregiverId: "x", patientId: "P-01", order: 0, at: T },
+        { caregiverId: "C-01", patientId: "bad code", order: 0, at: T },
+      ],
+      watches: [
+        { ...watch, end: T + 1000, endSource: "timeout", tzOffsetMin: 60, by: "C-01" },
+        { ...watch, startSource: "guess" },
+        { ...watch, end: T - 1 },
+        { ...watch, endSource: "later" },
+        { ...watch, tzOffsetMin: 9999 },
+        { ...watch, uid: "x" },
+        { ...watch, patientId: "nope!" },
+      ],
+      caregiverRatings: [
+        { ...rating, submittedAt: T, by: "C-01" },
+        { ...rating, answers: { 30: 1 } },
+        { ...rating, answers: { 1: 10 } },
+        { ...rating, answers: { x: 1 } },
+        { ...rating, answers: [] },
+        { ...rating, ruleVersion: "" },
+        { ...rating, submittedAt: 3 },
+        { ...rating, uid: 1 },
+        { ...rating, windowStart: "then" },
+      ],
+    });
+    expect(r.caregivers).toEqual([{ id: "C-01", initials: "JM", createdAt: T, archivedAt: T }]);
+    expect(r.assignments).toHaveLength(1);
+    expect(r.watches).toEqual([{ ...watch, end: T + 1000, endSource: "timeout", tzOffsetMin: 60, by: "C-01" }]);
+    expect(r.caregiverRatings).toEqual([{ ...rating, submittedAt: T, by: "C-01" }]);
+    expect(r.skipped).toBe(3 + 3 + 6 + 8);
+  });
+
+  it("restores the version 4 tables once, keeps a submitted rating locked, and drops records for unknown patients", async () => {
+    const rating = {
+      uid: UID,
+      patientId: "P-01",
+      windowStart: T0,
+      answers: { 1: 2 },
+      startedAt: T,
+      submittedAt: T,
+      ruleVersion: "r",
+      by: "C-01",
+    };
+    const file = JSON.stringify({
+      patients: [{ id: "P-01", anchor: T0 }],
+      observations: [],
+      assignments: [
+        { caregiverId: "C-01", patientId: "P-01", order: 0, at: T },
+        { caregiverId: "C-01", patientId: "P-99", order: 1, at: T },
+      ],
+      watches: [{ uid: UID, patientId: "P-01", start: T, startSource: "log" }],
+      caregiverRatings: [rating, { ...rating, uid: "1b8f2c1e-1a2b-4c3d-8e9f-0a1b2c3d4e5f", answers: { 1: 7 } }],
+    });
+    expect((await restoreBackup(file)).skipped).toBe(1);
+    expect(await restoreBackup(file)).toMatchObject({ skipped: 1, patients: 0 });
+    expect(await db.assignments.count()).toBe(1);
+    expect(await db.watches.count()).toBe(1);
+    expect(await db.caregiverRatings.toArray()).toEqual([rating]);
+  });
+
+  it("a log restored twice is matched by its ID even if its times differ", async () => {
+    const file = (at: number) =>
+      JSON.stringify({ patients: [{ id: "P-01", anchor: T0 }], observations: [{ ...log, uid: UID, at }] });
+    expect((await restoreBackup(file(T))).observations).toBe(1);
+    expect((await restoreBackup(file(T + 5))).observations).toBe(0);
   });
 });

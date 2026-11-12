@@ -1,0 +1,557 @@
+{
+  "exportedAt": "2026-10-02T04:00:00.000Z",
+  "ruleVersion": "cmai-count-rule-2",
+  "patients": [
+    {
+      "id": "P-01",
+      "anchor": 1788235200000
+    },
+    {
+      "id": "P-02",
+      "anchor": 1788321600000
+    }
+  ],
+  "observations": [
+    {
+      "id": 1,
+      "patientId": "P-01",
+      "itemId": 7,
+      "at": 1788342425082,
+      "loggedAt": 1788342862704
+    },
+    {
+      "id": 2,
+      "patientId": "P-01",
+      "itemId": 22,
+      "at": 1788375747817,
+      "loggedAt": 1788376073527
+    },
+    {
+      "id": 3,
+      "patientId": "P-01",
+      "itemId": 11,
+      "at": 1788425424343,
+      "loggedAt": 1788425849083,
+      "before": "Mealtime",
+      "deletedAt": 1788425909083,
+      "deleteReason": "Tapped by mistake"
+    },
+    {
+      "id": 4,
+      "patientId": "P-01",
+      "itemId": 14,
+      "at": 1788457241487,
+      "loggedAt": 1788457794928,
+      "before": "Mealtime"
+    },
+    {
+      "id": 5,
+      "patientId": "P-01",
+      "itemId": 20,
+      "at": 1788560868112,
+      "loggedAt": 1788561254364
+    },
+    {
+      "id": 6,
+      "patientId": "P-01",
+      "itemId": 10,
+      "at": 1788607601698,
+      "loggedAt": 1788608104000,
+      "before": "Mealtime"
+    },
+    {
+      "id": 7,
+      "patientId": "P-01",
+      "itemId": 13,
+      "at": 1788602230049,
+      "loggedAt": 1788602406973
+    },
+    {
+      "id": 8,
+      "patientId": "P-01",
+      "itemId": 2,
+      "at": 1788730405344,
+      "loggedAt": 1788730569438
+    },
+    {
+      "id": 9,
+      "patientId": "P-01",
+      "itemId": 6,
+      "at": 1788697543897,
+      "loggedAt": 1788698089278,
+      "approx": true
+    },
+    {
+      "id": 10,
+      "patientId": "P-01",
+      "itemId": 27,
+      "at": 1788801438314,
+      "loggedAt": 1788801747226,
+      "approx": true
+    },
+    {
+      "id": 11,
+      "patientId": "P-01",
+      "itemId": 10,
+      "at": 1788956924421,
+      "loggedAt": 1788957243417,
+      "before": "Mealtime"
+    },
+    {
+      "id": 12,
+      "patientId": "P-01",
+      "itemId": 26,
+      "at": 1789045764249,
+      "loggedAt": 1789046145327
+    },
+    {
+      "id": 13,
+      "patientId": "P-01",
+      "itemId": 20,
+      "at": 1789049156375,
+      "loggedAt": 1789049720118
+    },
+    {
+      "id": 14,
+      "patientId": "P-01",
+      "itemId": 10,
+      "at": 1789210842327,
+      "loggedAt": 1789211077186
+    },
+    {
+      "id": 15,
+      "patientId": "P-01",
+      "itemId": 12,
+      "at": 1789363996554,
+      "loggedAt": 1789364088696,
+      "approx": true
+    },
+    {
+      "id": 16,
+      "patientId": "P-01",
+      "itemId": 19,
+      "at": 1789374240395,
+      "loggedAt": 1789374326946
+    },
+    {
+      "id": 17,
+      "patientId": "P-01",
+      "itemId": 26,
+      "at": 1789594888708,
+      "loggedAt": 1789595419840
+    },
+    {
+      "id": 18,
+      "patientId": "P-01",
+      "itemId": 1,
+      "at": 1789551030353,
+      "loggedAt": 1789551179329,
+      "approx": true,
+      "before": "Mealtime"
+    },
+    {
+      "id": 19,
+      "patientId": "P-01",
+      "itemId": 22,
+      "at": 1789634259092,
+      "loggedAt": 1789634552708,
+      "before": "Mealtime"
+    },
+    {
+      "id": 20,
+      "patientId": "P-01",
+      "itemId": 11,
+      "at": 1789720931690,
+      "loggedAt": 1789721468256,
+      "approx": true
+    },
+    {
+      "id": 21,
+      "patientId": "P-01",
+      "itemId": 27,
+      "at": 1789704213823,
+      "loggedAt": 1789704595982,
+      "before": "Mealtime"
+    },
+    {
+      "id": 22,
+      "patientId": "P-01",
+      "itemId": 29,
+      "at": 1789803945650,
+      "loggedAt": 1789804284818,
+      "before": "Mealtime"
+    },
+    {
+      "id": 23,
+      "patientId": "P-01",
+      "itemId": 7,
+      "at": 1789806439926,
+      "loggedAt": 1789806778572,
+      "approx": true
+    },
+    {
+      "id": 24,
+      "patientId": "P-01",
+      "itemId": 15,
+      "at": 1789928213569,
+      "loggedAt": 1789928233207,
+      "approx": true
+    },
+    {
+      "id": 25,
+      "patientId": "P-01",
+      "itemId": 20,
+      "at": 1789886214739,
+      "loggedAt": 1789886750552,
+      "approx": true
+    },
+    {
+      "id": 26,
+      "patientId": "P-01",
+      "itemId": 28,
+      "at": 1790034677164,
+      "loggedAt": 1790035136094,
+      "before": "Mealtime"
+    },
+    {
+      "id": 27,
+      "patientId": "P-01",
+      "itemId": 26,
+      "at": 1790015591950,
+      "loggedAt": 1790015830930
+    },
+    {
+      "id": 28,
+      "patientId": "P-01",
+      "itemId": 11,
+      "at": 1790089831885,
+      "loggedAt": 1790090204791
+    },
+    {
+      "id": 29,
+      "patientId": "P-01",
+      "itemId": 13,
+      "at": 1790101814341,
+      "loggedAt": 1790101933516
+    },
+    {
+      "id": 30,
+      "patientId": "P-01",
+      "itemId": 26,
+      "at": 1790181533337,
+      "loggedAt": 1790182084328,
+      "approx": true
+    },
+    {
+      "id": 31,
+      "patientId": "P-01",
+      "itemId": 15,
+      "at": 1790145748070,
+      "loggedAt": 1790146082493
+    },
+    {
+      "id": 32,
+      "patientId": "P-01",
+      "itemId": 13,
+      "at": 1790235874871,
+      "loggedAt": 1790235974531
+    },
+    {
+      "id": 33,
+      "patientId": "P-01",
+      "itemId": 22,
+      "at": 1790345285185,
+      "loggedAt": 1790345502656,
+      "before": "Mealtime"
+    },
+    {
+      "id": 34,
+      "patientId": "P-01",
+      "itemId": 21,
+      "at": 1790496198444,
+      "loggedAt": 1790496372986
+    },
+    {
+      "id": 35,
+      "patientId": "P-01",
+      "itemId": 23,
+      "at": 1790573422481,
+      "loggedAt": 1790573916200
+    },
+    {
+      "id": 36,
+      "patientId": "P-01",
+      "itemId": 1,
+      "at": 1790723439912,
+      "loggedAt": 1790723897100
+    },
+    {
+      "id": 37,
+      "patientId": "P-01",
+      "itemId": 2,
+      "at": 1790719070355,
+      "loggedAt": 1790719151931,
+      "approx": true,
+      "before": "Mealtime"
+    },
+    {
+      "id": 38,
+      "patientId": "P-02",
+      "itemId": 6,
+      "at": 1788389693879,
+      "loggedAt": 1788389774067
+    },
+    {
+      "id": 39,
+      "patientId": "P-02",
+      "itemId": 13,
+      "at": 1788565964849,
+      "loggedAt": 1788566369101
+    },
+    {
+      "id": 40,
+      "patientId": "P-02",
+      "itemId": 7,
+      "at": 1788585204865,
+      "loggedAt": 1788585689447,
+      "before": "Mealtime"
+    },
+    {
+      "id": 41,
+      "patientId": "P-02",
+      "itemId": 4,
+      "at": 1788703828118,
+      "loggedAt": 1788703954194,
+      "before": "Mealtime"
+    },
+    {
+      "id": 42,
+      "patientId": "P-02",
+      "itemId": 8,
+      "at": 1788672821683,
+      "loggedAt": 1788673209612
+    },
+    {
+      "id": 43,
+      "patientId": "P-02",
+      "itemId": 12,
+      "at": 1788759016657,
+      "loggedAt": 1788759205328,
+      "approx": true,
+      "before": "Mealtime"
+    },
+    {
+      "id": 44,
+      "patientId": "P-02",
+      "itemId": 3,
+      "at": 1788783369416,
+      "loggedAt": 1788783509961
+    },
+    {
+      "id": 45,
+      "patientId": "P-02",
+      "itemId": 25,
+      "at": 1788871451987,
+      "loggedAt": 1788872029453
+    },
+    {
+      "id": 46,
+      "patientId": "P-02",
+      "itemId": 11,
+      "at": 1788881195755,
+      "loggedAt": 1788881439956
+    },
+    {
+      "id": 47,
+      "patientId": "P-02",
+      "itemId": 20,
+      "at": 1788978366911,
+      "loggedAt": 1788978746600
+    },
+    {
+      "id": 48,
+      "patientId": "P-02",
+      "itemId": 13,
+      "at": 1789083953658,
+      "loggedAt": 1789084245891
+    },
+    {
+      "id": 49,
+      "patientId": "P-02",
+      "itemId": 3,
+      "at": 1789038559606,
+      "loggedAt": 1789038765266
+    },
+    {
+      "id": 50,
+      "patientId": "P-02",
+      "itemId": 23,
+      "at": 1789167973288,
+      "loggedAt": 1789168097530
+    },
+    {
+      "id": 51,
+      "patientId": "P-02",
+      "itemId": 27,
+      "at": 1789106696514,
+      "loggedAt": 1789107176622
+    },
+    {
+      "id": 52,
+      "patientId": "P-02",
+      "itemId": 26,
+      "at": 1789217497589,
+      "loggedAt": 1789217835622,
+      "before": "Mealtime"
+    },
+    {
+      "id": 53,
+      "patientId": "P-02",
+      "itemId": 12,
+      "at": 1789303248672,
+      "loggedAt": 1789303361181,
+      "before": "Mealtime"
+    },
+    {
+      "id": 54,
+      "patientId": "P-02",
+      "itemId": 24,
+      "at": 1789336716557,
+      "loggedAt": 1789336919354
+    },
+    {
+      "id": 55,
+      "patientId": "P-02",
+      "itemId": 4,
+      "at": 1789531294811,
+      "loggedAt": 1789531533176,
+      "approx": true
+    },
+    {
+      "id": 56,
+      "patientId": "P-02",
+      "itemId": 6,
+      "at": 1789595845234,
+      "loggedAt": 1789595972464
+    },
+    {
+      "id": 57,
+      "patientId": "P-02",
+      "itemId": 24,
+      "at": 1789791547287,
+      "loggedAt": 1789791902237,
+      "before": "Mealtime"
+    },
+    {
+      "id": 58,
+      "patientId": "P-02",
+      "itemId": 16,
+      "at": 1790031963696,
+      "loggedAt": 1790032316612
+    },
+    {
+      "id": 59,
+      "patientId": "P-02",
+      "itemId": 18,
+      "at": 1790016023408,
+      "loggedAt": 1790016083563,
+      "approx": true
+    },
+    {
+      "id": 60,
+      "patientId": "P-02",
+      "itemId": 7,
+      "at": 1790154066285,
+      "loggedAt": 1790154438295
+    },
+    {
+      "id": 61,
+      "patientId": "P-02",
+      "itemId": 21,
+      "at": 1790312598520,
+      "loggedAt": 1790312842553
+    },
+    {
+      "id": 62,
+      "patientId": "P-02",
+      "itemId": 4,
+      "at": 1790366736308,
+      "loggedAt": 1790367287988
+    },
+    {
+      "id": 63,
+      "patientId": "P-02",
+      "itemId": 23,
+      "at": 1790457573113,
+      "loggedAt": 1790458009392
+    },
+    {
+      "id": 64,
+      "patientId": "P-02",
+      "itemId": 4,
+      "at": 1790579130184,
+      "loggedAt": 1790579699373,
+      "before": "Mealtime"
+    },
+    {
+      "id": 65,
+      "patientId": "P-02",
+      "itemId": 8,
+      "at": 1790573540242,
+      "loggedAt": 1790574104680
+    },
+    {
+      "id": 66,
+      "patientId": "P-01",
+      "itemId": 4,
+      "at": 1788530400000,
+      "loggedAt": 1788530400000
+    },
+    {
+      "id": 67,
+      "patientId": "P-01",
+      "itemId": 4,
+      "at": 1788531000000,
+      "loggedAt": 1788531000000
+    },
+    {
+      "id": 68,
+      "patientId": "P-01",
+      "itemId": 4,
+      "at": 1788531600000,
+      "loggedAt": 1788531600000
+    }
+  ],
+  "reviews": [
+    {
+      "key": "P-01|1788235200000|7",
+      "patientId": "P-01",
+      "windowStart": 1788235200000,
+      "itemId": 7,
+      "choice": 3,
+      "derived": 2,
+      "reviewedAt": 1789444800000
+    }
+  ],
+  "checkins": [
+    {
+      "key": "P-02|1788667200000",
+      "patientId": "P-02",
+      "day": 1788667200000,
+      "at": 1788739200000
+    }
+  ],
+  "changes": [
+    {
+      "id": 1,
+      "observationId": 3,
+      "patientId": "P-01",
+      "action": "delete",
+      "at": 1788425909083,
+      "to": {
+        "deletedAt": 1788425909083,
+        "deleteReason": "Tapped by mistake"
+      }
+    }
+  ]
+}

@@ -11,7 +11,7 @@ import {
   type Summary,
   type WindowScore,
 } from "../scoring/engine";
-import { db, isLive, type CheckIn, type Patient, type StoredObservation } from "../data/db";
+import { db, isActive, isLive, type CheckIn, type Patient, type StoredObservation } from "../data/db";
 
 export interface ScoredWindow {
   score: WindowScore;
@@ -35,7 +35,8 @@ export function useCmaiData(patientId: string | null) {
     let cancelled = false;
     (async () => {
       try {
-        const ps = await db.patients.toArray();
+        // Archived patients (D-20) keep every record but leave every list.
+        const ps = (await db.patients.toArray()).filter(isActive);
         const p = ps.find((x) => x.id === patientId);
         const obs = p ? (await db.observations.where("patientId").equals(p.id).sortBy("at")).filter(isLive) : [];
         const checks = p ? await db.checkins.where("patientId").equals(p.id).toArray() : [];
