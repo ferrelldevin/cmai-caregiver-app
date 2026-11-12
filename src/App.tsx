@@ -238,6 +238,7 @@ export default function App() {
       live = false;
     };
   }, [RATING_ON, duePatient, loggingAs, observations, route.rating]);
+  const initialsOf = Object.fromEntries(caregivers.map((c) => [c.id, c.initials]));
 
   // The section bars pin just under the patient banner, so they need its height.
   useEffect(() => {
