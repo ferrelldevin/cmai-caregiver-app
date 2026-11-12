@@ -31,8 +31,7 @@
     "dexie": "4.4.7",
     "lucide-react": "1.70.0",
     "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "recharts": "2.15.3"
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "7.29.7",

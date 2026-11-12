@@ -25,8 +25,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
 
   // The answer comes first: the summary sits above the table (Part 8, U12).
   const order = await p.locator(".twoweeks h2").allTextContents();
-  ok(order.join("|") === "This period|Behaviors, this period vs last|Logs per day|Time of day|Behavior groups|Patterns to look into",
-    "order: summary, table, per day, time of day, groups, patterns: " + order.join(" | "));
+  ok(order.join("|") === "This period|Behaviors, this period vs last|Logs per day|Time of day|Behavior groups|Patterns to look into|History",
+    "order: summary, table, per day, time of day, groups, patterns, history: " + order.join(" | "));
+  ok((await p.locator(".total-chip").innerText()).startsWith("Total score") && (await p.locator(".total-chip .sr").textContent()) === "(secondary)", "the total is a chip beside the title, labeled secondary (D-08)");
+  ok((await p.locator("nav.tabs button").allTextContents()).join(",") === "Log,Today,Two weeks,Settings", "Score is folded in: the bar reads Log, Today, Two weeks, Settings");
   const sum = await p.locator(".summary").innerText();
   ok(/Lower than last period:/.test(sum) && /Higher:/.test(sum), "a finished period says what is lower and what is higher");
   ok(/Busiest time: .+ \(\d+% of logs\)/.test(sum), "and the busiest time of day");
@@ -35,9 +37,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const rows = p.locator(".rtable tbody tr");
   const n = await rows.count();
   ok(n > 0 && (await p.locator(".rtable .rating-cell").count()) === n, `${n} behaviors, each with a rating`);
-  ok(/\+ \d+ not logged in either period/.test(await p.locator(".more").innerText()), "the rest are summed up in one line");
+  ok(/\+ \d+ not logged \(rated 1\)/.test(await p.locator(".more").innerText()), "the rest are summed up in one line");
   const down = await p.locator(".rtable .move.down").count();
-  ok(down >= 1 && (await p.locator(".rtable .move.down").first().getAttribute("aria-label")).startsWith("Down from"), "a change has words, not just an arrow");
+  ok(down >= 1 && (await p.locator(".rtable .td-move", { has: p.locator(".move.down") }).first().textContent()).includes("Down from"), "a change has words, not just an arrow");
 
   // Charts: plain elements with text alternatives; no Recharts on this screen.
   ok((await p.locator(".twoweeks .recharts-wrapper, .twoweeks svg.recharts-surface").count()) === 0, "no Recharts chart on Two weeks");
