@@ -82,12 +82,11 @@ jobs:
           if-no-files-found: ignore
 
   webkit:
-    # Safari's engine. Not required: it runs for two weeks to learn what fails in WebKit, and a failure
-    # here never blocks a merge or the deploy. Make it required in the branch ruleset once it is steady.
+    # Safari's engine. Not required: it runs for two weeks to learn what fails in WebKit. A failing check
+    # shows in the run summary, not as a red mark on the pull request, and never blocks a merge or the deploy. Make it required in the branch ruleset once it is steady.
     name: Browser checks in WebKit (Safari engine, not required)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    continue-on-error: true
+    timeout-minutes: 30
     container: mcr.microsoft.com/playwright:v1.65.0-noble
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -97,7 +96,10 @@ jobs:
           cache: npm
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: npm ci
+      # The step may fail without failing the job, so the pull request shows a green check; the
+      # per-check results are in the run summary below.
       - name: Every check except the Chromium screenshots, in WebKit
+        continue-on-error: true
         run: npm run checks:webkit
       - name: Report on the run page
         if: always()
