@@ -2,7 +2,7 @@
 
 To run every check here plus the accessibility audit in one go and get a single report, run `npm run checks` (report in `.checks/report.md`) or `npm run checks:report`, which also pushes the report to the `checks-report` branch. On the home desktop, telling Claude Code "run the CMAI checks" does the second; see `CLAUDE.md`.
 
-These scripts drive the production build in Chromium with Playwright. They are the "Verify" step in `docs/process/change-process.md`, along with `docs/audits/axe-run.cjs`.
+These scripts drive the production build in Chromium with Playwright. Set `BROWSER=webkit` (or run `npm run checks:webkit`) to run the same checks in WebKit, the engine under every browser on an iPhone; run `npx playwright install webkit` once first. The screenshot check is Chromium only, because its baselines are Chromium renders. CI runs the WebKit pass as a separate job that does not block a merge. They are the "Verify" step in `docs/process/change-process.md`, along with `docs/audits/axe-run.cjs`.
 
 ```sh
 npm run build && npx vite preview --port 4173 &

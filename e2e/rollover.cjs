@@ -1,9 +1,9 @@
 // "Today" stays right when the app is left open past midnight, and when the phone wakes the next day. usage: node e2e/rollover.cjs URL OUTDIR
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const [URL] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, timezoneId: "America/New_York" });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));

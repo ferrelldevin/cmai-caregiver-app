@@ -1,10 +1,10 @@
 // End-to-end flow on the production build: logging, details, the Today tab (where logs are fixed), Data pages, backup and restore, delete with a reason, offline reload. usage: node e2e/flows.cjs URL OUTDIR
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, acceptDownloads: true });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));

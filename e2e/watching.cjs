@@ -2,7 +2,7 @@
 // I've left and I'm here, switching resident ends it, the band on Today, the 4-hour timeout
 // question; axe in four display modes.
 // usage: node e2e/watching.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const [URL, OUT] = process.argv.slice(2);
@@ -23,7 +23,7 @@ async function start(p) {
 }
 
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, bypassCSP: true });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));

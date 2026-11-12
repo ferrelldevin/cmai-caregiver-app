@@ -1,9 +1,9 @@
 // Theme checks: Display settings (the only theme control since design note 008), no wrong-theme flash, Match phone follows the phone. usage: node e2e/theme.cjs URL OUTDIR
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "light", deviceScaleFactor: 2 });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));
