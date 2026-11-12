@@ -1,31 +1,31 @@
-// Screen 1: one tap logs a behavior. A short description sits on the button so
-// the caregiver picks the right item, with the manual page for the full
-// definition (p.12-13). A short confirmation offers Edit and Undo for 8 seconds; the timer
-// stops while the caregiver is using it (WCAG 2.2.1). Edit, here and in Recent logs, opens
-// the one log details sheet (design note 003). Deleting asks for a reason; every edit, delete
-// and undo goes through data/logs.ts so it lands in the change history (design note 007).
+// Screen 1: one tap logs a behavior. Behaviors are tiles, 3 across, one group at a time
+// (round 3 mockup, design note 008 phase 2, F-26). Each tile has an icon to find it by, a
+// short name and today's count. What counts, what does not and the manual page (p.12-13)
+// used to sit on every button; they are now in one sheet, opened from the button under the
+// grid or by holding a tile, so a whole group fits on one screen (F-37). A short
+// confirmation offers Edit and Undo for 8 seconds; the timer stops while the caregiver is
+// using it (WCAG 2.2.1). Edit opens the log details sheet (design note 003). Earlier logs
+// are fixed on the Today tab, which "N logged today" opens (F-27). Every edit, delete and
+// undo goes through data/logs.ts so it lands in the change history (design note 007).
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { GROUP_LABELS, ITEMS, type FactorGroup } from "../scoring/items";
-import { DAY_MS } from "../scoring/engine";
-import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObservation } from "../data/db";
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring/items";
+import { mostLogged } from "./mostLogged";
+import { db, localMidnight, madeHere, type StoredObservation } from "../data/db";
 import { utcOffsetMin } from "../data/ids";
+import { backupReminder } from "../data/backupReminder";
 import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
-import { dayAndTime, timeOfDay } from "./format";
+import { BEHAVIOR_ICONS } from "./behavior-icons";
+import { SHORT_NAMES } from "./behavior-names";
+import { timeOfDay } from "./format";
 import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
-import { SectionNav, type Section } from "./SectionNav";
+import { DefinitionsSheet } from "./DefinitionsSheet";
 
 const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"];
-
-// The pinned bar: each behavior group, then recent logs (where mistakes get fixed).
-const sections: Section[] = [
-  ...GROUP_ORDER.map((g) => ({ id: `group-${g}`, label: GROUP_LABELS[g].split(/[ ,]/)[0] })),
-  { id: "recent", label: "Recent logs" },
-];
+const tabLabel = (g: FactorGroup) => GROUP_LABELS[g].split(/[ ,]/)[0];
 const TOAST_MS = 8000;
-const RECENT_SHOWN = 8;
 
 type SavedObs = StoredObservation & { id: number };
 type Toast = { kind: "logged" | "deleted"; obs: SavedObs };
@@ -35,32 +35,37 @@ export const SAVE_FAILED = "That did not save. Check the phone has free space, t
 interface Props {
   patientId: string;
   observations: StoredObservation[];
-  checkins: CheckIn[];
+  demo: boolean; // the patient is made-up demo data
   onChange: () => void;
-  /** Caregiver code to initials, when caregiver profiles are on (R2): recent logs say who logged them. */
-  initialsOf?: Record<string, string>;
+  /** Opens the Today tab, where today's logs are listed and fixed. */
+  onToday: () => void;
+  onBackUp: () => void; // opens the Data screen's backup page
 }
 
-export function LogScreen({ patientId, observations, checkins, onChange, initialsOf }: Props) {
-  const [openInfo, setOpenInfo] = useState<number | null>(null);
+export function LogScreen({ patientId, observations, demo, onChange, onToday, onBackUp }: Props) {
+  const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
+  const [group, setGroup] = useState<FactorGroup>("aggressive");
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
   const [saveError, setSaveError] = useState(false); // the last save failed
   const [editError, setEditError] = useState<string | null>(null);
-  const [showAllRecent, setShowAllRecent] = useState(false);
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
   const now = Date.now();
   const todayStart = localMidnight(now);
+  let lastExport: number | null = null;
+  try {
+    lastExport = Number(localStorage.getItem("cmai-last-export")) || null;
+  } catch {
+    /* private mode: treated as never */
+  }
+  const reminder = backupReminder(now, lastExport, demo, observations.length);
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
   const loggedToday = [...todayCounts.values()].reduce((a, b) => a + b, 0);
-  const checkedIn = checkins.some((c) => c.day === todayStart);
-  const recent = observations
-    .filter((o) => o.loggedAt >= now - DAY_MS || o.at >= now - DAY_MS)
-    .sort((a, b) => b.at - a.at);
+  const frequent = mostLogged(observations, now);
 
   // The confirmation closes on its own only while nobody is using it.
   useEffect(() => {
@@ -73,6 +78,7 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
   useEffect(() => {
     setToast(null);
     setEditing(null);
+    setDefs(null);
   }, [patientId]);
 
   async function log(itemId: number) {
@@ -95,21 +101,6 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
     setFlash(itemId);
     window.setTimeout(() => setFlash((f) => (f === itemId ? null : f)), 900);
     setToast({ kind: "logged", obs: { ...obs, id } });
-    onChange();
-  }
-
-  // One per patient per day. Tapping again takes it back.
-  async function toggleCheckIn() {
-    const key = checkInKey(patientId, todayStart);
-    setSaveError(false);
-    try {
-      if (checkedIn) await db.checkins.delete(key);
-      else await db.checkins.put({ key, patientId, day: todayStart, at: Date.now(), ...madeHere() });
-    } catch (e) {
-      record(e);
-      setSaveError(true);
-      return;
-    }
     onChange();
   }
 
@@ -166,6 +157,76 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
     onChange();
   }
 
+  // Arrow keys move between group tabs, Home and End jump to the ends (WAI-ARIA tabs pattern).
+  function tabKeys(e: KeyboardEvent<HTMLButtonElement>) {
+    const i = GROUP_ORDER.indexOf(group);
+    const next =
+      e.key === "ArrowRight"
+        ? (i + 1) % GROUP_ORDER.length
+        : e.key === "ArrowLeft"
+          ? (i + GROUP_ORDER.length - 1) % GROUP_ORDER.length
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? GROUP_ORDER.length - 1
+              : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    setGroup(GROUP_ORDER[next]);
+    document.getElementById(`tab-${GROUP_ORDER[next]}`)?.focus();
+  }
+
+  // Holding a tile opens what counts for it, as a shortcut (the button under the grid is
+  // the way anyone can find). A hold does not log; moving the finger to scroll cancels it.
+  const hold = useRef<{ timer: number; fired: boolean } | null>(null);
+  const HOLD_MS = 500;
+  function holdStart(itemId: number) {
+    holdEnd();
+    hold.current = {
+      fired: false,
+      timer: window.setTimeout(() => {
+        if (hold.current) hold.current.fired = true;
+        setDefs({ itemId, viaKeyboard: false });
+      }, HOLD_MS),
+    };
+  }
+  function holdEnd() {
+    if (hold.current) window.clearTimeout(hold.current.timer);
+  }
+
+  function tile(item: CmaiItem, where: "frequent" | "group") {
+    const BehaviorIcon = BEHAVIOR_ICONS[item.id];
+    const n = todayCounts.get(item.id);
+    return (
+      <li key={`${where}-${item.id}`} className={flash === item.id ? "tile just-logged" : "tile"}>
+        <button
+          className="tile-btn"
+          onPointerDown={() => holdStart(item.id)}
+          onPointerUp={holdEnd}
+          onPointerLeave={holdEnd}
+          onPointerCancel={holdEnd}
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={() => {
+            if (hold.current?.fired) {
+              hold.current = null;
+              return;
+            }
+            void log(item.id);
+          }}
+        >
+          <BehaviorIcon className="tile-icon" size={26} aria-hidden />
+          <span className="tile-name">{SHORT_NAMES[item.id]}</span>
+          {n ? (
+            <span className="tile-count">
+              {n}
+              <span className="sr"> today</span>
+            </span>
+          ) : null}
+        </button>
+      </li>
+    );
+  }
+
   return (
     <div className="log">
       {saveError && (
@@ -178,7 +239,7 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
           Log a behavior
         </p>
         {/* the screen heading is the h1 in App */}
-        <p className="today-count">
+        <button className="today-count" onClick={onToday}>
           {loggedToday ? (
             <>
               <b>{loggedToday}</b> logged today
@@ -186,124 +247,53 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
           ) : (
             "Nothing logged yet today"
           )}
-        </p>
+          <Icon name="chevron" size={16} className="today-count-chev" />
+        </button>
       </div>
       <p className="hint">
         Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is
         one stretch of it.
       </p>
-      <SectionNav label="Jump to a group" sections={sections} />
-      {GROUP_ORDER.map((g) => (
-        <section key={g} id={`group-${g}`} className="group" aria-labelledby={`group-${g}-h`}>
-          <h2 className="group-title" id={`group-${g}-h`}>
-            {GROUP_LABELS[g]}
+      {reminder && (
+        <p className="backup-reminder muted">
+          {reminder}{" "}
+          <button className="ghost small" onClick={onBackUp}>
+            Back up
+          </button>
+        </p>
+      )}
+      {frequent.length > 0 && (
+        <section className="log-frequent" aria-labelledby="frequent-h">
+          <h2 className="group-title" id="frequent-h">
+            Most logged for this resident
           </h2>
-          <ul className="item-list">
-            {ITEMS.filter((i) => i.group === g).map((item) => (
-              <li key={item.id} className={flash === item.id ? "item just-logged" : "item"}>
-                <div className="item-row">
-                  <button className="item-btn" onClick={() => log(item.id)}>
-                    <span className="item-num" aria-hidden>
-                      {item.id}
-                    </span>
-                    <span className="item-text">
-                      <span className="item-name">
-                        <span className="sr">{item.id} </span>
-                        {item.name}
-                        {item.continuous && <span className="tag">per stretch</span>}
-                      </span>
-                      <span className="item-def">
-                        {item.counts} <span className="ref">Manual p.{item.manualPage}</span>
-                      </span>
-                    </span>
-                    {todayCounts.get(item.id) ? <span className="today">{todayCounts.get(item.id)} today</span> : null}
-                  </button>
-                  {item.doesNotCount && (
-                    <button
-                      className="info-btn"
-                      aria-expanded={openInfo === item.id}
-                      aria-label={`What does not count as ${item.name}?`}
-                      onClick={() => setOpenInfo(openInfo === item.id ? null : item.id)}
-                    >
-                      <Icon name="info" size={22} />
-                    </button>
-                  )}
-                </div>
-                {openInfo === item.id && (
-                  <p className="not-count">
-                    <b>Not this item:</b> {item.doesNotCount}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
+          <ul className="tile-grid">{frequent.map((id) => tile(ITEMS[id - 1], "frequent"))}</ul>
         </section>
-      ))}
-
-      <section className="card recent" id="recent" aria-labelledby="recent-h">
-        <h2 id="recent-h">Recent logs</h2>
-        {recent.length === 0 ? (
-          <p className="muted">Logs from the last 24 hours show here, so you can fix a time or remove a mistake.</p>
-        ) : (
-          <>
-            <p className="muted">
-              Last 24 hours, newest first. Fix the time, or delete a log tapped by mistake. Deleting asks why.
-            </p>
-            <ul className="recent-list">
-              {recent.slice(0, showAllRecent ? undefined : RECENT_SHOWN).map((o) => (
-                <li key={o.id}>
-                  <div className="recent-main">
-                    <span className="recent-time">
-                      {o.at < todayStart ? dayAndTime(o.at) : timeOfDay(o.at)}
-                      {o.approx ? " (about)" : ""}
-                      {initialsOf && o.by ? ` · by ${initialsOf[o.by] ?? o.by}` : ""}
-                    </span>
-                    <span>
-                      <b>{ITEMS[o.itemId - 1].name}</b>
-                      {o.before ? (
-                        <span className="muted">
-                          {" "}
-                          · before: {o.before}
-                          {o.beforeNote ? ` (${o.beforeNote})` : ""}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                  <button
-                    className="ghost small"
-                    aria-label={`Edit ${ITEMS[o.itemId - 1].name} at ${timeOfDay(o.at)}`}
-                    onClick={(e) => edit(o as SavedObs, e)}
-                  >
-                    Edit
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {recent.length > RECENT_SHOWN && (
-              <button className="ghost" onClick={() => setShowAllRecent(!showAllRecent)}>
-                {showAllRecent ? "Show fewer" : `Show all ${recent.length}`}
-              </button>
-            )}
-          </>
-        )}
+      )}
+      <div className="group-tabs" role="tablist" aria-label="Behavior groups">
+        {GROUP_ORDER.map((g) => (
+          <button
+            key={g}
+            id={`tab-${g}`}
+            role="tab"
+            aria-selected={g === group}
+            aria-controls="group-panel"
+            tabIndex={g === group ? 0 : -1}
+            onClick={() => setGroup(g)}
+            onKeyDown={tabKeys}
+          >
+            {tabLabel(g)}
+          </button>
+        ))}
+      </div>
+      <section id="group-panel" className="group" role="tabpanel" aria-labelledby={`tab-${group}`}>
+        <h2 className="group-title">{GROUP_LABELS[group]}</h2>
+        <ul className="tile-grid">{ITEMS.filter((i) => i.group === group).map((item) => tile(item, "group"))}</ul>
       </section>
-
-      <section className="card checkin">
-        <h2>End of shift</h2>
-        {loggedToday > 0 ? (
-          <p className="muted">{loggedToday} logged today, so today already counts as logged.</p>
-        ) : (
-          <>
-            <p className="muted">
-              Saw none of these behaviors today? Tap this so the app knows today was quiet, not missed. Days with no
-              logs and no check-in show as "unlogged" on Scores.
-            </p>
-            <button className={checkedIn ? "ghost" : ""} aria-pressed={checkedIn} onClick={toggleCheckIn}>
-              {checkedIn ? "✓ Nothing to log today (tap to undo)" : "Nothing to log today"}
-            </button>
-          </>
-        )}
-      </section>
+      <button className="ghost defs-btn" onClick={(e) => setDefs({ itemId: null, viaKeyboard: e.detail === 0 })}>
+        <Icon name="info" size={20} /> What counts as each behavior?
+      </button>
+      <p className="hint defs-hint">Or hold a tile to read about that one.</p>
 
       {toast && (
         <div
@@ -320,7 +310,7 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
           <span className="snackbar-text">
             <b className="snackbar-title">
               <span className="sr">{toast.kind === "logged" ? "Logged: " : "Deleted: "}</span>
-              {ITEMS[toast.obs.itemId - 1].name}
+              {SHORT_NAMES[toast.obs.itemId]}
             </b>
             <span className="snackbar-meta">
               {toast.kind === "deleted" && "Deleted · "}
@@ -340,6 +330,8 @@ export function LogScreen({ patientId, observations, checkins, onChange, initial
           </span>
         </div>
       )}
+
+      <DefinitionsSheet open={defs} onClose={() => setDefs(null)} />
 
       <LogSheet
         obs={editing?.obs ?? null}

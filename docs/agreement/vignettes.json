@@ -8,12 +8,7 @@
       "id": "V01",
       "name": "Ruth",
       "setting": "84, moderate Alzheimer's disease, assisted-living memory unit",
-      "ratedItems": [
-        1,
-        6,
-        13,
-        18
-      ],
+      "ratedItems": [1, 6, 13, 18],
       "designNotes": "Low band. #13 is one scream fully explained by the hot water; the expanded form (p.24) says not to include rare behaviors clearly explained by situational factors, so a manual rater may give 1 while the app counts it (2).",
       "authorPrediction": {
         "1": 1,
@@ -49,12 +44,7 @@
       "id": "V02",
       "name": "Harold",
       "setting": "79, vascular dementia, nursing home",
-      "ratedItems": [
-        4,
-        9,
-        16,
-        29
-      ],
+      "ratedItems": [4, 9, 16, 29],
       "designNotes": "Irregular weeks: all 9 cursing events in week 2. The manual (p.4 instruction 10, p.5) says to average over two weeks: 4.5 per week = several times a week (4). Tests whether raters average or rate the recent week (which would be 5).",
       "authorPrediction": {
         "4": 4,
@@ -138,12 +128,7 @@
       "id": "V03",
       "name": "Edith",
       "setting": "88, dementia with Lewy bodies, nursing home",
-      "ratedItems": [
-        5,
-        12,
-        23,
-        24
-      ],
+      "ratedItems": [5, 12, 23, 24],
       "designNotes": "Near-boundary counts. #5 has N=5 (2.5 per week): the app gives 4, a rater may say 'once or twice a week' (3). #24 has N=13 (every day but one): the app gives 4, a rater may say 'once or twice a day' (5).",
       "authorPrediction": {
         "5": 3,
@@ -251,12 +236,7 @@
       "id": "V04",
       "name": "Walter",
       "setting": "76, Alzheimer's disease, nursing home",
-      "ratedItems": [
-        7,
-        18,
-        19,
-        26
-      ],
+      "ratedItems": [7, 18, 19, 26],
       "designNotes": "Clean mid-band case. #26 is a continuous behavior logged as two stretches a day (N=28, top of band 5). #19 at once every other day (N=7).",
       "authorPrediction": {
         "7": 3,
@@ -480,12 +460,7 @@
       "id": "V05",
       "name": "Margaret",
       "setting": "81, Alzheimer's disease, nursing home",
-      "ratedItems": [
-        6,
-        10,
-        13,
-        29
-      ],
+      "ratedItems": [6, 10, 13, 29],
       "designNotes": "Near-boundary count. #6 is 'twice a day' with one extra (N=29): the app crosses into 6, a rater will likely say 'once or twice a day' (5). #13 at 10 nights in 14 (N=10).",
       "authorPrediction": {
         "6": 5,
@@ -829,12 +804,7 @@
       "id": "V06",
       "name": "Frank",
       "setting": "73, early-onset Alzheimer's disease, physically strong, secure dementia unit",
-      "ratedItems": [
-        1,
-        2,
-        11,
-        16
-      ],
+      "ratedItems": [1, 2, 11, 16],
       "designNotes": "Band 6 for two items. #11 repeats the N=5 boundary from V03 in an aggressive-adjacent item.",
       "authorPrediction": {
         "1": 6,
@@ -1262,11 +1232,7 @@
       "id": "V07",
       "name": "Dorothy",
       "setting": "90, Alzheimer's disease, nursing home",
-      "ratedItems": [
-        6,
-        13,
-        26
-      ],
+      "ratedItems": [6, 13, 26],
       "designNotes": "Clustered-hour case. #6 has 4 rounds inside 20 minutes on 9 of 14 days: the app gives 7. A rater may give 7 (several times an hour) or 6 (several times a day, since it happens in one hour only). #26 has bursts on 6 days, one short of the app's 7-day threshold: the app gives 5 from the count (26), a rater may give 6 or 7.",
       "authorPrediction": {
         "6": 7,
@@ -1641,11 +1607,7 @@
       "id": "V08",
       "name": "George",
       "setting": "85, Alzheimer's disease with night waking, nursing home",
-      "ratedItems": [
-        5,
-        8,
-        13
-      ],
+      "ratedItems": [5, 8, 13],
       "designNotes": "Clustered-hour case that crosses midnight. #13 has 3 screams within 35 minutes on 8 nights, which meets the spirit of the rating-7 rule (3+ in 60 min on 7+ days). The engine groups logs by calendar day, so every cluster is split at midnight and no day counts as clustered: the app gives 5 from the count (24).",
       "authorPrediction": {
         "5": 6,
@@ -1928,13 +1890,7 @@
       "id": "V09",
       "name": "Evelyn",
       "setting": "87, vascular dementia after a stroke, nursing home",
-      "ratedItems": [
-        1,
-        4,
-        6,
-        12,
-        26
-      ],
+      "ratedItems": [1, 4, 6, 12, 26],
       "designNotes": "Codes 8 and 9. #1 pacing is prevented by the lap tray: manual code 8 (p.3, p.5, p.24). #4 and #6 need words and she cannot speak: code 9 (p.3). The engine can only output 1 for an item with no logs; 8 and 9 exist only at the day-14 review (spec section 5).",
       "authorPrediction": {
         "1": 8,
@@ -2063,12 +2019,7 @@
       "id": "V10",
       "name": "Leonard",
       "setting": "80, mild to moderate Alzheimer's disease, assisted living",
-      "ratedItems": [
-        3,
-        4,
-        18,
-        29
-      ],
+      "ratedItems": [3, 4, 18, 29],
       "designNotes": "Logging error, not a rule question. Spitting into a napkin is excluded from #3 (p.12, p.24), so a manual rater gives 1; the app counts the two mistaken taps (3). Analyze separately from rule cases.",
       "authorPrediction": {
         "3": 1,
@@ -2096,13 +2047,7 @@
       "id": "V11",
       "name": "Joan",
       "setting": "83, Alzheimer's disease, nursing home",
-      "ratedItems": [
-        4,
-        7,
-        10,
-        14,
-        15
-      ],
+      "ratedItems": [4, 7, 10, 14, 15],
       "designNotes": "Aggressive factor spread across bands 2-5. #7 at exactly twice a week (N=4).",
       "authorPrediction": {
         "4": 5,
@@ -2251,12 +2196,7 @@
       "id": "V12",
       "name": "Albert",
       "setting": "78, Alzheimer's disease, nursing home",
-      "ratedItems": [
-        1,
-        13,
-        20,
-        22
-      ],
+      "ratedItems": [1, 13, 20, 22],
       "designNotes": "Irregular weeks the other way: behavior front-loaded. #13 is 4 a day for one week, none the next (average 2 a day, 5). #22 is 14 events packed into 4 days (average 1 a day, 5); a rater may say 'several times a week' (4) because it happened on only 4 days.",
       "authorPrediction": {
         "1": 5,
