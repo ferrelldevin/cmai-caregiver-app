@@ -2,12 +2,14 @@
 // open their own page: backup and export, display, keeping data safe, demo data, and how
 // ratings are worked out (iOS Settings pattern; design note docs/design/notes/001-navigation.md).
 
+import { keepState } from "../data/persist";
 import { useEffect, useRef, useState } from "react";
 import { db, localMidnight, type Patient } from "../data/db";
 import { loadDemoData } from "../data/seed";
 import { buildExport, download } from "../data/exporter";
 import { deletePatient, removeDemoData, restoreBackup } from "../data/manage";
 import { RATING_LABELS, ratingFromCount, RULE_VERSION, WINDOW_DAYS } from "../scoring/engine";
+import { STUDY_MODE } from "../study/settings";
 import { asText } from "./diagnostics";
 import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
@@ -314,6 +316,12 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               rating. These are CMAI-based (app-derived) ratings, not a CMAI interview. Nobody can change them by hand:
               the study checks them against caregivers' own ratings. Deleted logs do not count.
             </p>
+            <p className="muted">
+              Data on this phone:{" "}
+              {keepState() === "kept"
+                ? "kept"
+                : "may be cleared by the phone. Add the app to the Home Screen and back up."}
+            </p>
             <table className="bands">
               <caption className="sr">Logs in 14 days and the rating they give</caption>
               <thead>
@@ -344,8 +352,13 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               as zero, so a period with many of them may read low. The count rule cannot give <b>8</b> (would happen if
               not prevented) or <b>9</b> (not applicable); those are answers only a caregiver's own rating can give.
             </p>
+            <p>
+              <b>This app tells no one.</b> A log is a record for the study. For an injury or an emergency, do what your
+              workplace says.
+            </p>
             <p className="muted small-print">
-              Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · a prototype for
+              Version {__APP_VERSION__} (build {__BUILD_COMMIT__}) · scoring rule {RULE_VERSION} · Mode:{" "}
+              {STUDY_MODE === "lab" ? "lab (features awaiting sign-off are on)" : "caregiver"} · a prototype for
               Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
               <a
                 href="https://github.com/ferrelldevin/cmai-tracker/blob/main/docs/scoring-spec.md"
@@ -420,10 +433,14 @@ export function DataScreen({ patients, current, page, pageTitle, onPage, onBack,
               <b>Log.</b> One tap the moment you see a behavior.
             </li>
             <li>
-              <b>Scores.</b> See each behavior period by period, and when in the day it happens.
+              <b>Score.</b> See each behavior period by period, and when in the day it happens.
             </li>
             <li>
-              <b>Review.</b> On day 15, check the app's ratings against what you saw.
+              <b>Back up.</b> Download a backup now and then, so the logs are never only on this phone.
+            </li>
+            <li>
+              <b>This app tells no one.</b> A log is a record for the study. For an injury or an emergency, do what your
+              workplace says.
             </li>
           </ol>
           <p className="privacy">

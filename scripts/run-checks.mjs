@@ -10,7 +10,9 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = 4173;
-const URL = `http://localhost:${PORT}/`;
+// 127.0.0.1, not "localhost": inside the CI container "localhost" can resolve to an address the server is not on.
+const HOST = "127.0.0.1";
+const URL = `http://${HOST}:${PORT}/`;
 // file is the script; out, when set, is the file it writes instead of a screenshot folder.
 const CHECKS = [
   { name: "flows", file: "e2e/flows.cjs" },
@@ -21,6 +23,7 @@ const CHECKS = [
   { name: "sheet", file: "e2e/sheet.cjs" },
   { name: "today", file: "e2e/today.cjs" },
   { name: "twoweeks", file: "e2e/twoweeks.cjs" },
+  { name: "rollover", file: "e2e/rollover.cjs" },
   { name: "screenshots", file: "e2e/screenshots.cjs" },
   { name: "accessibility", file: "docs/audits/axe-run.cjs", out: "axe-wcag22aa.json" },
 ];
@@ -54,7 +57,7 @@ const clean = (text = "") => text.replace(/\x1b\[[0-9;]*m/g, "");
 
 async function startServer() {
   const vite = path.join(ROOT, "node_modules", "vite", "bin", "vite.js");
-  const server = spawn(process.execPath, [vite, "preview", "--port", String(PORT), "--strictPort"], {
+  const server = spawn(process.execPath, [vite, "preview", "--host", HOST, "--port", String(PORT), "--strictPort"], {
     cwd: ROOT,
     stdio: ["ignore", "pipe", "pipe"],
   });
