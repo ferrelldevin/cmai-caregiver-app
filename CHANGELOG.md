@@ -6,6 +6,8 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-12
+
 ### Changed
 
 - Repository renamed from `cmai-tracker` to `cmai-caregiver-app`. The live app moves to https://ferrelldevin.github.io/cmai-caregiver-app/ (GitHub Pages does not redirect the old address). The app name stays CMAI Tracker, and the on-phone database keeps its name, so data on Android and desktop carries over; an iPhone Home Screen copy needs Export, then Restore at the new address.
