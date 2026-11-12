@@ -13,14 +13,23 @@ import { ITEMS } from "../scoring/items";
 import { dayAndTime } from "./format";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
+import { study } from "../study/settings";
 
-export const BEFORE_OPTIONS = [
+const BEFORE_BASE = [
   "Personal care or bathing",
   "Mealtime",
   "Noise or crowding",
   "Seemed in pain",
   "Change in routine",
   "Visitor or phone call",
+];
+// F-41, on assumed approval: three causes the sensor literature names and the list lacked
+// (temperature, Tartarini 2017; sleep, Tanev 2017; illness, Capstick 2024). "Seemed unwell" is a
+// caregiver's impression, not a finding. Restore accepts all of them in either build.
+const BEFORE_EXTRA = ["Too hot or too cold", "Slept badly last night", "Seemed unwell"];
+export const BEFORE_OPTIONS = [
+  ...BEFORE_BASE,
+  ...(study.extraBeforeChips ? BEFORE_EXTRA : []),
   "Nothing noticed",
   "Other",
 ];
