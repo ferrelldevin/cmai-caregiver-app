@@ -13,9 +13,9 @@ For anyone joining the work: a lab member, a student, or an AI coding agent. Set
 
 ## Which work may start: two lanes
 
-| Lane | Covers | May start |
-|---|---|---|
-| **A. Build now** | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown | Now |
+| Lane                   | Covers                                                                                                                                                  | May start                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| **A. Build now**       | Bug fixes, tests, checks, CI, docs, and screens that only change how existing data is shown                                                             | Now                                                  |
 | **B. Needs Dr. Gupta** | Anything that changes a rating, adds or changes a stored field, adds sign-in or caregiver identity, sends data off the phone, or involves a real person | When its register row shows his sign-off with a date |
 
 Work is lane A only if all four hold:
@@ -41,12 +41,12 @@ Never skip, weaken or delete a test to get a check green. Never push to `main`. 
 
 ## Who does what
 
-| Who | Does |
-|---|---|
-| Dr. Ajay Gupta (PI) | Signs off scoring rules, data location, IRB items and anything in the review register |
-| Devin Ferrell | Maintainer. Marks pull requests ready, merges, changes GitHub settings, talks to Dr. Gupta |
-| Shanmei Li | Teammate. Review and merge rights once Dr. Gupta agrees (review packet E5) |
-| AI coding agents | Draft changes and open draft pull requests. They never merge, never mark a pull request ready, never send anything outside the project |
+| Who                 | Does                                                                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Dr. Ajay Gupta (PI) | Signs off scoring rules, data location, IRB items and anything in the review register                                                  |
+| Devin Ferrell       | Maintainer. Marks pull requests ready, merges, changes GitHub settings, talks to Dr. Gupta                                             |
+| Shanmei Li          | Teammate. Review and merge rights once Dr. Gupta agrees (review packet E5)                                                             |
+| AI coding agents    | Draft changes and open draft pull requests. They never merge, never mark a pull request ready, never send anything outside the project |
 
 A merge to `main` deploys to every installed phone (see `docs/process/runbook.md`). Treat every merge as a release.
 

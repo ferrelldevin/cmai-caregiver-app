@@ -3,7 +3,9 @@
 2026-10-25 · Register: F-18 · Status: built
 
 ## Problem
+
 After the Patients card fixes (F-17), Devin asked for every similar case in the app to be found and fixed, along with any other UX, UI or taste problems. The sweep had two parts:
+
 - **A code search** for the same root causes:
   - script focus that Safari draws a ring on;
   - native pop-up menus;
@@ -13,6 +15,7 @@ After the Patients card fixes (F-17), Devin asked for every similar case in the 
 - **A screenshot tour** of every screen and state at iPhone size, in light and dark.
 
 What it found:
+
 1. **Review used the phone's native menu 29 times.** Every behavior had a select reading "Not reviewed (use 1)". There was also a select for the period. The switcher's native menu was already replaced for the same reasons (F-13):
    - the iOS picker wheel hides the answer labels;
    - a wall of identical boxes hides which rows are checked;
@@ -23,12 +26,14 @@ What it found:
 5. **Data page messages stayed on screen.** A message such as "Restored 2 new patients…" was still there after leaving the page and coming back.
 
 These were checked and are fine as they are:
+
 - **Script focus:**
   - `main` and section headings take focus without a ring;
   - the Add a patient button focuses a text field, where a focus edge is expected.
 - **Confirms:** the only destructive actions are deleting a patient (now a sheet), deleting a log (with Undo), and removing demo data (which can be loaded again).
 
 ## Decision
+
 - **Review rows (option chosen: a row and a rating sheet, the same pattern as Log details):**
   - **Each row shows:**
     - the rating in a cell colored with the Scores ramp, dashed while not checked;
@@ -53,9 +58,11 @@ These were checked and are fine as they are:
 - **Data page messages:** a page's message clears when you leave the page.
 
 ## Left out
+
 - **Auto-advance to the next unchecked behavior after choosing.** It is faster, but it moves the screen without being asked. It may be worth trying after real use.
 - **The switcher sheet keeps Close in its header.** It is a picker with nothing to save, which is where iOS puts Close. The Log details sheet moved its Done button down because Done saved the changes.
 
 ## Verified
+
 - `e2e/navigation.cjs`: the rating sheet opens with no focus ring after a tap, and a choice saves, closes the sheet, and updates the row and the group chip.
 - axe: 76 scans, 0 violations in 4 modes, now including the rating sheet.

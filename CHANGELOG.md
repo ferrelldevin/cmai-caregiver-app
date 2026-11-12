@@ -7,10 +7,19 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 ## [Unreleased]
 
 ### Changed
+
 - Repository renamed from `cmai-tracker` to `cmai-caregiver-app`. The live app moves to https://ferrelldevin.github.io/cmai-caregiver-app/ (GitHub Pages does not redirect the old address). The app name stays CMAI Tracker, and the on-phone database keeps its name, so data on Android and desktop carries over; an iPhone Home Screen copy needs Export, then Restore at the new address.
+- Log screen from the round 3 mockup (F-26): behavior tiles 3 across with icons and today's count, group tabs, and a "Most logged for this resident" row.
+- What counts as each behavior moved off the buttons into one sheet, opened under the tiles or by holding a tile (F-37).
+- Score folded into Two weeks (F-29): the bar is now Log, Today, Two weeks, Settings. Everything Score showed is on Two weeks, with the total as a secondary chip beside the title. Old Score addresses still open the right period. The Score screen and the Recharts library are removed.
+- New Two weeks tab (F-28): one 14-day period with the answer first, each behavior against last period, logs per day, time of day, behavior groups (Open: D-17) and patterns to look into (Open: D-18), drawn without a chart library.
+- New Today tab (F-27): today's logs by hour and by behavior, where a log is fixed or removed. Recent logs and "Nothing to log today" moved there from Log.
 
 ### Added
+
 - Issue forms for bug reports and change requests, each warning against real participant data.
+- Every file is now formatted with Prettier, and `npm run lint` fails on unformatted files (so CI does too). No logic changed.
+
 - Study settings (`src/study/settings.ts`, F-48): one switch per feature built before Dr. Gupta's sign-off. The normal build has them all off; `VITE_STUDY_MODE=lab` builds the lab version with them on. Settings > About shows which one is running.
 - Lab readiness drafts for Dr. Gupta (build plan Stage 3): `docs/security/threat-model.md`, `docs/data-dictionary.md`, `docs/lab/data-management-plan.md`, `docs/lab/review-packet.md`, `CONTRIBUTING.md` and `docs/process/runbook.md`. Docs only; no app, scoring or export change.
 - Lab database frame: `docs/data/lab-schema.sql` (runs on SQLite and PostgreSQL), `docs/data/lab-database.md`, and `scripts/backup-to-sql.mjs`, which loads a backup file and its scores CSV into it. Tested in `tests/backupToSql.test.ts`. Reads files only; the app is unchanged.
@@ -37,50 +46,62 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 - `CODEOWNERS` requests Devin's review on the scoring rule, its test cases, the spec, the register and CI.
 
 ### Changed
+
 - CI: the browser job runs in Playwright's own container image (`mcr.microsoft.com/playwright`, same version as `package.json`), so Chromium and its libraries and fonts come with the image and nothing is installed from apt. An Ubuntu mirror outage no longer fails the job before any check runs. No check changes.
 - Dependabot: minor and patch npm updates stay in one monthly pull request; a major version arrives alone, so one breaking upgrade no longer fails the whole batch (B-02). Recharts major upgrades are ignored, because step 4.4 removes it, and TypeScript majors are ignored until typescript-eslint supports them.
 - Change process and pull request template: screenshots go in the pull request description, not in the repository (B-17).
 
 ### Security
+
 - Vitest and its coverage tool upgraded to 5.1.0 and Vite to 6.4.6: the 3 critical and 1 high advisories in the test tools are gone. CI also fails on any critical advisory in any dependency.
 - GitHub Actions in `pages.yml` are pinned to full commit SHAs, so a moved tag cannot change what runs. Runs on `main` are never cancelled, and every job stops after 15 minutes.
 - Only the deploy job can publish the site. Before, the `pages: write` and `id-token: write` permissions applied to the build job too, including on pull requests.
 - CSV export: a note that starts with `=`, `+`, `-`, `@`, a tab or a return gets a leading apostrophe, so Excel and Sheets show it as text instead of running it as a formula (F-34). A leading `'` in a note column means the note began with one of those characters.
 
 ### Changed
+
 - A new CI job, Dependency review, fails a pull request that adds a dependency with a known high-severity advisory.
 - React 19. The app looks and behaves the same.
 - Build tools upgraded: Vite 8, the React plugin 6 and the PWA plugin 2. The app and its offline behavior are unchanged.
 - CI fails when `docs/test-cases.json` is out of date with `npm run gen:cases`, and runs the agreement script's self-test.
 
 ### Fixed
+
 - Restore from backup checks every entry. A file with a name where a patient code belongs, a half item number, or a log for an unknown patient no longer gets into storage (where it made Export throw). Only the named fields are copied. The message says how many entries were left out (F-31).
 
 ### Fixed
+
 - Moving a log's time to before the patient's first day is refused with a message, and the old time stays. Before, the log silently dropped out of every period (F-32).
 - Restore tells the caregiver how many restored logs are dated before the patient's first day on this phone and so are not counted. Which start date wins is still an open question (D-19).
 
 ### Fixed
+
 - A save that fails (full phone, blocked storage) now says "That did not save. Check the phone has free space, then try again." and shows no "Logged" confirmation. Before, the tap looked as if it had worked or did nothing (F-33).
 - A crash anywhere in the app shows "Something went wrong. Your saved logs are safe." with a Reload button, instead of a blank page. An unhandled save failure shows an alert.
 
 ### Fixed
+
 - Welcome card no longer describes a "Review" step that does not exist (ratings are locked); it now tells caregivers to back up (A-06).
 - "Today" stays right when the app is left open: the count and Today lists refresh at midnight and when the phone returns to the app. Before, a log made after midnight could be counted against yesterday until a reload (F-35).
 
 ### Added
+
 - A quiet line on the Log screen, "Last backup: never. Back up" (or the days since), for a real patient with logs when the last export is over a week old. It opens the backup page. Hidden for demo patients. Reads the existing last-export value; stores nothing new (F-36).
 
 ### Added
+
 - The app asks the browser to keep its data when the phone runs low on space, and the About page says whether it was kept (F-53).
 
 ### Added
+
 - Welcome card and About page say "This app tells no one. A log is a record for the study. For an injury or an emergency, do what your workplace says." so a caregiver does not think logging a hit alerts anyone (P-12; wording is Dr. Gupta's to approve).
 
 ### Removed
+
 - `itemById` in `src/scoring/items.ts`: nothing called it and it had no tests.
 
 ### Fixed
+
 - The patient switcher lists the current patients the first time it opens after patients are added or deleted. Before, it could show the previous list, and search said "No patient code contains …" for a patient that existed (F-30).
 - The scoring spec said the Total card lists the behaviors marked as changed; since F-20 each behavior row says how it moved instead. The spec now says so, and F-20 has its own register row.
 - A sheet reopened straight after Cancel could close itself: the browser's late "close" event from the first closing shut the new one. Found as an intermittent CI timeout in the `flows` check.

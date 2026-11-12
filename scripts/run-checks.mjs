@@ -21,6 +21,8 @@ const CHECKS = [
   { name: "theme", file: "e2e/theme.cjs" },
   { name: "patient-switcher", file: "e2e/patient-switcher.cjs" },
   { name: "sheet", file: "e2e/sheet.cjs" },
+  { name: "today", file: "e2e/today.cjs" },
+  { name: "twoweeks", file: "e2e/twoweeks.cjs" },
   { name: "rollover", file: "e2e/rollover.cjs" },
   { name: "screenshots", file: "e2e/screenshots.cjs" },
   { name: "accessibility", file: "docs/audits/axe-run.cjs", out: "axe-wcag22aa.json" },

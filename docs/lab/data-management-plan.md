@@ -19,14 +19,14 @@ Not collected: names, rooms, dates of birth, diagnoses, photos, audio, location.
 
 ## 3. Where data lives, stage by stage
 
-| Stage | Where | Who can see it | **Assumed** answer (register ID) |
-|---|---|---|---|
-| On the phone | The app's storage on a study phone | Whoever holds the unlocked phone | Every study phone has a passcode; the phone's own storage encryption is the guard. Whose phones they are is open (P-10). A caregiver PIN says who logged, but is not encryption (R1, F-46; `docs/security/threat-model.md`) |
-| Backup leaves the phone | Protected with a passphrase of 12 or more characters (F-10), and kept in one approved ODU-managed storage location, never personal email, personal cloud or a messaging app | Dr. Gupta and named lab members | Dr. Gupta names the place in writing (P-04). The app's backup message changes to name it (audit A-12) |
-| Analysis | Lab computers or ODU-managed storage | Named lab members | CSVs are made at the lab from the backup, or queried from the lab database, not sent from the phone (P-04) |
-| Lab database | One SQLite file on lab or ODU-managed storage, later an ODU-managed PostgreSQL server; loaded from backups by `scripts/backup-to-sql.mjs` (`docs/data/lab-database.md`) | Named lab members | Which database is open (P-13, assumed: SQLite now, PostgreSQL later). Same tables in both, so moving is a copy |
-| The code key | One file, kept apart from the data, by Dr. Gupta or the person he names | That person only | Never in the app, GitHub, any AI chat or the same folder as exports (P-04) |
-| Never | GitHub, personal Google Drive, any AI chat, screenshots in pull requests | Nobody | Project rule, now |
+| Stage                   | Where                                                                                                                                                                       | Who can see it                   | **Assumed** answer (register ID)                                                                                                                                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On the phone            | The app's storage on a study phone                                                                                                                                          | Whoever holds the unlocked phone | Every study phone has a passcode; the phone's own storage encryption is the guard. Whose phones they are is open (P-10). A caregiver PIN says who logged, but is not encryption (R1, F-46; `docs/security/threat-model.md`) |
+| Backup leaves the phone | Protected with a passphrase of 12 or more characters (F-10), and kept in one approved ODU-managed storage location, never personal email, personal cloud or a messaging app | Dr. Gupta and named lab members  | Dr. Gupta names the place in writing (P-04). The app's backup message changes to name it (audit A-12)                                                                                                                       |
+| Analysis                | Lab computers or ODU-managed storage                                                                                                                                        | Named lab members                | CSVs are made at the lab from the backup, or queried from the lab database, not sent from the phone (P-04)                                                                                                                  |
+| Lab database            | One SQLite file on lab or ODU-managed storage, later an ODU-managed PostgreSQL server; loaded from backups by `scripts/backup-to-sql.mjs` (`docs/data/lab-database.md`)     | Named lab members                | Which database is open (P-13, assumed: SQLite now, PostgreSQL later). Same tables in both, so moving is a copy                                                                                                              |
+| The code key            | One file, kept apart from the data, by Dr. Gupta or the person he names                                                                                                     | That person only                 | Never in the app, GitHub, any AI chat or the same folder as exports (P-04)                                                                                                                                                  |
+| Never                   | GitHub, personal Google Drive, any AI chat, screenshots in pull requests                                                                                                    | Nobody                           | Project rule, now                                                                                                                                                                                                           |
 
 ## 4. Approvals before the first real log
 
@@ -47,11 +47,11 @@ Stop, do not copy it further, tell Dr. Gupta the same day, and follow what the I
 
 ## 7. Who answers for what
 
-| Role | Person | **Assumed** |
-|---|---|---|
-| Owner of the data and this plan | Dr. Ajay Gupta, PI | |
-| Keeps the app and the export format | Devin Ferrell | |
-| Second reviewer of code changes | Shanmei Li, if Dr. Gupta agrees | Plan step 3.8 |
-| Holds the code key | Named by Dr. Gupta | P-04 |
+| Role                                | Person                          | **Assumed**   |
+| ----------------------------------- | ------------------------------- | ------------- |
+| Owner of the data and this plan     | Dr. Ajay Gupta, PI              |               |
+| Keeps the app and the export format | Devin Ferrell                   |               |
+| Second reviewer of code changes     | Shanmei Li, if Dr. Gupta agrees | Plan step 3.8 |
+| Holds the code key                  | Named by Dr. Gupta              | P-04          |
 
 Sources: [ODU human subjects research](https://www.odu.edu/research/compliance/humans); [HHS de-identification guidance](https://www.hhs.gov/hipaa/for-professionals/special-topics/de-identification/index.html). Both read on 2026-11-10. AI was used to draft this page.

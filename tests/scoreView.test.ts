@@ -10,7 +10,16 @@ function fixture(index: number): ScoredWindow {
   const now = start + 2 * WINDOW_MS + DAY_MS;
   const score = scoreWindow(logs, windowStart, now);
   const ratings = appRatings(score);
-  return { score, ratings, summary: summarize(ratings), ...unloggedDays(logs.map((l) => l.at), windowStart, now) };
+  return {
+    score,
+    ratings,
+    summary: summarize(ratings),
+    ...unloggedDays(
+      logs.map((l) => l.at),
+      windowStart,
+      now,
+    ),
+  };
 }
 
 describe("period-specific score view", () => {
