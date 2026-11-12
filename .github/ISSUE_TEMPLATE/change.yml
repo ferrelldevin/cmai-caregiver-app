@@ -1,0 +1,25 @@
+name: Change request
+description: Ask for a new feature or a change to how the app works.
+labels: [change]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Made-up data only.** Do not include real participant data.
+        A change to scoring, data kept, or anything in docs/review-register.md needs a register ID and Dr. Gupta's sign-off before it is built (docs/process/change-process.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who runs into it, when, and what it costs them.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+  - type: input
+    id: register
+    attributes:
+      label: Register ID, if there is one
+      placeholder: "F-55"
