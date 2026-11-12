@@ -921,58 +921,11 @@ input[type="checkbox"] {
 [data-contrast="high"] .sheet-list li + li {
   border-top-color: var(--rule-strong);
 }
-
 /* Section bar: pinned under the banner on long screens (src/ui/SectionNav.tsx). */
-.section-nav {
-  position: sticky;
-  top: var(--pin-h, 0px);
-  z-index: 2;
-  display: flex;
-  gap: var(--s2);
-  overflow-x: auto;
-  scrollbar-width: none;
-  background: var(--bg);
-  margin: 0 calc(-1 * var(--s4));
-  padding: var(--s2) var(--s4);
-  border-bottom: 1px solid var(--rule);
-}
-.section-nav::-webkit-scrollbar {
-  display: none;
-}
 /* Faded edges say "there is more this way" when the chips overflow. */
-.section-nav,
-.period-chips {
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 var(--s4),
-    #000 calc(100% - var(--s4)),
-    transparent 100%
-  );
-  mask-image: linear-gradient(to right, transparent 0, #000 var(--s4), #000 calc(100% - var(--s4)), transparent 100%);
-}
-.section-nav .chip {
-  flex: none;
-  min-height: 40px;
-  padding: 4px 14px;
-  gap: 6px;
-}
-.chip-detail {
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.chip.on .chip-detail {
-  color: inherit;
-  opacity: 0.9;
-}
 .group-title:focus,
 .card h2:focus {
   outline: none;
-}
-[data-contrast="high"] .section-nav {
-  border-bottom: 2px solid var(--rule-strong);
 }
 
 /* Data hub: a list of rows that open their own page (iOS Settings pattern). */
@@ -1768,69 +1721,7 @@ button.text-danger {
 [data-contrast="high"] .form-row + .form-row {
   border-top-color: var(--rule-strong);
 }
-
 /* Scores */
-.period-chips {
-  display: flex;
-  gap: var(--s2);
-  overflow-x: auto;
-  padding: var(--s2) 2px var(--s1);
-  margin: 0 -2px;
-  scrollbar-width: none;
-}
-.period-chips .tag {
-  background: var(--attn-soft);
-  color: var(--attn);
-}
-.period-chips .chip.on .tag {
-  background: rgba(255, 255, 255, 0.2);
-  color: inherit;
-}
-.status-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: var(--s2);
-  margin-top: var(--s3);
-}
-.status {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: var(--s2);
-  align-items: center;
-  padding: var(--s3);
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
-  border: 1px solid var(--rule);
-  background: var(--surface);
-}
-.status b {
-  color: var(--text);
-}
-.status-state {
-  grid-column: 2;
-  color: var(--text-muted);
-}
-.status.warn {
-  background: var(--attn-soft);
-  border-color: transparent;
-}
-.status.warn .status-icon,
-.status.warn .status-state {
-  color: var(--attn);
-  font-weight: 700;
-}
-.status.ok .status-icon {
-  color: var(--accent);
-}
-@media (max-width: 560px) {
-  .status {
-    grid-template-columns: auto 1fr auto;
-  }
-  .status-state {
-    grid-column: auto;
-    text-align: right;
-  }
-}
 .heat-wrap {
   overflow-x: auto;
   margin: var(--s3) 0;
@@ -1939,11 +1830,6 @@ button.text-danger {
 .chart {
   width: 100%;
   margin-top: var(--s2);
-}
-.recharts-text,
-.recharts-legend-item-text {
-  font-family: inherit;
-  font-size: 13px;
 }
 
 .fwd-icon {
@@ -2173,7 +2059,6 @@ button.text-danger {
 }
 [data-contrast="high"] .card,
 [data-contrast="high"] .tile-btn,
-[data-contrast="high"] .status,
 [data-contrast="high"] select,
 [data-contrast="high"] input,
 [data-contrast="high"] .chip,
@@ -2202,9 +2087,6 @@ button.text-danger {
 }
 [data-contrast="high"] .tabs button.on {
   font-weight: 700;
-}
-[data-contrast="high"] .status.warn {
-  border-color: var(--attn);
 }
 [data-contrast="high"] .r1,
 [data-contrast="high"] .r8,
@@ -2307,89 +2189,10 @@ button.text-danger {
     forced-color-adjust: none;
   }
 }
-
 /* Period-specific Scores: the total and behavior ratings precede supporting data. */
-.score-period-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s2);
-  margin-top: var(--s3);
-}
-.score-period-heading h2 {
-  margin: 0;
-}
-.score-range {
-  margin: var(--s1) 0;
-  color: var(--text-muted);
-}
-.period-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin-bottom: var(--s2);
-}
-.period-controls > button {
-  flex-shrink: 0;
-}
-.period-controls .period-chips {
-  min-width: 0;
-  flex: 1;
-}
-.period-controls .chip {
-  min-width: 48px;
-  justify-content: center;
-}
-.score-total-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--s3);
-}
-.score-total-line h2,
-.score-total-line p {
-  margin: 0;
-}
 .score-total-value {
   font-size: var(--fs-xl);
   font-variant-numeric: tabular-nums;
-}
-.period-scores {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: var(--fs-sm);
-  margin: var(--s3) 0;
-}
-.period-scores th {
-  text-align: left;
-}
-.period-scores thead th {
-  color: var(--text-muted);
-  font-size: var(--fs-xs);
-}
-.period-scores th,
-.period-scores td {
-  padding: var(--s2) 4px;
-  border-bottom: 1px solid var(--rule);
-}
-.period-scores tbody th {
-  font-weight: 400;
-}
-.period-scores td {
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.period-scores td:last-child {
-  min-width: 42px;
-}
-.score-row-label,
-.score-row-source {
-  display: block;
-  margin-top: 2px;
-  color: var(--text-muted);
-}
-.score-row-source {
-  font-size: var(--fs-xs);
 }
 .rating-cell {
   display: inline-flex;
@@ -2407,45 +2210,15 @@ button.text-danger {
 .score-explanation {
   margin-top: var(--s3);
 }
-.scores summary {
+.twoweeks summary {
   min-height: 44px;
   padding: var(--s2) 0;
   cursor: pointer;
   font-weight: 600;
   color: var(--accent-ink);
 }
-.score-group-values {
-  display: grid;
-  gap: var(--s2);
-}
-.score-group-values > div {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--s3);
-  padding-bottom: var(--s2);
-  border-bottom: 1px solid var(--rule);
-}
-.score-group-values dd {
-  margin: 0;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-#sc-history .period-scores {
-  font-size: var(--fs-xs);
-}
-#sc-history .period-scores th {
-  overflow-wrap: anywhere;
-}
 [data-contrast="high"] .rating-cell {
   border: 2px solid var(--rule-strong);
-}
-@media (max-width: 380px) {
-  .period-controls {
-    gap: 4px;
-  }
-  .period-controls > button {
-    padding-inline: 8px;
-  }
 }
 .icon-btn {
   min-width: 44px;
@@ -2455,18 +2228,313 @@ button.text-danger {
 .icon-btn:disabled {
   opacity: 0.4;
 }
-.score-row-change {
-  display: block;
-  margin-top: 2px;
+
+/* Two weeks (F-28, build plan 4.3). Bars and the time-of-day grid are plain elements sized
+   from the data, in the one-hue rating ramp; each has a text alternative in the markup. */
+.twoweeks .card {
+  margin-top: var(--s4);
+}
+.pnav {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--s2);
+}
+.pnav-label {
+  margin: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+.pnav-label small {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+.findings {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.findings li + li {
+  margin-top: var(--s1);
+}
+.card-sub {
+  margin: var(--s2) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.rtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.rtable th,
+.rtable td {
+  padding: 6px 4px;
+  text-align: center;
+}
+.rtable thead th {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.rtable tbody tr + tr > * {
+  border-top: 1px solid var(--rule);
+}
+.rtable tbody th {
+  text-align: left;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 44px;
+}
+.rtable .th-group {
+  border-bottom: 1px solid var(--rule);
+}
+.rtable .td-last {
+  color: var(--text-muted);
+}
+.rating-cell.sm {
+  min-width: 32px;
+  min-height: 32px;
+}
+.move {
+  font-weight: 700;
+}
+.move.up {
+  color: var(--attn);
+}
+.move.down {
+  color: var(--accent-ink);
+}
+.move.same {
+  color: var(--text-muted);
+}
+.more {
+  margin: var(--s2) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.daybars {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 2px;
+  align-items: end;
+}
+.daybar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 116px;
+}
+.daybar i {
+  width: 100%;
+  max-width: 18px;
+  border-radius: 4px 4px 0 0;
+  background: var(--r5);
+}
+.daybar small,
+.daybar-n {
+  font-size: calc(var(--fs-xs) - 2px);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.daybar.quiet i,
+.daybar.future i {
+  background: var(--rule);
+}
+.daybar.unknown i {
+  background: transparent;
+  outline: 1px dashed var(--rule-strong);
+}
+.daybar.today i {
+  background: var(--accent-ink);
+}
+.daybar.today small {
+  color: var(--text);
+  font-weight: 700;
+}
+.tod {
+  display: grid;
+  gap: 2px;
+}
+.tod-row {
+  display: grid;
+  grid-template-columns: 3.4em repeat(14, minmax(0, 1fr));
+  gap: 2px;
+  align-items: center;
+}
+.tod-row small {
+  font-size: calc(var(--fs-xs) - 2px);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tod-axis small {
+  text-align: center;
+}
+.tod-axis small.now {
+  color: var(--text);
+  font-weight: 700;
+}
+.tod-cell {
+  height: 22px;
+  border-radius: 4px;
+}
+.tod-cell.future {
+  background: transparent;
+  outline: 1px dashed var(--rule);
+  outline-offset: -1px;
+}
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: var(--s2);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.key-title {
+  font-weight: 600;
+}
+.key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.key-item span {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+}
+.groups {
+  list-style: none;
+  margin: var(--s3) 0 0;
+  padding: 0;
+}
+.groups > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name avg" "squares avg" "logs avg";
+  gap: var(--s1) var(--s3);
+  padding: var(--s2) 0;
+}
+.groups > li + li {
+  border-top: 1px solid var(--rule);
+}
+.groups-name {
+  grid-area: name;
+}
+.groups-squares {
+  grid-area: squares;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.groups-logs {
+  grid-area: logs;
+  font-size: var(--fs-xs);
+}
+.groups-avg {
+  grid-area: avg;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+}
+.groups-avg b {
+  font-size: var(--fs-xl);
+  font-variant-numeric: tabular-nums;
+}
+.groups-avg span {
+  font-size: var(--fs-xs);
+}
+.mini {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.twoweeks > .wide {
+  width: 100%;
+  margin-top: var(--s4);
+}
+[data-contrast="high"] .tod-cell,
+[data-contrast="high"] .mini {
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+/* Score folded into Two weeks (F-29, build plan 4.4): the total is a secondary chip beside the
+   title (D-08), dashed like every "so far" figure; the agitated mark sits with each group. */
+.tw-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s1) var(--s2);
+  margin: var(--s2) 0 var(--s3);
+}
+.total-chip {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.total-chip.so-far {
+  border: 1px dashed var(--rule-strong);
+}
+.total-chip b {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+.tw-coverage {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.td-move {
+  white-space: nowrap;
+}
+.twoweeks #tw-behaviors > button.ghost {
+  margin-top: var(--s2);
+}
+.groups > li {
+  grid-template-areas: "name avg" "squares avg" "logs avg" "status avg";
+}
+.groups-status {
+  grid-area: status;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
   font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--text-muted);
 }
-.score-row-change.up {
+.groups-status.warn {
   color: var(--attn);
 }
-.score-row-change.down {
-  color: var(--accent-ink);
+.history-groups {
+  margin-top: var(--s3);
+}
+.history-groups caption {
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding-bottom: var(--s1);
 }
 
 /* Sign-in (R1 option A, plan 5.3): the whole screen, so nothing of the app shows behind it. */

@@ -1,4 +1,4 @@
-// Navigation checks: Log group tabs, pinned section bars on Scores, scroll tracking, Data hub and pages, back gesture, reload. usage: node e2e/navigation.cjs URL OUTDIR
+// Navigation checks: Log group tabs, Two weeks and the old Score address, Data hub and pages, back gesture, reload. usage: node e2e/navigation.cjs URL OUTDIR
 const { chromium } = require("playwright");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
@@ -8,7 +8,6 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));
   const shot = (n) => p.mouse.move(1, 1).then(() => p.waitForTimeout(250)).then(() => p.screenshot({ path: `${OUT}/${n}.png` }));
-  const active = (label) => p.evaluate((l) => document.querySelector(`nav[aria-label="${l}"] [aria-current="location"]`)?.textContent, label);
   const tab = (t) => p.locator("nav.tabs button", { hasText: t }).click();
 
   await p.goto(URL);
@@ -45,14 +44,14 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   // Tap the active tab: back to top
   await tab(/^Log$/); await p.waitForTimeout(1600);
   ok(await p.evaluate(() => window.scrollY) === 0, "tapping the current tab scrolls to top");
-  // Scores
-  await tab(/score/i); await p.waitForTimeout(600);
-  ok(p.url().endsWith("#/scores"), "Scores in URL");
-  await p.locator('nav[aria-label="Jump to a chart"] a', { hasText: "Total" }).click(); await p.waitForTimeout(900);
-  ok(await active("Jump to a chart") === "Total", "Scores: jump to Total");
-  await shot("05-scores-total");
+  // Two weeks (Score folded into it, build plan 4.4)
+  await tab(/two weeks/i); await p.waitForTimeout(600);
+  ok(p.url().endsWith("#/twoweeks"), "Two weeks in URL");
+  await p.goto(p.url().replace(/#.*$/, "#/scores/p2")); await p.reload(); await p.waitForTimeout(800);
+  ok(p.url().endsWith("#/twoweeks/p2") && (await p.locator(".pnav-label").textContent()).includes("Period 2 ·"), "an old #/scores/p2 address opens Two weeks on period 2");
+  await shot("05-twoweeks");
   await p.reload(); await p.waitForTimeout(800);
-  ok(p.url().endsWith("#/scores") && (await p.locator("nav.tabs button.on").textContent()).includes("Score"), "reload stays on Score");
+  ok(p.url().endsWith("#/twoweeks/p2") && (await p.locator("nav.tabs button.on").textContent()).includes("Two weeks"), "reload stays on Two weeks");
   // The day-14 review screen is gone (D-14): no tab, and its old address lands on the start screen.
   ok(!(await p.locator("nav.tabs button", { hasText: "Review" }).count()), "no Review tab");
   await p.goto(p.url().replace(/#.*$/, "#/review")); await p.reload(); await p.waitForTimeout(800);
@@ -72,6 +71,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("button", { name: "Settings", exact: true }).click(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data"), "on-page Back button returns to the hub");
   await p.getByRole("link", { name: /How ratings/ }).click(); await p.waitForTimeout(300);
+  ok(/Data on this phone: (kept|may be cleared)/.test(await p.locator("main").textContent()), "About says whether the phone keeps the data (F-53)");
   ok(await p.getByRole("button", { name: "Copy diagnostics" }).isVisible(), "About page has a Copy diagnostics button");
   ok(await p.getByText("Nothing is sent anywhere. Copying is up to you.").isVisible(), "About page says nothing is sent anywhere");
   await tab(/^Log$/); await p.waitForTimeout(500);

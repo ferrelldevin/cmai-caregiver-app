@@ -71,11 +71,17 @@ async function scan(page, name, results) {
     await page.getByRole("dialog", { name: "Choose patient" }).waitFor();
     await scan(page, "Patient switcher (sheet open)", results);
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Score", exact: true }).click();
-    await page.getByRole("heading", { name: "Behavior scores", exact: true }).waitFor();
-    await scan(page, "Scores", results);
+    // Two weeks (F-28): a finished period, then the one in progress.
+    await page.getByRole("button", { name: "Two weeks", exact: true }).click();
+    await page.getByRole("heading", { name: "This period", exact: true }).waitFor();
+    await scan(page, "Two weeks (finished period)", results);
+    await page.getByRole("button", { name: "Later period" }).click();
+    await page.getByRole("heading", { name: "So far this period" }).waitFor();
+    await scan(page, "Two weeks (period in progress)", results);
     await page.getByRole("button", { name: "Show all 29 behaviors" }).click();
-    await scan(page, "Scores (all 29 behaviors)", results);
+    await page.getByText(/^Compare finished periods/).click();
+    await page.locator("#tw-history table").first().waitFor();
+    await scan(page, "Two weeks (all 29 behaviors, History open)", results);
     // The Day-14 review screen was removed when ratings were locked (D-14, PR #17).
     await page.getByRole("button", { name: "Settings" }).click();
     await scan(page, "Patients & data (with patients)", results);

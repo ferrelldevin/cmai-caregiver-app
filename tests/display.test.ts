@@ -1,6 +1,17 @@
 // Display settings: stored choices, the phone's own settings, and what lands on <html>.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { applyDisplay, currentTheme, getContrastPref, getThemePref, isHighContrast, onDisplayChange, resolveTheme, setContrastPref, setThemePref, toggleTheme } from "../src/ui/display";
+import {
+  applyDisplay,
+  currentTheme,
+  getContrastPref,
+  getThemePref,
+  isHighContrast,
+  onDisplayChange,
+  resolveTheme,
+  setContrastPref,
+  setThemePref,
+  toggleTheme,
+} from "../src/ui/display";
 
 const phone = { dark: false, moreContrast: false };
 const store = new Map<string, string>();
@@ -18,9 +29,15 @@ beforeEach(() => {
     removeItem: (k: string) => void store.delete(k),
   });
   vi.stubGlobal("window", {
-    matchMedia: (q: string) => ({ matches: q.includes("dark") ? phone.dark : phone.moreContrast, addEventListener() {} }),
+    matchMedia: (q: string) => ({
+      matches: q.includes("dark") ? phone.dark : phone.moreContrast,
+      addEventListener() {},
+    }),
   });
-  vi.stubGlobal("document", { documentElement: root, querySelector: () => ({ setAttribute: (_: string, v: string) => (barColor = v) }) });
+  vi.stubGlobal("document", {
+    documentElement: root,
+    querySelector: () => ({ setAttribute: (_: string, v: string) => (barColor = v) }),
+  });
 });
 
 describe("theme", () => {

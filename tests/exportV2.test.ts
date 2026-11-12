@@ -183,10 +183,33 @@ describe("labels.csv", () => {
 
   it("handles old logs, open watches, ended behaviors and unfinished ratings", async () => {
     await db.observations.add({ patientId: "P-01", itemId: 3, at: ANCHOR + 5, loggedAt: ANCHOR + 5 }); // a version 3 log: no offset, no caregiver
-    await db.observations.add({ patientId: "P-01", itemId: 1, at: ANCHOR + 10, loggedAt: ANCHOR + 10, endedAt: ANCHOR + 600_010, approx: true, tzOffsetMin: 60 });
+    await db.observations.add({
+      patientId: "P-01",
+      itemId: 1,
+      at: ANCHOR + 10,
+      loggedAt: ANCHOR + 10,
+      endedAt: ANCHOR + 600_010,
+      approx: true,
+      tzOffsetMin: 60,
+    });
     await db.watches.add(W(NOW - 1800_000)); // still open: counts up to the export
-    await db.caregiverRatings.add({ uid: crypto.randomUUID(), patientId: "P-01", windowStart: ANCHOR, answers: { 1: 3 }, startedAt: NOW - 5, ruleVersion: "cmai-count-rule-2" });
-    await db.caregiverRatings.add({ uid: crypto.randomUUID(), patientId: "P-01", windowStart: addDays(ANCHOR, -14), answers: { 1: 3 }, startedAt: ANCHOR, submittedAt: ANCHOR + 1, ruleVersion: "cmai-count-rule-2" });
+    await db.caregiverRatings.add({
+      uid: crypto.randomUUID(),
+      patientId: "P-01",
+      windowStart: ANCHOR,
+      answers: { 1: 3 },
+      startedAt: NOW - 5,
+      ruleVersion: "cmai-count-rule-2",
+    });
+    await db.caregiverRatings.add({
+      uid: crypto.randomUUID(),
+      patientId: "P-01",
+      windowStart: addDays(ANCHOR, -14),
+      answers: { 1: 3 },
+      startedAt: ANCHOR,
+      submittedAt: ANCHOR + 1,
+      ruleVersion: "cmai-count-rule-2",
+    });
     const out = await ex.buildExport(NOW);
     const obs = out.observationsCsv.split("\n");
     expect(obs[1]).toMatch(/,,,,,,2,0\.0\.0-test$/); // uid filled at upgrade only, so empty here
@@ -194,7 +217,9 @@ describe("labels.csv", () => {
     expect(out.watchesCsv.split("\n")[1]).toMatch(/,tap,,,$/);
     expect(out.caregiverRatingsCsv.split("\n")).toHaveLength(30); // only the submitted one
     expect(out.caregiverRatingsCsv).toContain(",2,Inappropriate dressing or disrobing,,1,,");
-    expect(out.labelsCsv).toContain("P-01,behavior,1,Pacing, aimless wandering".replace("Pacing, aimless wandering", '"Pacing, aimless wandering"'));
+    expect(out.labelsCsv).toContain(
+      "P-01,behavior,1,Pacing, aimless wandering".replace("Pacing, aimless wandering", '"Pacing, aimless wandering"'),
+    );
     expect(out.scoresCsv.split("\n").at(-1)).toMatch(/,false,30$/);
   });
 });
