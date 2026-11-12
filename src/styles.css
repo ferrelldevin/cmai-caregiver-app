@@ -2772,3 +2772,38 @@ table.cmp td {
 .pass-form input {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+
+/* Watching hours (F-38, plan 5.6): the strip on Log and the band on Today. */
+.watch-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius-sm);
+  padding: 4px 4px 4px var(--s3);
+  margin: var(--s2) 0;
+}
+.watch-strip.on {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.watch-strip p {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.watch-band {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 2px;
+  height: 8px;
+  margin-top: 4px;
+}
+.watch-band span {
+  background: var(--accent);
+  border-radius: 2px;
+}
+.watch-note {
+  margin: var(--s2) 0 0;
+}
