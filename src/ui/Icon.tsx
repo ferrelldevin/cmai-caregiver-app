@@ -19,9 +19,10 @@ const PATHS = {
   lock: "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4",
   sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
   moon: "M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z",
-  // Lucide "arrow-right-left" and "settings-2" (ISC license), redrawn as one path each.
+  // Lucide "arrow-right-left", "settings-2" and "calendar" (ISC license), redrawn as one path each.
   swap: "M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16",
   settings: "M20 7h-9M14 17H5M17 14a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM7 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6z",
+  today: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
 } as const;
 
 export type IconName = keyof typeof PATHS;

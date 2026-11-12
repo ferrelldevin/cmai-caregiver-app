@@ -1,4 +1,4 @@
-// End-to-end flow on the production build: logging, details, recent logs, Data pages, backup and restore, delete with a reason, offline reload. usage: node e2e/flows.cjs URL OUTDIR
+// End-to-end flow on the production build: logging, details, the Today tab (where logs are fixed), Data pages, backup and restore, delete with a reason, offline reload. usage: node e2e/flows.cjs URL OUTDIR
 const { chromium } = require("playwright");
 const fs = require("fs");
 const [URL, OUT] = process.argv.slice(2);
@@ -72,15 +72,18 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok((await sheet.locator('input[type="time"]').inputValue()) === timeBefore, "the old time stays");
   await sheet.getByRole("button", { name: "Done" }).click();
   ok(!(await sheet.isVisible()), "Done closes the sheet");
-  // recent logs
-  const recent = p.locator(".recent-list li").first();
-  ok((await recent.textContent()).includes("(about)") && (await recent.textContent()).includes("Mealtime"), "recent log shows approx and before");
+  // Today (F-27): "N logged today" opens it; each behavior opens to its logs, which are fixed here.
+  await p.locator(".today-count").click();
+  ok(p.url().endsWith("#/today"), "'logged today' opens the Today tab");
+  await p.locator(".acc-head", { hasText: "Hitting" }).click();
+  const recent = p.locator(".acc-body li").first();
+  ok((await recent.textContent()).includes("(about)") && (await recent.textContent()).includes("Mealtime"), "today's log shows approx and before");
   await recent.scrollIntoViewIfNeeded();
   await p.screenshot({ path: `${OUT}/flow-03-recent.png` });
-  // Edit from Recent logs opens the same sheet with the saved details
+  // Edit on Today opens the same sheet with the saved details
   await recent.getByRole("button", { name: /Edit/ }).click();
   await sheet.waitFor();
-  ok(await sheet.getByLabel("Time is approximate").isChecked() && (await sheet.getByRole("button", { name: "15 min before" }).getAttribute("aria-pressed")) === "true", "Recent logs opens the same sheet with the saved details");
+  ok(await sheet.getByLabel("Time is approximate").isChecked() && (await sheet.getByRole("button", { name: "15 min before" }).getAttribute("aria-pressed")) === "true", "Today opens the same sheet with the saved details");
   await sheet.getByRole("button", { name: "Mealtime" }).click();
   ok((await sheet.getByRole("button", { name: "Mealtime" }).getAttribute("aria-pressed")) === "false", "tapping the chosen chip clears it");
   await sheet.getByRole("button", { name: "Mealtime" }).click();
@@ -99,19 +102,20 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await del.getByRole("button", { name: "Delete log" }).click();
   await p.locator(".snackbar", { hasText: "Deleted" }).waitFor();
   // The snackbar can show a frame before the list re-renders from the database; give it a moment.
-  await p.waitForFunction(() => document.querySelectorAll(".recent-list li").length === 0, null, { timeout: 3000 }).catch(() => {});
-  ok((await p.locator(".recent-list li").count()) === 0, "delete removes the log");
+  await p.waitForFunction(() => document.querySelectorAll(".acc-body li").length === 0, null, { timeout: 3000 }).catch(() => {});
+  ok((await p.locator(".acc-body li").count()) === 0, "delete removes the log");
   ok((await p.locator(".snackbar").getByRole("button").count()) === 1, "deleted confirmation offers Undo only");
   await p.getByRole("button", { name: "Undo" }).click();
-  await p.locator(".recent-list li").first().waitFor();
-  ok((await p.locator(".recent-list li").first().textContent()).includes("Mealtime"), "undo delete brings back the log with its details");
-  // keyboard: Edit from Recent logs starts on the first chip
-  await p.locator(".recent-list li").first().getByRole("button", { name: /Edit/ }).focus();
+  await p.locator(".acc-body li").first().waitFor();
+  ok((await p.locator(".acc-body li").first().textContent()).includes("Mealtime"), "undo delete brings back the log with its details");
+  // keyboard: Edit on Today starts on the time field
+  await p.locator(".acc-body li").first().getByRole("button", { name: /Edit/ }).focus();
   await p.keyboard.press("Enter"); await sheet.waitFor();
   ok(await p.evaluate(() => document.activeElement?.getAttribute("type") === "time"), "opened by keyboard: focus on the time field");
   await p.keyboard.press("Escape");
   ok(!(await sheet.isVisible()), "Esc closes the sheet");
   await p.mouse.click(10, 300);
+  await p.locator("nav.tabs button", { hasText: "Log" }).click(); // the reminder is on the Log screen
   // A real patient with logs and no export gets the quiet backup line, and it opens the backup page (F-36)
   const reminder = p.locator(".backup-reminder");
   await reminder.waitFor();
@@ -178,8 +182,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("alert").filter({ hasText: "not a CMAI Tracker backup" }).waitFor(); ok(true, "bad file refused with message");
   await p.getByRole("button", { name: /Choose patient$/ }).click();
   await p.getByRole("dialog", { name: "Choose patient" }).getByRole("button", { name: /^P-07/ }).click();
-  await p.locator("nav.tabs button", { hasText: "Log" }).click();
-  ok((await p.locator(".recent-list li").first().textContent()).includes("Mealtime"), "restored P-07 log keeps details");
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
+  await p.locator(".acc-head", { hasText: "Hitting" }).click();
+  ok((await p.locator(".acc-body li").first().textContent()).includes("Mealtime"), "restored P-07 log keeps details");
   // offline reload
   await p.locator("nav.tabs button", { hasText: "Score" }).click();
   await p.reload(); await p.waitForTimeout(1500);

@@ -2,22 +2,21 @@
 // (round 3 mockup, design note 008 phase 2, F-26). Each tile has an icon to find it by, a
 // short name and today's count. What counts, what does not and the manual page (p.12-13)
 // used to sit on every button; they are now in one sheet, opened from the button under the
-// grid or by holding a tile, so a whole group fits on one screen (F-37). A short confirmation offers Edit and Undo
-// for 8 seconds; the timer stops while the caregiver is using it (WCAG 2.2.1). Edit, here and
-// in Recent logs, opens the one log details sheet (design note 003). Deleting asks for a
-// reason; every edit, delete and undo goes through data/logs.ts so it lands in the change
-// history (design note 007).
+// grid or by holding a tile, so a whole group fits on one screen (F-37). A short
+// confirmation offers Edit and Undo for 8 seconds; the timer stops while the caregiver is
+// using it (WCAG 2.2.1). Edit opens the log details sheet (design note 003). Earlier logs
+// are fixed on the Today tab, which "N logged today" opens (F-27). Every edit, delete and
+// undo goes through data/logs.ts so it lands in the change history (design note 007).
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring/items";
-import { DAY_MS } from "../scoring/engine";
 import { mostLogged } from "./mostLogged";
-import { checkInKey, db, localMidnight, type CheckIn, type StoredObservation } from "../data/db";
+import { db, localMidnight, type StoredObservation } from "../data/db";
 import { backupReminder } from "../data/backupReminder";
 import { deleteLog, editLog, LogTimeError, restoreLog, UNDO_REASON } from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
-import { dayAndTime, timeOfDay } from "./format";
+import { timeOfDay } from "./format";
 import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
@@ -26,7 +25,6 @@ import { DefinitionsSheet } from "./DefinitionsSheet";
 const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"];
 const tabLabel = (g: FactorGroup) => GROUP_LABELS[g].split(/[ ,]/)[0];
 const TOAST_MS = 8000;
-const RECENT_SHOWN = 8;
 
 type SavedObs = StoredObservation & { id: number };
 type Toast = { kind: "logged" | "deleted"; obs: SavedObs };
@@ -36,13 +34,14 @@ export const SAVE_FAILED = "That did not save. Check the phone has free space, t
 interface Props {
   patientId: string;
   observations: StoredObservation[];
-  checkins: CheckIn[];
   demo: boolean; // the patient is made-up demo data
   onChange: () => void;
+  /** Opens the Today tab, where today's logs are listed and fixed. */
+  onToday: () => void;
   onBackUp: () => void; // opens the Data screen's backup page
 }
 
-export function LogScreen({ patientId, observations, checkins, demo, onChange, onBackUp }: Props) {
+export function LogScreen({ patientId, observations, demo, onChange, onToday, onBackUp }: Props) {
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
   const [group, setGroup] = useState<FactorGroup>("aggressive");
   const [toast, setToast] = useState<Toast | null>(null);
@@ -50,7 +49,6 @@ export function LogScreen({ patientId, observations, checkins, demo, onChange, o
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
   const [saveError, setSaveError] = useState(false); // the last save failed
   const [editError, setEditError] = useState<string | null>(null);
-  const [showAllRecent, setShowAllRecent] = useState(false);
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
@@ -66,11 +64,7 @@ export function LogScreen({ patientId, observations, checkins, demo, onChange, o
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
   const loggedToday = [...todayCounts.values()].reduce((a, b) => a + b, 0);
-  const checkedIn = checkins.some((c) => c.day === todayStart);
   const frequent = mostLogged(observations, now);
-  const recent = observations
-    .filter((o) => o.loggedAt >= now - DAY_MS || o.at >= now - DAY_MS)
-    .sort((a, b) => b.at - a.at);
 
   // The confirmation closes on its own only while nobody is using it.
   useEffect(() => {
@@ -106,21 +100,6 @@ export function LogScreen({ patientId, observations, checkins, demo, onChange, o
     setFlash(itemId);
     window.setTimeout(() => setFlash((f) => (f === itemId ? null : f)), 900);
     setToast({ kind: "logged", obs: { ...obs, id } });
-    onChange();
-  }
-
-  // One per patient per day. Tapping again takes it back.
-  async function toggleCheckIn() {
-    const key = checkInKey(patientId, todayStart);
-    setSaveError(false);
-    try {
-      if (checkedIn) await db.checkins.delete(key);
-      else await db.checkins.put({ key, patientId, day: todayStart, at: Date.now() });
-    } catch (e) {
-      record(e);
-      setSaveError(true);
-      return;
-    }
     onChange();
   }
 
@@ -259,7 +238,7 @@ export function LogScreen({ patientId, observations, checkins, demo, onChange, o
           Log a behavior
         </p>
         {/* the screen heading is the h1 in App */}
-        <p className="today-count">
+        <button className="today-count" onClick={onToday}>
           {loggedToday ? (
             <>
               <b>{loggedToday}</b> logged today
@@ -267,7 +246,8 @@ export function LogScreen({ patientId, observations, checkins, demo, onChange, o
           ) : (
             "Nothing logged yet today"
           )}
-        </p>
+          <Icon name="chevron" size={16} className="today-count-chev" />
+        </button>
       </div>
       <p className="hint">
         Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is
@@ -313,70 +293,6 @@ export function LogScreen({ patientId, observations, checkins, demo, onChange, o
         <Icon name="info" size={20} /> What counts as each behavior?
       </button>
       <p className="hint defs-hint">Or hold a tile to read about that one.</p>
-
-      <section className="card recent" id="recent" aria-labelledby="recent-h">
-        <h2 id="recent-h">Recent logs</h2>
-        {recent.length === 0 ? (
-          <p className="muted">Logs from the last 24 hours show here, so you can fix a time or remove a mistake.</p>
-        ) : (
-          <>
-            <p className="muted">
-              Last 24 hours, newest first. Fix the time, or delete a log tapped by mistake. Deleting asks why.
-            </p>
-            <ul className="recent-list">
-              {recent.slice(0, showAllRecent ? undefined : RECENT_SHOWN).map((o) => (
-                <li key={o.id}>
-                  <div className="recent-main">
-                    <span className="recent-time">
-                      {o.at < todayStart ? dayAndTime(o.at) : timeOfDay(o.at)}
-                      {o.approx ? " (about)" : ""}
-                    </span>
-                    <span>
-                      <b>{ITEMS[o.itemId - 1].name}</b>
-                      {o.before ? (
-                        <span className="muted">
-                          {" "}
-                          · before: {o.before}
-                          {o.beforeNote ? ` (${o.beforeNote})` : ""}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                  <button
-                    className="ghost small"
-                    aria-label={`Edit ${ITEMS[o.itemId - 1].name} at ${timeOfDay(o.at)}`}
-                    onClick={(e) => edit(o as SavedObs, e)}
-                  >
-                    Edit
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {recent.length > RECENT_SHOWN && (
-              <button className="ghost" onClick={() => setShowAllRecent(!showAllRecent)}>
-                {showAllRecent ? "Show fewer" : `Show all ${recent.length}`}
-              </button>
-            )}
-          </>
-        )}
-      </section>
-
-      <section className="card checkin">
-        <h2>End of shift</h2>
-        {loggedToday > 0 ? (
-          <p className="muted">{loggedToday} logged today, so today already counts as logged.</p>
-        ) : (
-          <>
-            <p className="muted">
-              Saw none of these behaviors today? Tap this so the app knows today was quiet, not missed. Days with no
-              logs and no check-in show as "unlogged" on Scores.
-            </p>
-            <button className={checkedIn ? "ghost" : ""} aria-pressed={checkedIn} onClick={toggleCheckIn}>
-              {checkedIn ? "✓ Nothing to log today (tap to undo)" : "Nothing to log today"}
-            </button>
-          </>
-        )}
-      </section>
 
       {toast && (
         <div

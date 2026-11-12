@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { DataScreen } from "./ui/DataScreen";
 import { LogScreen } from "./ui/LogScreen";
+import { TodayScreen } from "./ui/TodayScreen";
 import { Icon, type IconName } from "./ui/Icon";
 import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
@@ -22,6 +23,7 @@ const ScoresLoading = ({ error }: { error?: string | null }) => (
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
   { id: "scores", label: "Score", title: "Score", icon: "chart" },
+  { id: "today", label: "Today", title: "Today", icon: "today" },
   { id: "data", label: "Settings", title: "Settings", icon: "settings" },
 ];
 
@@ -252,11 +254,13 @@ export default function App() {
           <LogScreen
             patientId={patientId!}
             observations={observations}
-            checkins={checkins}
             demo={!!current?.demo}
             onChange={refresh}
+            onToday={() => setTab("today")}
             onBackUp={() => go({ tab: "data", page: "backup" })}
           />
+        ) : shown === "today" ? (
+          <TodayScreen patientId={patientId!} observations={observations} checkins={checkins} onChange={refresh} />
         ) : loaded && !error ? (
           <Suspense fallback={<ScoresLoading />}>
             <ScoresScreen
