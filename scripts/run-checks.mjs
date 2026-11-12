@@ -10,11 +10,13 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = 4173;
-const URL = `http://localhost:${PORT}/`;
+// 127.0.0.1, not "localhost": inside the CI container "localhost" can resolve to an address the server is not on.
+const HOST = "127.0.0.1";
+const URL = `http://${HOST}:${PORT}/`;
 // The lab build (src/study/settings.ts): features built before Dr. Gupta's sign-off, switched on.
 // Its checks run against a second preview, so the caregiver build above is tested exactly as phones get it.
 const LAB_PORT = 4174;
-const LAB_URL = `http://localhost:${LAB_PORT}/`;
+const LAB_URL = `http://${HOST}:${LAB_PORT}/`;
 const LAB_DIR = "dist-lab";
 // file is the script; out, when set, is the file it writes instead of a screenshot folder.
 const CHECKS = [
@@ -24,6 +26,9 @@ const CHECKS = [
   { name: "theme", file: "e2e/theme.cjs" },
   { name: "patient-switcher", file: "e2e/patient-switcher.cjs" },
   { name: "sheet", file: "e2e/sheet.cjs" },
+  { name: "today", file: "e2e/today.cjs" },
+  { name: "twoweeks", file: "e2e/twoweeks.cjs" },
+  { name: "rollover", file: "e2e/rollover.cjs" },
   { name: "screenshots", file: "e2e/screenshots.cjs" },
   { name: "accessibility", file: "docs/audits/axe-run.cjs", out: "axe-wcag22aa.json" },
 ];
@@ -64,11 +69,11 @@ const tail = (text, n = 15) => text.trim().split(/\r?\n/).slice(-n).join("\n");
 const clean = (text = "") => text.replace(/\x1b\[[0-9;]*m/g, "");
 
 async function startServer(port = PORT, outDir = "dist") {
-  const url = `http://localhost:${port}/`;
+  const url = `http://${HOST}:${port}/`;
   const vite = path.join(ROOT, "node_modules", "vite", "bin", "vite.js");
   const server = spawn(
     process.execPath,
-    [vite, "preview", "--port", String(port), "--strictPort", "--outDir", outDir],
+    [vite, "preview", "--host", HOST, "--port", String(port), "--strictPort", "--outDir", outDir],
     {
       cwd: ROOT,
       stdio: ["ignore", "pipe", "pipe"],
