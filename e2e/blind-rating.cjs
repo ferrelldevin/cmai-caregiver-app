@@ -67,7 +67,7 @@ async function setUp(p) {
   const due = p.locator(".due-line");
   await due.waitFor();
   ok((await due.textContent()).includes("Two-week rating due for P-01"), "Log shows: Two-week rating due for P-01");
-  await p.getByRole("button", { name: /^7 Hitting/ }).click(); await p.locator(".snackbar").waitFor();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
   ok(true, "logging still takes one tap with a rating due");
   await p.screenshot({ path: `${OUT}/rating-due.png` });
   await axe(p, "Log with a rating due");
@@ -128,7 +128,7 @@ async function setUp(p) {
 
   // Locked, and no longer due.
   await p.getByRole("button", { name: "Back to Log" }).click();
-  await p.getByRole("button", { name: /^7 Hitting/ }).waitFor();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
   ok(await p.locator(".due-line").count() === 0, "no rating due after submitting");
   await p.goto(URL.replace(/\/?$/, "/") + "#/rating/P-01/p1");
   await heading(p, "P-01, period 1: submitted");

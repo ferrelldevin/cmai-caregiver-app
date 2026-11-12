@@ -25,7 +25,8 @@ export function listenForInstall() {
 export const canInstall = () => deferred !== null;
 
 export const isInstalled = () =>
-  window.matchMedia?.("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  window.matchMedia?.("(display-mode: standalone)").matches ||
+  (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 export async function install() {
   if (!deferred) return false;
@@ -38,5 +39,7 @@ export async function install() {
 
 export function onInstallChange(fn: () => void) {
   listeners.add(fn);
-  return () => { listeners.delete(fn); };
+  return () => {
+    listeners.delete(fn);
+  };
 }

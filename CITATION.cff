@@ -7,7 +7,7 @@ authors:
   - family-names: Ferrell
     given-names: Devin
     affiliation: "Old Dominion University"
-version: 0.2.0
+version: 0.3.0
 license: MIT
 repository-code: "https://github.com/ferrelldevin/cmai-tracker"
 keywords:

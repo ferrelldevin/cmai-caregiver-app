@@ -18,11 +18,11 @@ Permission to adapt and display these definitions in this app: not yet requested
 Citation: Cohen-Mansfield, J. (1991). Instruction Manual for the Cohen-Mansfield
 Agitation Inventory (CMAI). Research Institute of the Hebrew Home of Greater Washington.
 
-Behavior icons (design mockup only)
-The behavior icons in src/mockup/behavior-icons.tsx are shown only in Storybook, not in
-the app. They come from Lucide (https://lucide.dev), ISC License, (c) Lucide
+Behavior icons
+The behavior icons in src/ui/behavior-icons.tsx are shown on the Log screen and in the
+design mockup. They come from Lucide (https://lucide.dev), ISC License, (c) Lucide
 Contributors, and Tabler Icons (https://tabler.io/icons), MIT License, (c) Paweł Kuna.
-Icons picked from Iconify (src/mockup/iconify-icons.tsx): Microsoft Fluent Emoji high
+Icons picked from Iconify (src/ui/iconify-icons.tsx): Microsoft Fluent Emoji high
 contrast (MIT, (c) Microsoft Corporation), Remix Icon (Apache 2.0, Remix Design),
 Material Design Icons (Apache 2.0, Pictogrammers), Material Symbols (Apache 2.0, Google), Phosphor Icons (MIT), IconaMoon (CC BY 4.0, Dariush
 Habibpour) and Hugeicons (MIT). The Scratching and Trying to leave icons are drawn in
@@ -34,6 +34,6 @@ are from Paul Tol's "muted" qualitative palette (https://personal.sron.nl/~pault
 for color-blind readers.
 
 App icons
-The Switch and Settings icons in src/ui/Icon.tsx are redrawn from Lucide's
-"arrow-right-left" and "settings-2" (https://lucide.dev), ISC License, (c) Lucide
+The Switch, Settings, Today and Two weeks icons in src/ui/Icon.tsx are redrawn from Lucide's
+"arrow-right-left", "settings-2", "calendar" and "calendar-range" (https://lucide.dev), ISC License, (c) Lucide
 Contributors.

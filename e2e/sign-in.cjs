@@ -62,7 +62,7 @@ async function setUp(p) {
 
   // Once per shift: reopening within 12 hours asks nothing; one tap logs.
   await p.reload();
-  const hit = p.getByRole("button", { name: /^7 Hitting/ });
+  const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   await hit.waitFor();
   ok(await p.locator(".signin").count() === 0, "reopening within 12 hours asks no PIN");
