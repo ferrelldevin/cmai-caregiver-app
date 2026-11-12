@@ -28,6 +28,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 
+- Repository renamed from `cmai-tracker` to `cmai-caregiver-app`. The live app moves to https://ferrelldevin.github.io/cmai-caregiver-app/ (GitHub Pages does not redirect the old address). The app name stays CMAI Tracker, and the on-phone database keeps its name, so data on Android and desktop carries over; an iPhone Home Screen copy needs Export, then Restore at the new address.
 - Log screen from the round 3 mockup (F-26): behavior tiles 3 across with icons and today's count, group tabs, and a "Most logged for this resident" row.
 - What counts as each behavior moved off the buttons into one sheet, opened under the tiles or by holding a tile (F-37).
 - Score folded into Two weeks (F-29): the bar is now Log, Today, Two weeks, Settings. Everything Score showed is on Two weeks, with the total as a secondary chip beside the title. Old Score addresses still open the right period. The Score screen and the Recharts library are removed.
@@ -36,6 +37,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- Issue forms for bug reports and change requests, each warning against real participant data.
 - Every file is now formatted with Prettier, and `npm run lint` fails on unformatted files (so CI does too). No logic changed.
 
 - Study settings (`src/study/settings.ts`, F-48): one switch per feature built before Dr. Gupta's sign-off. The normal build has them all off; `VITE_STUDY_MODE=lab` builds the lab version with them on. Settings > About shows which one is running.
