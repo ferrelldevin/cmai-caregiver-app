@@ -90,6 +90,7 @@ const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label)
   ok(await page.locator('#tw-history .heat tbody tr').count() < 30, 'history lists only behaviors seen, like the table above');
   ok((await page.locator('#tw-history').textContent()).includes('32') && (await page.locator('#tw-history').textContent()).includes('30'), 'historical totals remain available');
   await page.getByRole('button',{name:'Earlier period',exact:true}).click();
+  await page.locator('#tw-history table').waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
   ok(!(await page.locator('#tw-history table').count()), 'switching period closes comparison');
   await page.getByRole('button',{name:/Choose patient$/}).click();
   await page.getByRole('dialog',{name:'Choose patient',exact:true}).getByRole('button',{name:/^P-TEST-B/}).click();
