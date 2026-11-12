@@ -2536,3 +2536,97 @@ button.text-danger {
   font-weight: 600;
   padding-bottom: var(--s1);
 }
+
+/* Sign-in (R1 option A, plan 5.3): the whole screen, so nothing of the app shows behind it. */
+.signin {
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top) + var(--s4)) var(--s4) calc(env(safe-area-inset-bottom) + var(--s4));
+}
+.signin-inner {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.signin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+}
+.signin-top .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.signin h1 {
+  margin: var(--s3) 0 0;
+  font-size: 1.5rem;
+}
+.signin h1:focus,
+.signin h1:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.signin-list {
+  margin-top: var(--s2);
+}
+.pinpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s4);
+  margin-top: var(--s3);
+}
+.pin-dots {
+  display: flex;
+  gap: var(--s3);
+}
+.pin-dots span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+}
+.pin-dots span.on {
+  background: var(--text);
+  border-color: var(--text);
+}
+.pin-busy {
+  margin: 0;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: var(--s3) var(--s5);
+}
+.keypad .key {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--rule-strong);
+}
+@media (hover: hover) {
+  .keypad .key:hover {
+    background: var(--hover);
+  }
+}
+.keypad .key-del {
+  border-color: transparent;
+}
+.signin-forgot {
+  align-self: center;
+}
+[data-contrast="high"] .keypad .key,
+[data-contrast="high"] .pin-dots span {
+  border-color: var(--text);
+}

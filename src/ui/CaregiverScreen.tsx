@@ -6,8 +6,11 @@
 import { useEffect, useState } from "react";
 import type { Caregiver, Patient } from "../data/db";
 import { addCaregiver, myResidents, removeCaregiver, setMyResidents } from "../data/caregivers";
+import { hasSetupPin } from "../data/pin";
+import { study } from "../study/settings";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
+import { SetupPinCard } from "./SignInScreen";
 
 interface PageProps {
   caregivers: Caregiver[];
@@ -22,6 +25,15 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
   const [mine, setMine] = useState<string[]>([]);
   const me = caregivers.find((c) => c.id === loggingAs);
+  // With the PIN on, the phone needs a setup PIN before its first caregiver (plan 5.3).
+  const [needsSetup, setNeedsSetup] = useState(false);
+  useEffect(() => {
+    let live = true;
+    if (study.pin) hasSetupPin().then((has) => live && setNeedsSetup(!has));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
     let live = true;
@@ -64,6 +76,8 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
     setMine(next);
     await setMyResidents(me.id, next);
   }
+
+  if (needsSetup) return <SetupPinCard onDone={() => setNeedsSetup(false)} />;
 
   return (
     <>
@@ -167,11 +181,22 @@ interface SheetProps {
   loggingAs: string | null;
   onPick: (id: string) => void;
   onManage: () => void;
+  /** With the PIN on: ends this caregiver's shift on this phone. */
+  onSignOut?: () => void;
   onClose: () => void;
 }
 
-/** "Who is logging?": one tap switches. Opened only when a caregiver chooses to switch. */
-export function WhoSheet({ open, viaKeyboard, caregivers, loggingAs, onPick, onManage, onClose }: SheetProps) {
+/** "Who is logging?": one tap switches (plus the PIN, with the PIN on). Opened only when a caregiver chooses to switch. */
+export function WhoSheet({
+  open,
+  viaKeyboard,
+  caregivers,
+  loggingAs,
+  onPick,
+  onManage,
+  onSignOut,
+  onClose,
+}: SheetProps) {
   return (
     <Sheet
       open={open}
@@ -199,6 +224,11 @@ export function WhoSheet({ open, viaKeyboard, caregivers, loggingAs, onPick, onM
       <button className="ghost sheet-manage" onClick={onManage}>
         <Icon name="user" size={18} /> Manage caregivers
       </button>
+      {onSignOut && loggingAs && (
+        <button className="ghost sheet-manage" onClick={onSignOut}>
+          <Icon name="lock" size={18} /> Sign out
+        </button>
+      )}
     </Sheet>
   );
 }

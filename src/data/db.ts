@@ -86,7 +86,7 @@ export interface CheckIn extends Made {
   at: number; // when it was tapped
 }
 
-/** One row per setting of this copy of the app. Rows: "deviceId", "createdAt", "lastCaregiver". */
+/** One row per setting of this copy of the app. Rows: "deviceId", "createdAt", "lastCaregiver", "setupPin" (5.3; never exported). */
 export interface Meta {
   key: string;
   value: string | number;
@@ -105,11 +105,19 @@ export interface Caregiver {
   pinHash?: Uint8Array;
   pinIterations?: number;
   failedAttempts?: number;
+  lastFailedAt?: number;
   lockedAt?: number;
 }
 
 /** Fields that stay on the phone: no backup or export ever carries them. */
-export const SECRET_CAREGIVER_FIELDS = ["pinSalt", "pinHash", "pinIterations", "failedAttempts", "lockedAt"] as const;
+export const SECRET_CAREGIVER_FIELDS = [
+  "pinSalt",
+  "pinHash",
+  "pinIterations",
+  "failedAttempts",
+  "lastFailedAt",
+  "lockedAt",
+] as const;
 
 /** "My residents": the order a caregiver sees residents in. An order, not a lock (R2). */
 export interface Assignment {
