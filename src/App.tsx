@@ -41,6 +41,7 @@ const PAGE_TITLES: Record<DataPage, string> = {
   demo: "Demo data",
   about: "How ratings are worked out",
   caregivers: "Caregivers",
+  clock: "Clock check",
 };
 
 export default function App() {

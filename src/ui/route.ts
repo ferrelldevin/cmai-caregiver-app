@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { study } from "../study/settings";
 
 export type Tab = "log" | "today" | "twoweeks" | "data";
-export type DataPage = "backup" | "display" | "safe" | "demo" | "about" | "caregivers";
+export type DataPage = "backup" | "display" | "safe" | "demo" | "about" | "caregivers" | "clock";
 /** `period` is 1-based, as people read it ("Period 3"); absent means the default period. */
 export interface Route {
   tab: Tab;
@@ -34,6 +34,8 @@ const PAGES: readonly DataPage[] = [
   "demo",
   "about",
   ...(study.caregiverProfiles ? (["caregivers"] as const) : []),
+  // The clock check is for the lab only (F-40, plan 5.8).
+  ...(study.labView ? (["clock"] as const) : []),
 ];
 
 export function parseRoute(hash: string): Route | null {
