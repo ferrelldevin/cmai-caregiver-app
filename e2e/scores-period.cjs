@@ -1,12 +1,12 @@
 // Hand-expected, fictional records: period isolation, locked app ratings, coverage and navigation.
 // Score folded into Two weeks (build plan 4.4): same assertions, new selectors and routes.
-const { chromium } = require('playwright');
+const { engine } = require("./browser.cjs");
 const fs = require('fs');
 const path = require('path');
 const [URL = 'http://127.0.0.1:4178/', OUT = 'docs/design/screens'] = process.argv.slice(2);
 const ok = (condition, label) => { if (!condition) throw Error('FAIL: ' + label); console.log('ok ' + label); };
 (async () => {
-  const browser = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const browser = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'America/New_York', reducedMotion: 'reduce' });
   await ctx.clock.install({ time: new Date('2026-01-30T12:00:00-05:00') });
   await ctx.clock.setFixedTime(new Date('2026-01-30T12:00:00-05:00'));

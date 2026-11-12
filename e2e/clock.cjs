@@ -1,7 +1,7 @@
 // Clock check (F-40, plan 5.8) on the LAB build: the time moves by the tenth of a second, also
 // with reduced motion; digits are tabular; axe in four display modes.
 // usage: node e2e/clock.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const [URL, OUT] = process.argv.slice(2);
@@ -15,7 +15,7 @@ async function axe(p, name) {
 const page = URL.replace(/\/?$/, "/") + "#/data/clock";
 
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   for (const [name, colorScheme, high, reduced] of [["light, reduced motion", "light", false, true], ["dark", "dark", false, false], ["light, high contrast", "light", true, false], ["dark, high contrast", "dark", true, false]]) {
     const c = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme, reducedMotion: reduced ? "reduce" : "no-preference", deviceScaleFactor: 2, bypassCSP: true });
     if (high) await c.addInitScript(() => localStorage.setItem("cmai-contrast", "high"));

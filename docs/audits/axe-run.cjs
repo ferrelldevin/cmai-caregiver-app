@@ -1,5 +1,5 @@
 // Drives the production preview through every screen and runs axe-core (WCAG 2.2 AA tags).
-const { chromium } = require("playwright");
+const { engine } = require("../../e2e/browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const axeVersion = require("axe-core/package.json").version;
@@ -17,7 +17,7 @@ async function scan(page, name, results) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const browser = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const all = { tool: `axe-core ${axeVersion}`, tags: TAGS, runAt: new Date().toISOString(), schemes: {} };
   // Each color scheme, standard and with the high-contrast Display setting on.
   for (const [scheme, colorScheme, high] of [["light", "light", false], ["dark", "dark", false], ["light, high contrast", "light", true], ["dark, high contrast", "dark", true]]) {

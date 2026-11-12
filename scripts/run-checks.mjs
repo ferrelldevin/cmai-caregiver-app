@@ -1,6 +1,7 @@
 // Runs every browser check and the accessibility audit against a fresh production build and writes one report.
 // usage: npm run checks            (report in .checks/report.md)
 //        npm run checks:report     (same, then pushes the report alone to the checks-report branch)
+//        npm run checks:webkit     (same checks in WebKit, the engine under every browser on an iPhone)
 // Works in Windows PowerShell, macOS and Linux. It changes no tracked file; the push writes only the report.
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -44,6 +45,11 @@ const LAB_CHECKS = [
 ];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");
+const webkit = process.argv.includes("--browser=webkit") || process.env.BROWSER === "webkit";
+if (webkit) process.env.BROWSER = "webkit"; // read by e2e/browser.cjs in every check
+const BROWSER = webkit ? "webkit" : "chromium";
+// The screenshot baselines are Chromium renders, so that check runs in Chromium only.
+const CHROMIUM_ONLY = new Set(["screenshots"]);
 const OUT = path.join(os.tmpdir(), "cmai-e2e");
 
 const run = (cmd, args, opts = {}) =>
@@ -55,10 +61,10 @@ const say = (m) => console.log(`[checks] ${m}`);
 function setup() {
   const steps = [
     ["Install dependencies", "npm", ["ci"]],
-    ["Install Chromium", "npx", ["playwright", "install", "chromium"]],
+    ["Install " + BROWSER, "npx", ["playwright", "install", BROWSER]],
     ["Build", "npm", ["run", "build"]],
     ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab" }],
-  ].filter(([name]) => !(name === "Install Chromium" && process.env.CHROME)); // CHROME points at a browser already on the machine
+  ].filter(([name]) => !(name === "Install chromium" && process.env.CHROME)); // CHROME points at a Chromium already on the machine
   for (const [name, cmd, args, env] of steps) {
     say(name);
     const r = run(cmd, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, ...env } });
@@ -135,6 +141,7 @@ function report({ setupError, results }) {
     `- Commit: ${git("log", "-1", "--format=%h %s")}${dirty ? " (with uncommitted changes)" : ""}`,
     `- Branch: ${git("rev-parse", "--abbrev-ref", "HEAD")}`,
     `- Ran at: ${new Date().toISOString()}`,
+    `- Browser: ${BROWSER}`,
     `- Node ${process.version} on ${process.platform}`,
     "",
   ];
@@ -167,7 +174,7 @@ if (!setupError) {
   let server, labServer;
   try {
     server = await startServer();
-    for (const check of CHECKS) results.push(runCheck(check));
+    for (const check of CHECKS) if (!(webkit && CHROMIUM_ONLY.has(check.name))) results.push(runCheck(check));
     labServer = await startServer(LAB_PORT, LAB_DIR);
     for (const check of LAB_CHECKS) results.push(runCheck(check, LAB_URL));
   } catch (e) {

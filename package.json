@@ -15,6 +15,7 @@
     "test:coverage": "vitest run --coverage",
     "checks": "node scripts/run-checks.mjs",
     "checks:report": "node scripts/run-checks.mjs --push",
+    "checks:webkit": "node scripts/run-checks.mjs --browser=webkit",
     "gen:cases": "node scripts/make-test-cases.mjs",
     "lint": "eslint . && prettier --check .",
     "check:docs": "node scripts/check-docs.mjs",

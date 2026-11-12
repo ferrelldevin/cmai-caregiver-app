@@ -6,7 +6,7 @@
 // Baselines are made on Linux, as in CI. Other systems draw text slightly differently, so there the
 // comparison is skipped with a note; CI still runs it on every pull request.
 // Fixed clock, time zone and demo data, so the screens are the same on every run.
-const { chromium } = require('playwright');
+const { engine } = require("./browser.cjs");
 const fs = require('fs');
 const path = require('path');
 const [URL = 'http://localhost:4173/', OUT = '/tmp/cmai-screens'] = process.argv.slice(2);
@@ -38,7 +38,7 @@ const SCREENS = [
   // Text is drawn with the system's font hinting and anti-aliasing settings, which differ between Linux
   // machines (the first CI run differed from the cloud session on 3 to 6% of pixels, all text edges).
   // These flags turn both off, so the same build draws the same pixels on any Linux machine.
-  const browser = await chromium.launch({
+  const browser = await engine.launch({
     executablePath: process.env.CHROME || undefined,
     args: ['--font-render-hinting=none', '--disable-lcd-text', '--disable-font-subpixel-positioning', '--force-color-profile=srgb'],
   });

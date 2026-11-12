@@ -2,7 +2,7 @@
 // period ends and only for a caregiver who logged in it; the form shows nothing from the logs;
 // all 29 answers, then submit and lock; the lab view compares with the app; axe in four modes.
 // usage: node e2e/blind-rating.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const [URL, OUT] = process.argv.slice(2);
@@ -57,7 +57,7 @@ async function setUp(p) {
 }
 
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, bypassCSP: true });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));

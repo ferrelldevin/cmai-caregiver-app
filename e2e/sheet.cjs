@@ -1,10 +1,10 @@
 // Sheet behavior on a phone: the page behind stays still, a swipe down closes, "Other" takes a note,
 // the time reads as tappable. usage: node e2e/sheet.cjs URL OUTDIR
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
   // A stand-in for iOS's visualViewport, so a test can raise and lower a keyboard.
   await ctx.addInitScript(() => {

@@ -8,6 +8,10 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- Safari (WebKit) browser checks: `npm run checks:webkit` runs the same checks in WebKit, and CI runs them as a job that does not block a merge for now. The screenshot check stays Chromium only.
+
+### Added
+
 - "It stopped", lab build only (F-39): after logging pacing, mannerisms or restlessness, one tap records when the stretch ended, from the confirmation or from Today; the log details sheet can correct it. An end before the start is refused. No scoring change.
 
 - Watching hours, lab build only (F-38, D-25): "I'm here" / "I've left" on Log, a log starts a watch when none is open, a band on Today showing when someone was watching, and after 4 hours with no tap the app asks "Still with P-02?". No scoring change.

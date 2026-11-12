@@ -3,7 +3,7 @@
 // correct the end like the start; an end before the start is refused; hitting gets none.
 // axe in four display modes.
 // usage: node e2e/it-stopped.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const [URL, OUT] = process.argv.slice(2);
@@ -26,7 +26,7 @@ async function start(p) {
 const tile = (p, name) => p.getByRole("tabpanel").getByRole("button", { name: new RegExp("^" + name) });
 
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 2, bypassCSP: true });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));

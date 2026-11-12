@@ -1,11 +1,11 @@
 // Today tab checks (F-27, build plan v5 4.2): route, reload and back, empty state and the quiet-day
 // check-in, figures, logs by hour, a row per behavior that opens to its logs, Edit and delete, no
 // rating for a single day. Made-up demo data only. usage: node e2e/today.cjs URL OUTDIR
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));

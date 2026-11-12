@@ -1,7 +1,7 @@
 // Three more "just before" chips (F-41, plan 5.9) on the LAB build: eleven chips with Nothing
 // noticed and Other last, the sheet fits a 360 x 640 screen, a chip saves, axe in four modes.
 // usage: node e2e/before-chips.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
-const { chromium } = require("playwright");
+const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 const [URL, OUT] = process.argv.slice(2);
@@ -25,7 +25,7 @@ async function openSheet(p) {
 }
 
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || undefined });
+  const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 2, bypassCSP: true });
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
