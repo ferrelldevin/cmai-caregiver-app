@@ -25,7 +25,7 @@ Rating scale (manual p.5; codes 8 and 9 from p.3 and p.24):
 
 ## V01. Ruth
 
-*84, moderate Alzheimer's disease, assisted-living memory unit*
+_84, moderate Alzheimer's disease, assisted-living memory unit_
 
 Ruth walks to meals and activities on her own and knows the way. Staff have not seen her wander without a purpose.
 
@@ -39,7 +39,7 @@ Behaviors to rate: #1 Pacing, aimless wandering; #6 Repetitive sentences or ques
 
 ## V02. Harold
 
-*79, vascular dementia, nursing home*
+_79, vascular dementia, nursing home_
 
 Week 1 was quiet for verbal outbursts. In week 2 his roommate changed, and Harold cursed at staff every evening at about 6:30 pm when they came to help him get ready for bed (Days 8 through 14, seven evenings). On Day 10 (Wed) and Day 13 (Sat) he also swore at the aide during late-morning care.
 
@@ -53,7 +53,7 @@ Behaviors to rate: #4 Cursing or verbal aggression; #9 Grabbing onto people; #16
 
 ## V03. Edith
 
-*88, dementia with Lewy bodies, nursing home*
+_88, dementia with Lewy bodies, nursing home_
 
 Every third day or so, mid-morning, Edith pressed her call bell repeatedly and called "Nurse! Nurse!" for a long stretch, though nothing was wrong. This happened on Days 1, 4, 7, 10 and 13, five mornings in all.
 
@@ -67,7 +67,7 @@ Behaviors to rate: #5 Constant unwarranted request for attention or help; #12 St
 
 ## V04. Walter
 
-*76, Alzheimer's disease, nursing home*
+_76, Alzheimer's disease, nursing home_
 
 Every day, twice a day (mid-morning and mid-afternoon), Walter sat rubbing the arm of his chair and picking at the seam of his trousers for a stretch of 20 to 30 minutes.
 
@@ -81,7 +81,7 @@ Behaviors to rate: #7 Hitting (including self); #18 Complaining; #19 Negativism;
 
 ## V05. Margaret
 
-*81, Alzheimer's disease, nursing home*
+_81, Alzheimer's disease, nursing home_
 
 Twice a day, every day, Margaret asked "Where is my purse?" over and over: once after breakfast and once mid-afternoon. On Day 9 there was a third time, in the evening.
 
@@ -95,7 +95,7 @@ Behaviors to rate: #6 Repetitive sentences or questions; #10 Pushing; #13 Scream
 
 ## V06. Frank
 
-*73, early-onset Alzheimer's disease, physically strong, secure dementia unit*
+_73, early-onset Alzheimer's disease, physically strong, secure dementia unit_
 
 Frank paced the corridor in four stretches every day: early morning, late morning, early afternoon and early evening. Each stretch lasted 30 to 60 minutes.
 
@@ -109,7 +109,7 @@ Behaviors to rate: #1 Pacing, aimless wandering; #2 Inappropriate dress or disro
 
 ## V07. Dorothy
 
-*90, Alzheimer's disease, nursing home*
+_90, Alzheimer's disease, nursing home_
 
 Late afternoon is hard for Dorothy. On nine of the fourteen days (Days 1, 2, 4, 5, 7, 9, 10, 12 and 13), starting around 5:00 pm, she asked "When is Jim coming to pick me up?" again and again. The aide answered and she settled, but a few minutes later she started asking again. Staff counted four separate rounds of the repeated question between 5:00 and 5:20 pm on each of those days. On the other five days she did not do this at all.
 
@@ -121,7 +121,7 @@ Behaviors to rate: #6 Repetitive sentences or questions; #13 Screaming; #26 Perf
 
 ## V08. George
 
-*85, Alzheimer's disease with night waking, nursing home*
+_85, Alzheimer's disease with night waking, nursing home_
 
 On eight nights George woke shortly before midnight and screamed for help three times in about 35 minutes: around 11:40 pm, 11:55 pm and again at 12:15 am. These were the nights starting on Days 1, 2, 3, 5, 6, 8, 10 and 12. On the other nights he slept through.
 
@@ -133,7 +133,7 @@ Behaviors to rate: #5 Constant unwarranted request for attention or help; #8 Kic
 
 ## V09. Evelyn
 
-*87, vascular dementia after a stroke, nursing home*
+_87, vascular dementia after a stroke, nursing home_
 
 Since her stroke two years ago Evelyn cannot speak. She makes sounds but no words.
 
@@ -147,7 +147,7 @@ Behaviors to rate: #1 Pacing, aimless wandering; #4 Cursing or verbal aggression
 
 ## V10. Leonard
 
-*80, mild to moderate Alzheimer's disease, assisted living*
+_80, mild to moderate Alzheimer's disease, assisted living_
 
 At lunch on Day 5 and on Day 11 Leonard spat a piece of gristle into his napkin. A new aide logged both times under "Spitting".
 
@@ -159,7 +159,7 @@ Behaviors to rate: #3 Spitting (include at meals); #4 Cursing or verbal aggressi
 
 ## V11. Joan
 
-*83, Alzheimer's disease, nursing home*
+_83, Alzheimer's disease, nursing home_
 
 Morning care is the flashpoint for Joan. She hit the aide during the morning wash on Days 2, 5, 9 and 12.
 
@@ -175,7 +175,7 @@ Behaviors to rate: #4 Cursing or verbal aggression; #7 Hitting (including self);
 
 ## V12. Albert
 
-*78, Alzheimer's disease, nursing home*
+_78, Alzheimer's disease, nursing home_
 
 Albert had a urinary tract infection in week 1. On Days 1 to 7 he screamed four times every day: in the morning, early afternoon, late afternoon and at night. After antibiotics he did not scream at all in week 2.
 

@@ -28,7 +28,10 @@ describe("patientSummaries", () => {
   });
 
   it("finds each patient's latest log by when it happened, not when it was entered", async () => {
-    await db.patients.bulkAdd([{ id: "P-01", anchor: 0 }, { id: "P-02", anchor: 0 }]);
+    await db.patients.bulkAdd([
+      { id: "P-01", anchor: 0 },
+      { id: "P-02", anchor: 0 },
+    ]);
     await db.observations.bulkAdd([
       { patientId: "P-01", itemId: 1, at: 5000, loggedAt: 5000 },
       { patientId: "P-01", itemId: 2, at: 3000, loggedAt: 9000 }, // back-dated

@@ -61,7 +61,8 @@ function buildStamp(): Plugin {
     apply: "build",
     transformIndexHtml: {
       order: "post",
-      handler: (html) => html.replace(/(<meta charset="UTF-8" \/>)/, `$1\n    <meta name="build" content="${buildCommit()}" />`),
+      handler: (html) =>
+        html.replace(/(<meta charset="UTF-8" \/>)/, `$1\n    <meta name="build" content="${buildCommit()}" />`),
     },
   };
 }
