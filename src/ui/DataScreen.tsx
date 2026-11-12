@@ -553,7 +553,7 @@ export function DataScreen({
               {STUDY_MODE === "lab" ? "lab (features awaiting sign-off are on)" : "caregiver"} · a prototype for
               Professor Gupta's Hands-On Lab, not a medical device. Full rules:{" "}
               <a
-                href="https://github.com/ferrelldevin/cmai-tracker/blob/main/docs/scoring-spec.md"
+                href="https://github.com/ferrelldevin/cmai-caregiver-app/blob/main/docs/scoring-spec.md"
                 target="_blank"
                 rel="noreferrer"
               >
