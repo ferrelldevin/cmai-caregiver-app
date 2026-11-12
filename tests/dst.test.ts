@@ -10,7 +10,15 @@ import { describe, expect, it } from "vitest";
 import { db } from "../src/data/db";
 import { patientPosition } from "../src/data/patients";
 import { loadDemoData } from "../src/data/seed";
-import { addDays, clusteredDays, dayIndex, scoreAllWindows, scoreWindow, unloggedDays, WINDOW_DAYS } from "../src/scoring/engine";
+import {
+  addDays,
+  clusteredDays,
+  dayIndex,
+  scoreAllWindows,
+  scoreWindow,
+  unloggedDays,
+  WINDOW_DAYS,
+} from "../src/scoring/engine";
 import { fromClock } from "../src/ui/LogSheet";
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0) => new Date(y, mo - 1, d, h, mi).getTime();
@@ -34,7 +42,10 @@ describe("daylight saving", () => {
   });
 
   it("a log at 11:30 PM on the last day counts in its own period", () => {
-    for (const [anchor, last] of [[fallAnchor, at(2026, 11, 2, 23, 30)], [springAnchor, at(2027, 3, 14, 23, 30)]]) {
+    for (const [anchor, last] of [
+      [fallAnchor, at(2026, 11, 2, 23, 30)],
+      [springAnchor, at(2027, 3, 14, 23, 30)],
+    ]) {
       const [first, second] = scoreAllWindows([{ itemId: 3, at: last }], anchor, addDays(anchor, 20));
       expect(first.items[2].count).toBe(1);
       expect(second.items[2].count).toBe(0);
@@ -49,14 +60,27 @@ describe("daylight saving", () => {
   });
 
   it("clusters on either side of midnight after the fall back are two days", () => {
-    const times = [at(2026, 11, 1, 23, 10), at(2026, 11, 1, 23, 20), at(2026, 11, 1, 23, 30), at(2026, 11, 2, 0, 10), at(2026, 11, 2, 0, 20), at(2026, 11, 2, 0, 30)];
+    const times = [
+      at(2026, 11, 1, 23, 10),
+      at(2026, 11, 1, 23, 20),
+      at(2026, 11, 1, 23, 30),
+      at(2026, 11, 2, 0, 10),
+      at(2026, 11, 2, 0, 20),
+      at(2026, 11, 2, 0, 30),
+    ];
     expect(clusteredDays(times, fallAnchor)).toBe(2);
-    const score = scoreWindow(times.map((t) => ({ itemId: 13, at: t })), fallAnchor, at(2026, 12, 1));
+    const score = scoreWindow(
+      times.map((t) => ({ itemId: 13, at: t })),
+      fallAnchor,
+      at(2026, 12, 1),
+    );
     expect(score.items[12].clusteredDays).toBe(2);
   });
 
   it("a check-in at 11:30 PM covers its own day", () => {
-    const activity = Array.from({ length: WINDOW_DAYS }, (_, d) => (d === 13 ? at(2026, 11, 2, 23, 30) : addDays(fallAnchor, d) + 12 * 3_600_000));
+    const activity = Array.from({ length: WINDOW_DAYS }, (_, d) =>
+      d === 13 ? at(2026, 11, 2, 23, 30) : addDays(fallAnchor, d) + 12 * 3_600_000,
+    );
     expect(unloggedDays(activity, fallAnchor, at(2026, 11, 10))).toEqual({ unlogged: 0, elapsed: 14 });
   });
 

@@ -23,7 +23,7 @@ const lineOf = (text, index) => text.slice(0, index).split("\n").length;
 // 1. Spec rules and their checks.
 {
   const spec = read(SPEC);
-  const start = spec.indexOf("| Rule | Checked by");
+  const start = spec.search(/\| Rule\s+\| Checked by/);
   if (start < 0) fail(SPEC, 'the "Checked by" table is missing');
   else {
     const rows = spec
