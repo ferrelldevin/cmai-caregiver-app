@@ -14,7 +14,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   let s = await st(); ok(s.theme === "light" && s.first === "light", "light phone: light from first paint");
   await p.screenshot({ path: `${OUT}/01-welcome-light.png` });
   await p.getByRole("button", { name: "Try demo data" }).click();
-  await p.getByRole("button", { name: /^7 Hitting/ }).waitFor();
+  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
   const display = async () => {
     await p.locator("nav.tabs button", { hasText: /settings/i }).click();
     await p.getByRole("link", { name: /^Display/ }).click();

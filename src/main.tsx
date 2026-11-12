@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
+import { askToKeepData } from "./data/persist";
 import { loadLoggingCaregiver } from "./data/caregivers";
 import { ErrorBoundary } from "./ui/ErrorScreen";
 import { listenForErrors } from "./ui/diagnostics";
@@ -28,3 +29,6 @@ void loadLoggingCaregiver().finally(() =>
     </StrictMode>,
   ),
 );
+
+// After the first paint, and never blocking it.
+void askToKeepData();

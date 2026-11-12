@@ -1,6 +1,6 @@
 # 008. Building the round 3 mockup into the app
 
-2026-11-07 · Register: F-25 to F-29, D-17, D-18 (proposed here; D-15, D-16, F-23 and F-24 are already taken by the 2026-11-04 flow comparison) · Status: phase 1 built (2026-11-07)
+2026-11-07 · Register: F-25 to F-29, D-17, D-18 (proposed here; D-15, D-16, F-23 and F-24 are already taken by the 2026-11-04 flow comparison) · Status: phase 1 built (2026-11-07); phases 2 to 5 (Log, Today, Two weeks, Score folded into Two weeks) built 2026-11-10 to build plan v5 steps 4.1 to 4.4; the per-period CSV is a link to Backup and export for now
 
 ## Problem
 
