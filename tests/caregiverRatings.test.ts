@@ -15,7 +15,7 @@ const { addDays } = await import("../src/scoring/engine");
 const { ITEMS } = await import("../src/scoring/items");
 
 const ANCHOR = new Date(2026, 9, 1).getTime(); // local midnight, 1 Oct 2026
-const P = { id: "P-01", anchor: ANCHOR, createdAt: ANCHOR };
+const P = { id: "P-01", anchor: ANCHOR };
 const END = addDays(ANCHOR, 14);
 const log = (at: number, by = "C-01", itemId = 7) =>
   db.observations.add({ patientId: "P-01", itemId, at, loggedAt: at, by });

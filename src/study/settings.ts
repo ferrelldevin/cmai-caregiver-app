@@ -12,6 +12,7 @@ export interface StudySettings {
   stoppedTap: boolean; // F-39 (plan 5.7)
   extraBeforeChips: boolean; // F-41 (plan 5.9)
   freeTextNotes: boolean; // P-11
+  exportV2: boolean; // D-23 (plan 5.10): new CSV columns and files
   protectBackup: boolean; // F-10 (plan 5.11)
   archivePatients: boolean; // D-20 (plan 5.1): a patient with real logs is archived, not erased
 }
@@ -26,6 +27,7 @@ const CAREGIVER: StudySettings = {
   stoppedTap: false,
   extraBeforeChips: false,
   freeTextNotes: true, // today's behavior
+  exportV2: false,
   protectBackup: false,
   archivePatients: false,
 };
@@ -40,6 +42,7 @@ const LAB: StudySettings = {
   stoppedTap: true,
   extraBeforeChips: true,
   freeTextNotes: true,
+  exportV2: true,
   protectBackup: true,
   archivePatients: true,
 };
