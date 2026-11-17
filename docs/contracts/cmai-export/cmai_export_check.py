@@ -3,7 +3,7 @@
 Proposed for the sensor pipeline. Stdlib only (Python 3.11+). Not wired into sensorlab yet.
 
     python cmai_export_check.py EXPORT.json [EXPORT2.json ...] [--participant SYN-P01]
-                                [--data-class synthetic|real] [--events-csv OUT.csv]
+                                [--data-class synthetic|real|self-test] [--events-csv OUT.csv]
 
 Exits 1 with a plain message on the first contract breach. Never guesses:
 an unknown schema_version, field, item number or time format is a hard stop.
@@ -125,8 +125,8 @@ def check_export(doc: dict, name: str, participant: str | None = None, data_clas
         _fail(name + ".header", "participant_id must be a study ID like P-01 or P-DEMO-A")
     if participant and h["participant_id"] != participant:
         _fail(name, f"file is for {h['participant_id']}, not {participant}")
-    if h["data_class"] not in ("synthetic", "real"):
-        _fail(name + ".header", "data_class must be synthetic or real")
+    if h["data_class"] not in ("synthetic", "real", "self-test"):  # self-test: Devin's own logs, F-62 (assumed)
+        _fail(name + ".header", "data_class must be synthetic, real or self-test")
     if data_class and h["data_class"] != data_class:
         _fail(name, f"file is {h['data_class']} data; this study is {data_class}. Never mix them")
     _utc(name + ".header.exported_at_utc", h["exported_at_utc"])
@@ -191,7 +191,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("files", nargs="+")
     ap.add_argument("--participant")
-    ap.add_argument("--data-class", choices=["synthetic", "real"])
+    ap.add_argument("--data-class", choices=["synthetic", "real", "self-test"])
     ap.add_argument("--events-csv", help="write merged rows in import-log format")
     a = ap.parse_args(argv)
     docs = []
