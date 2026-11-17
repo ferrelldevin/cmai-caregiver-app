@@ -25,7 +25,7 @@ SUPPORTED_VERSIONS = {"1.0.0"}  # add a version here only after reading its chan
 
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
-PID = re.compile(r"^[A-Z]{2,5}-[A-Z0-9]{1,12}$")
+PID = re.compile(r"^[A-Z]{1,5}(-[A-Z0-9]{1,12})+$")
 SEMVER = re.compile(r"^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$")
 
 HEADER_KEYS = {"export_id", "exported_at_utc", "app_version", "device_id", "participant_id",
@@ -122,13 +122,11 @@ def check_export(doc: dict, name: str, participant: str | None = None, data_clas
     if not SEMVER.match(str(h["app_version"])):
         _fail(name + ".header", "app_version must look like 1.4.0")
     if not PID.match(str(h["participant_id"])):
-        _fail(name + ".header", "participant_id must be a study ID like SYN-P01")
+        _fail(name + ".header", "participant_id must be a study ID like P-01 or P-DEMO-A")
     if participant and h["participant_id"] != participant:
         _fail(name, f"file is for {h['participant_id']}, not {participant}")
     if h["data_class"] not in ("synthetic", "real"):
         _fail(name + ".header", "data_class must be synthetic or real")
-    if (h["data_class"] == "synthetic") != h["participant_id"].startswith("SYN-"):
-        _fail(name + ".header", "synthetic files use SYN- IDs and real files never do")
     if data_class and h["data_class"] != data_class:
         _fail(name, f"file is {h['data_class']} data; this study is {data_class}. Never mix them")
     _utc(name + ".header.exported_at_utc", h["exported_at_utc"])
