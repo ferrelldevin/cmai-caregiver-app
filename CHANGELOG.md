@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- A test that checks the export's time-zone arithmetic against Python's zoneinfo in 21 zones around every 2026 clock change, half-hour and 45-minute zones included (G2). No app change.
 - Change reasons, lab build only (F-59): every edit and delete asks why from a list of six; edits are held until Save change; history is never rewritten; the log details sheet shows every version. A revision counter on each log feeds the research export.
 - "Export for research" refuses a resident who is not demo data until the `realExports` setting is turned on (needs Dr. Gupta in writing).
 - "Export for research", lab build only (F-56, design note 018): one resident and date range to one JSON file in the research export contract v1.0.0. Read-only; shows how many records used each assumed default before saving. No storage or scoring change. Made-up sample files in `docs/contracts/cmai-export/samples/`.
