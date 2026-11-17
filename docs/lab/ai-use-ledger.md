@@ -18,6 +18,7 @@ Running record of which AI service did which job on this project, for Dr. Gupta 
 | 2026-11-10 | Project chat: routing, status, the For you page                                                                                                       | Claude             | Fable 5.2                  | Coordination                                 |
 | 2026-11-10 | Review of `src/scoring/engine.ts`: found two edge cases, each checked by Claude                                                                       | Codex              | OpenAI, model not recorded | Independent second opinion on code           |
 | 2026-11-17 | Filed the research export contract (F-56): read the proposal against the app's data model, ran the reader check and schema validation on made-up data | Claude (Anthropic) | claude-sonnet-5-5          | Routine docs filing; no outside service used |
+| 2026-11-17 | Loosened the export contract's participant ID rules to follow the app's codes (F-56); re-ran checker and schema on made-up data                       | Claude (Anthropic) | claude-sonnet-5-5          | Routine docs change; no outside service used |
 
 Grok, Antigravity and local Ollama are set up and have had no jobs yet.
 

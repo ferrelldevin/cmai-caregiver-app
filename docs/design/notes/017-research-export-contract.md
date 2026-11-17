@@ -14,6 +14,7 @@ Four files in `docs/contracts/cmai-export/`, drafted in the lab's research proje
 - `cmai-export.schema.json`: JSON Schema, draft 2020-12. Source of truth for the shape.
 - `cmai_export_check.py`: reader check and merge, Python standard library only. Adds rules a schema cannot express.
 - `example-export-synthetic.json`: valid made-up file (`SYN-P01`), the shared test fixture.
+- `example-export-app-codes.json`: valid made-up file with an app code (`P-01`), added in the 2026-11-17 change below.
 
 Checked here on 2026-11-17: the fixture passes `cmai_export_check.py` and validates against the schema (the schema itself is valid draft 2020-12, checked with the `jsonschema` package).
 

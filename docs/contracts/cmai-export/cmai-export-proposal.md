@@ -18,6 +18,7 @@
 | [cmai-export.schema.json](./cmai-export.schema.json)             | JSON Schema (draft 2020-12): the shape of a valid file                              | App tests (writer) and pipeline (reader) |
 | [cmai_export_check.py](./cmai_export_check.py)                   | Reader check plus merge, stdlib Python 3.11+. Adds the rules a schema can't express | Pipeline. The app can run it in CI too   |
 | [example-export-synthetic.json](./example-export-synthetic.json) | A valid made-up file (SYN-P01)                                                      | Both: the shared test fixture            |
+| [example-export-app-codes.json](./example-export-app-codes.json) | A valid made-up file with an app code (P-01), `data_class` synthetic                | Both: proves the app's codes pass        |
 
 ---
 
@@ -32,7 +33,7 @@
 > **File shape (v1.0.0):**
 >
 > - Top level: `schema_version` ("1.0.0"), `header`, `records`. No other keys.
-> - `header`: `export_id` (new UUID per file), `exported_at_utc`, `app_version` (semver), `device_id` (app install UUID), `participant_id` (study ID, never a name), `data_class` ("synthetic" or "real"; synthetic IDs start `SYN-`, real never do), `range_start_utc`, `range_end_utc`, `record_count`.
+> - `header`: `export_id` (new UUID per file), `exported_at_utc`, `app_version` (semver), `device_id` (app install UUID), `participant_id` (study ID such as `P-01` or `P-DEMO-A`, never a name; 1 to 5 capital letters, then one or more `-` groups of capitals and digits), `data_class` ("synthetic" or "real"; the only marker of which, the ID prefix says nothing), `range_start_utc`, `range_end_utc`, `record_count`.
 > - Each record = one CMAI item at one occurrence: `record_id` (UUID, never reused), `revision` (1, then +1 on every change), `status` ("active" or "deleted"), `participant_id`, `device_id`, `logger_role` (caregiver, staff, researcher), `occurred_start_utc`, `occurred_end_utc` (or null), `utc_offset_min`, `tz_name` (IANA, e.g. America/New_York), `logged_at_utc`, `revised_at_utc`, `cmai_item` (1 to 29), `frequency` (1 to 7 or null), `rating_scale` ("cmai_freq_1_7" or "none"), `reviewed` (true only if a second person checked it).
 > - Every timestamp is UTC, written `YYYY-MM-DDTHH:MM:SSZ`. Local time is never stored as text; the reader rebuilds it from UTC + `tz_name`, and `utc_offset_min` must match.
 > - Never in the file: item wording, names, free-text notes, scores or totals.
@@ -72,7 +73,6 @@
 | Item outside 1 to 29                                     | yes         | yes                                 | rejected          |
 | Time not in UTC `Z` form                                 | yes         | yes                                 | rejected          |
 | `record_count` ≠ records (file cut short)                | no          | yes                                 | rejected          |
-| `data_class` vs. `SYN-` prefix disagree                  | no          | yes                                 | rejected          |
 | `utc_offset_min` wrong for `tz_name` at that moment      | no          | yes                                 | rejected          |
 | Same record and revision, different content across files | no          | yes                                 | rejected          |
 | Edit (rev 2) + delete (tombstone) + repeat of first file | n/a         | merges to 1 active record           | passed            |
@@ -100,6 +100,10 @@ Tested on a copy of the pipeline: the corrected record landed in `events` at `20
 ### Why connect, not merge
 
 Agreed by Devin 2026-11-17: keeps two codebases apart and keeps CMAI licensing and scoring inside the app.
+
+### Changelog
+
+- 2026-11-17, still v1.0.0 (nothing reads it yet): participant ID pattern loosened so the app's codes `P-01` and `P-DEMO-A` pass; the rule that synthetic files must use `SYN-` IDs is removed, so `data_class` is the only synthetic/real marker. Tradeoff: the reader no longer catches a real code labeled synthetic by mistake. Decided by Devin (register F-56).
 
 ### Open points
 
