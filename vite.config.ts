@@ -26,7 +26,7 @@ function contentSecurityPolicy(): Plugin {
           "style-src 'self'",
           "img-src 'self' data: blob:",
           "font-src 'self'",
-          "connect-src 'self'",
+          `connect-src 'self'${SYNC_ORIGIN ? ` ${SYNC_ORIGIN}` : ""}`,
           "worker-src 'self'",
           "manifest-src 'self'",
           "object-src 'none'",
@@ -41,6 +41,20 @@ function contentSecurityPolicy(): Plugin {
     },
   };
 }
+
+// The one lab server a lab build may send logs to (F-62, design note 023). Only the lab build reads it,
+// and only a plain https address, or http on this computer for testing, is accepted. The same value
+// is allowed in the page's connect-src below and built into the app, so nothing else can be reached.
+function syncOrigin(): string {
+  const origin = process.env.VITE_SYNC_ORIGIN ?? "";
+  if (process.env.VITE_STUDY_MODE !== "lab" || origin === "") return "";
+  if (!/^(https:\/\/[a-z0-9.-]+|http:\/\/(127\.0\.0\.1|localhost))(:\d{1,5})?$/.test(origin))
+    throw new Error(
+      `VITE_SYNC_ORIGIN "${origin}" must look like https://name.example:8787 (no path, no trailing slash).`,
+    );
+  return origin;
+}
+const SYNC_ORIGIN = syncOrigin();
 
 // The commit a build came from, shown on the "How ratings are worked out" page and saved in every
 // backup, so a result can be traced to the exact code that produced it. CI sets GITHUB_SHA.
@@ -70,7 +84,11 @@ function buildStamp(): Plugin {
 // base: "./" lets the build run from any folder, including GitHub Pages.
 export default defineConfig({
   base: "./",
-  define: { __APP_VERSION__: JSON.stringify(pkg.version), __BUILD_COMMIT__: JSON.stringify(buildCommit()) },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_COMMIT__: JSON.stringify(buildCommit()),
+    __SYNC_ORIGIN__: JSON.stringify(SYNC_ORIGIN),
+  },
   plugins: [
     react(),
     contentSecurityPolicy(),

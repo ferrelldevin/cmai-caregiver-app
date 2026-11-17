@@ -1,6 +1,6 @@
 # 023. A self-hosted sync server on Devin's desktop, for testing the whole pipeline (F-62)
 
-2026-11-17 · Register: F-62, P-15 (new) · Status: server built and reviewed, app side not yet (PR 2) · Follows design note 020 (option C, run by Devin instead of waiting for a lab server) · Real data stays blocked (G1)
+2026-11-17 · Register: F-62, P-15 (new) · Status: server built and reviewed; the app side is in design note 024 · Follows design note 020 (option C, run by Devin instead of waiting for a lab server) · Real data stays blocked (G1)
 
 ## Why
 
@@ -58,7 +58,7 @@ Three classes, kept apart at every step: `synthetic` (made-up demo data), `self-
 
 ### Assumed picks (each "assumed, sign-off pending")
 
-1. **`self-test` as a value of `data_class`.** The contract allows only `synthetic` and `real`. The server checks a self-test file as if it said `synthetic` and stores and returns the true label, so **a self-test pull is not a valid v1.0.0 file** until the schema gains the value. The lab's Python reader now accepts `self-test`, and refuses to merge files of different data classes (it did not before; it checked only participants). Adding `self-test` to the v1.1.0 draft enum is PR 2.
+1. **`self-test` as a value of `data_class`.** The contract allows only `synthetic` and `real`. The server checks a self-test file as if it said `synthetic` and stores and returns the true label, so **a self-test pull is not a valid v1.0.0 file** until the schema gains the value. The lab's Python reader now accepts `self-test`, and refuses to merge files of different data classes (it did not before; it checked only participants). `self-test` is now also in the v1.1.0 draft enum (note 024).
 2. **Zone for the day range.** The app's export uses the phone's zone; the server uses `tz`, defaulting to `DEFAULT_TZ` (America/New_York). Same local-day method as `src/data/researchExport.ts`, copied to `server/src/dates.mjs` because that file imports the phone database. A unit test covers both clock changes and a zone with no midnight; nothing yet compares the copy to the original on the same inputs (watch item).
 3. **Header on a pull.** `device_id` and `app_version` come from the most recently received push for the matching records; an empty pull gets the all-zero ID and `0.0.0`.
 4. **A write key is not tied to one participant or device.** Note 020 imagined one key per install; any write key can push for any participant in its class. Fine for one tester; revisit before more than one phone.
@@ -80,7 +80,7 @@ Steps for (a): copy `server/` and `docs/contracts/cmai-export/cmai-export.schema
 
 Not covered, to settle with whoever runs the ODU server: TLS, volume backups, who holds the read key, retention, numbered migrations, and a non-owner database login for the service.
 
-## Not built (PR 2, then separate decisions)
+## Not built here (the app side is note 024; the rest are separate decisions)
 
 - The app's send: a settings switch (off by default), a send queue with retry, the CSP `connect-src` change (T6), the self-test flag on a resident, keys held on the phone. A permanent refusal (409, 422) must stop retrying; that needs the error replies to carry the CORS headers (they now do when `ALLOWED_ORIGIN` is set).
 - `self-test` in the v1.1.0 draft enum.

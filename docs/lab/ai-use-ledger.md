@@ -21,6 +21,7 @@ Running record of which AI service did which job on this project, for Dr. Gupta 
 | 2026-11-17 | Loosened the export contract's participant ID rules to follow the app's codes (F-56); re-ran checker and schema on made-up data                                         | Claude (Anthropic) | claude-sonnet-5-5          | Routine docs change; no outside service used                        |
 | 2026-11-17 | Independent code review of the sync server (F-62) at Devin's request; findings checked against the code before any change; fixes written and verified by Claude Sonnet  | Claude (Anthropic) | claude-fable-5-2           | Second opinion on design and hard judgment; no outside service used |
 | 2026-11-17 | Built the self-hosted sync server (F-62): Postgres, push and read-only export endpoints, keys, audit log, and a 21-check smoke script; ran it in Docker on made-up data | Claude (Anthropic) | claude-sonnet-5-5          | Write and verify; no outside service used                           |
+| 2026-11-17 | Built the app's send to the sync server (F-63): sync rules, card, tests, browser checks, live end-to-end run in Docker on made-up data                                  | Claude (Anthropic) | claude-sonnet-5-5          | Write and verify; no outside service used                           |
 
 Grok, Antigravity and local Ollama are set up and have had no jobs yet.
 

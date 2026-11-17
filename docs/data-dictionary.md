@@ -98,11 +98,12 @@ Not in the file: which app version made it, a format version, the phone's time z
 
 **Patient**
 
-| Key      | Type               | Meaning                                                                              | Example         |
-| -------- | ------------------ | ------------------------------------------------------------------------------------ | --------------- |
-| `id`     | text               | The code, unique on the phone                                                        | `"P-DEMO-A"`    |
-| `anchor` | epoch ms           | Local midnight of day 1 on the phone that added the patient. Periods count from here | `1791172800000` |
-| `demo`   | `true`, or missing | Present only on patients made by "Load demo data"                                    | `true`          |
+| Key        | Type               | Meaning                                                                                                                                                               | Example         |
+| ---------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `id`       | text               | The code, unique on the phone                                                                                                                                         | `"P-DEMO-A"`    |
+| `anchor`   | epoch ms           | Local midnight of day 1 on the phone that added the patient. Periods count from here                                                                                  | `1791172800000` |
+| `demo`     | `true`, or missing | Present only on patients made by "Load demo data"                                                                                                                     | `true`          |
+| `selfTest` | `true`, or missing | Lab build only (F-62): the tester marked this resident as their own test data. Never set on a demo resident. Only a resident with this mark is sent to the lab server | `true`          |
 
 **Log** (`observations`)
 

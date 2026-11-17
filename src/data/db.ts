@@ -17,6 +17,9 @@ export interface Patient {
   archiveReason?: string; // one of ARCHIVE_REASONS
   archiveNote?: string; // a few words when the reason is "Other" (no names)
   color?: number; // index into the resident color list, so a badge keeps its color when the order changes
+  // F-62: the lab build lets a tester mark a resident as their own test data. Never set on a demo
+  // resident. Only a resident marked this way is ever sent to the lab server (src/data/sync.ts).
+  selfTest?: boolean;
 }
 
 /** True for a patient who has not been archived. Archived patients keep every record but leave the lists. */

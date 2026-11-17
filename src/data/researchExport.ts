@@ -38,6 +38,8 @@ export interface ResearchExportInput {
   exportId?: string;
   /** A test passes true to prove the switch works. Otherwise the `realExports` setting decides. */
   allowReal?: boolean;
+  /** The sync (F-62) passes true so a resident marked "self-test" can be sent. Manual export never does. */
+  allowSelfTest?: boolean;
   /** The install ID for the header. Defaults to this phone's; a test passes a fixed one. */
   deviceId?: string;
   appVersion?: string;
@@ -128,7 +130,8 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
   const patient = await db.patients.get(patientId);
   if (!patient) throw new ExportBlocked("Pick a resident to export.");
   // G1: made-up data only until Dr. Gupta says in writing where real exports may live.
-  if (!patient.demo && !(input.allowReal ?? study.realExports))
+  const selfTest = patient.selfTest === true && !patient.demo && input.allowSelfTest === true;
+  if (!patient.demo && !selfTest && !(input.allowReal ?? study.realExports))
     throw new ExportBlocked(
       "Only made-up (demo) residents can be exported for now. Exports of real residents stay off until Dr. Gupta says in writing where they may be kept.",
     );
@@ -211,7 +214,7 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
       app_version: input.appVersion ?? __APP_VERSION__,
       device_id: deviceId,
       participant_id: patientId,
-      data_class: patient.demo ? "synthetic" : "real",
+      data_class: patient.demo ? "synthetic" : selfTest ? "self-test" : "real",
       range_start_utc: utcText(start),
       range_end_utc: utcText(end),
       record_count: records.length,

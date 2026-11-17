@@ -72,6 +72,7 @@ So the PIN covers T3 (another caregiver on a shared phone) and the casual part o
 - Aim for AAL2: proof of two distinct factors (SP 800-63B-4, section 2).
 - If passwords are used: at least 15 characters when used alone, at least 8 with a second factor; check against a blocklist; no composition rules; no forced periodic changes ("Password verifiers").
 - Data then leaves the phone, which changes T4, T6 and the IRB question. A new threat model is written before any code.
+- **Update 2026-11-17 (F-63, design note 024):** the lab build, not the caregiver build, can send one resident class (self-test) to one built-in server address. The caregiver build keeps `connect-src 'self'` (checked by `e2e/sync.cjs`). T6 for the lab build: an attacker who can merge can change the one address; the page cannot reach any other. The key sits in the phone's storage (P-07).
 
 ## What must be true before real data (gate G2)
 

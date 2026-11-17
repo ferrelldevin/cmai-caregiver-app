@@ -18,6 +18,10 @@ docker compose -f server/compose.yaml up -d --build
 
 Check it: <http://127.0.0.1:8787/healthz> shows `{"ok": true}`.
 
+## Let the app send to it
+
+In `server/.env` set `ALLOWED_ORIGIN` to the page's origin (for a local test build, `http://127.0.0.1:4174`; one origin only), then `docker compose -f server/compose.yaml up -d`. Build the lab app with the server's address: `VITE_STUDY_MODE=lab VITE_SYNC_ORIGIN=http://127.0.0.1:8787 npx vite build --outDir dist-lab`. See [note 024](../docs/design/notes/024-app-sends-to-lab-server.md). The whole path can be run with `e2e/sync-live.cjs`.
+
 ## Make keys (inside the container)
 
 ```bash
