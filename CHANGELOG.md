@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- Design note 022 (F-61): how real research exports could be locked with a lab-held passphrase. Design only; nothing built.
 - Draft of research export contract v1.1.0 (F-60): v1.0.0 plus five optional fields, as a schema, an example and a test. Not built and not in use; waiting for Devin's go.
 - A random test (1,000 runs, fixed seed) of edits, deletes and restores followed by exports: revision always equals the number of real changes, the same revision never carries different content, history matches, and every 25th run passes the lab's Python reader (G8). No app change.
 - A test that checks the export's time-zone arithmetic against Python's zoneinfo in 21 zones around every 2026 clock change, half-hour and 45-minute zones included (G2). No app change.
