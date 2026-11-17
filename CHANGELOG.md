@@ -8,6 +8,8 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- "Export for research", lab build only (F-56, design note 018): one resident and date range to one JSON file in the research export contract v1.0.0. Read-only; shows how many records used each assumed default before saving. No storage or scoring change. Made-up sample files in `docs/contracts/cmai-export/samples/`.
+
 - Safari (WebKit) browser checks: `npm run checks:webkit` runs the same checks in WebKit, and CI runs them as a job that does not block a merge for now. The screenshot check stays Chromium only.
 
 ### Added

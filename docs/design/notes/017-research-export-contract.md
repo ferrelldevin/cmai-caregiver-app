@@ -67,7 +67,7 @@ For this PR:
 
 ## Left out
 
-- The export action, any code, any switch in `src/study/settings.ts`.
+- The export action, any code, any switch in `src/study/settings.ts`. (Built later: note 018.)
 - Changing the contract to fit the app. That is a decision for Dr. Gupta and Devin once the mismatches are read.
 - Real participant data. Where real exports may live waits on Dr. Gupta in writing (P-03, P-04).
 - Pipeline side (`sensorlab import-cmai`). Lives in the lab's pipeline project.

@@ -2827,3 +2827,10 @@ table.cmp td {
   gap: var(--s2);
   align-items: center;
 }
+
+/* "Export for research" (lab build): a label above its field. */
+.rx-field {
+  display: grid;
+  gap: 4px;
+  margin-top: var(--s2, 8px);
+}
