@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gupta-lab.odu.example/schemas/cmai-export/1.0.0",
+  "title": "CMAI Tracker research export",
+  "description": "Contract v1.0.0 between the CMAI Tracker app (writer) and the lab sensor pipeline (reader). Item numbers only; never item wording, names or free text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "header", "records"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "export_id",
+        "exported_at_utc",
+        "app_version",
+        "device_id",
+        "participant_id",
+        "data_class",
+        "range_start_utc",
+        "range_end_utc",
+        "record_count"
+      ],
+      "properties": {
+        "export_id": { "$ref": "#/$defs/uuid" },
+        "exported_at_utc": { "$ref": "#/$defs/utc" },
+        "app_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+][0-9A-Za-z.-]+)?$" },
+        "device_id": { "$ref": "#/$defs/uuid" },
+        "participant_id": { "$ref": "#/$defs/participant_id" },
+        "data_class": { "enum": ["synthetic", "real"] },
+        "range_start_utc": { "$ref": "#/$defs/utc" },
+        "range_end_utc": { "$ref": "#/$defs/utc" },
+        "record_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "records": { "type": "array", "items": { "$ref": "#/$defs/record" } }
+  },
+  "$defs": {
+    "uuid": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+    "utc": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "participant_id": { "type": "string", "pattern": "^[A-Z]{2,5}-[A-Z0-9]{1,12}$" },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "revision",
+        "status",
+        "participant_id",
+        "device_id",
+        "logger_role",
+        "occurred_start_utc",
+        "occurred_end_utc",
+        "utc_offset_min",
+        "tz_name",
+        "logged_at_utc",
+        "revised_at_utc",
+        "cmai_item",
+        "frequency",
+        "rating_scale",
+        "reviewed"
+      ],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/uuid" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["active", "deleted"] },
+        "participant_id": { "$ref": "#/$defs/participant_id" },
+        "device_id": { "$ref": "#/$defs/uuid" },
+        "logger_role": { "enum": ["caregiver", "staff", "researcher"] },
+        "occurred_start_utc": { "$ref": "#/$defs/utc" },
+        "occurred_end_utc": { "anyOf": [{ "$ref": "#/$defs/utc" }, { "type": "null" }] },
+        "utc_offset_min": { "type": "integer", "minimum": -720, "maximum": 840 },
+        "tz_name": { "type": "string", "pattern": "^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$" },
+        "logged_at_utc": { "$ref": "#/$defs/utc" },
+        "revised_at_utc": { "$ref": "#/$defs/utc" },
+        "cmai_item": { "type": "integer", "minimum": 1, "maximum": 29 },
+        "frequency": { "type": ["integer", "null"], "minimum": 1, "maximum": 7 },
+        "rating_scale": { "enum": ["cmai_freq_1_7", "none"] },
+        "reviewed": { "type": "boolean" }
+      }
+    }
+  }
+}

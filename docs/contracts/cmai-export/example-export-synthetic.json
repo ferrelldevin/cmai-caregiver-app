@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "header": {
+    "export_id": "3f2b8c1d-6e4a-4b9f-a1c2-8d7e6f5a4b3c",
+    "exported_at_utc": "2026-11-21T02:00:00Z",
+    "app_version": "0.9.2",
+    "device_id": "0b1e5c2a-7d1f-4c3e-9a55-2f6d8e1a4b70",
+    "participant_id": "SYN-P01",
+    "data_class": "synthetic",
+    "range_start_utc": "2026-11-20T00:00:00Z",
+    "range_end_utc": "2026-11-22T00:00:00Z",
+    "record_count": 2
+  },
+  "records": [
+    {
+      "record_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "revision": 1,
+      "status": "active",
+      "participant_id": "SYN-P01",
+      "device_id": "0b1e5c2a-7d1f-4c3e-9a55-2f6d8e1a4b70",
+      "logger_role": "caregiver",
+      "occurred_start_utc": "2026-11-20T23:42:10Z",
+      "occurred_end_utc": "2026-11-20T23:55:00Z",
+      "utc_offset_min": -300,
+      "tz_name": "America/New_York",
+      "logged_at_utc": "2026-11-20T23:50:03Z",
+      "revised_at_utc": "2026-11-20T23:50:03Z",
+      "cmai_item": 14,
+      "frequency": 3,
+      "rating_scale": "cmai_freq_1_7",
+      "reviewed": false
+    },
+    {
+      "record_id": "9b2f4e1c-3a8d-4f6b-8c1e-5d7a2b9e0f13",
+      "revision": 1,
+      "status": "active",
+      "participant_id": "SYN-P01",
+      "device_id": "0b1e5c2a-7d1f-4c3e-9a55-2f6d8e1a4b70",
+      "logger_role": "caregiver",
+      "occurred_start_utc": "2026-11-21T00:10:00Z",
+      "occurred_end_utc": null,
+      "utc_offset_min": -300,
+      "tz_name": "America/New_York",
+      "logged_at_utc": "2026-11-20T23:50:03Z",
+      "revised_at_utc": "2026-11-20T23:50:03Z",
+      "cmai_item": 3,
+      "frequency": null,
+      "rating_scale": "none",
+      "reviewed": false
+    }
+  ]
+}
