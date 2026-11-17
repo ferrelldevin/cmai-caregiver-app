@@ -111,14 +111,15 @@ export function ResearchExportCard({ patients, current }: { patients: Patient[];
               deleted marks)
             </li>
             <li>
-              Time zone {s.tz}, taken from this phone: {s.total} of {s.total}
+              Time zone saved with the log: {s.zoneFromLog} of {s.total}. The rest use this phone's zone, {s.tz}:{" "}
+              {s.total - s.zoneFromLog}
               {s.offsetFromZone > 0 && `; ${s.offsetFromZone} older logs had no stored offset`}
             </li>
             <li>
               Older logs with no phone ID, shown as all zeros: <b>{s.placeholderDevice}</b>
             </li>
             <li>
-              Role set to caregiver because the app does not store one: <b>{s.defaultedRole}</b>
+              Role set to caregiver because no role is saved for who logged it: <b>{s.defaultedRole}</b>
             </li>
             <li>
               No frequency or review flag (not stored): <b>{s.noFrequency}</b>

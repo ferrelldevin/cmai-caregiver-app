@@ -2,6 +2,7 @@
 // the shape of contract v1.0.0 (docs/contracts/cmai-export/). Read-only: nothing here writes to
 // storage, so no database version and no change to ratings. Item numbers only, never wording.
 //
+// (F-58 since: a log made after it carries its own zone name, and a caregiver profile can carry a role.)
 // Four known mismatches between the contract and the app's data are handled by assumed picks
 // (design note 017): the zone name is the phone's current zone and the export stops if a log's
 // stored offset disagrees with it; old logs get a placeholder install ID; frequency, review flag
@@ -57,6 +58,8 @@ export interface ResearchSummary {
   noFrequency: number;
   /** Pick 1: records with no stored offset, whose offset was taken from the zone. */
   offsetFromZone: number;
+  /** Records that carry their own zone name from log time (F-58); the rest use the phone's zone now (pick 1). */
+  zoneFromLog: number;
   /** Pick 4: records the caregiver marked approximate; exported as normal, flag not in v1.0.0. */
   approxTime: number;
 }
@@ -151,20 +154,25 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
     defaultedRole: 0,
     noFrequency: 0,
     offsetFromZone: 0,
+    zoneFromLog: 0,
     approxTime: 0,
   };
+  const roles = new Map((await db.caregivers.toArray()).map((c) => [c.id, c.role]));
   let mismatched = 0;
   const records = logs
     .sort((a, b) => a.at - b.at || a.uid!.localeCompare(b.uid!))
     .map((o) => {
-      const real = zoneOffsetMin(tz, o.at);
+      const zone = o.tzName ?? tz; // F-58: the zone the log was made in, when it was stored
+      if (o.tzName) summary.zoneFromLog++;
+      const real = zoneOffsetMin(zone, o.at);
       if (o.tzOffsetMin === undefined) summary.offsetFromZone++;
       else if (o.tzOffsetMin !== real) mismatched++;
       const mine = (changesOf.get(o.id!) ?? []).sort((a, b) => a.at - b.at || a.id! - b.id!);
       const last = mine[mine.length - 1];
       const extra = input.extras?.(o) ?? {};
       const frequency = extra.frequency ?? null;
-      if (!extra.role) summary.defaultedRole++;
+      const role = extra.role ?? (o.by ? roles.get(o.by) : undefined);
+      if (!role) summary.defaultedRole++;
       if (frequency === null) summary.noFrequency++;
       if (!o.deviceId) summary.placeholderDevice++;
       if (o.approx) summary.approxTime++;
@@ -176,11 +184,11 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
         status: o.deletedAt === undefined ? "active" : "deleted",
         participant_id: patientId,
         device_id: o.deviceId ?? PLACEHOLDER_DEVICE_ID,
-        logger_role: extra.role ?? "caregiver",
+        logger_role: role ?? "caregiver",
         occurred_start_utc: utcText(o.at),
         occurred_end_utc: o.endedAt === undefined ? null : utcText(o.endedAt),
         utc_offset_min: real,
-        tz_name: tz,
+        tz_name: zone,
         logged_at_utc: utcText(o.loggedAt),
         revised_at_utc: utcText(Math.max(o.loggedAt, last?.at ?? 0)),
         cmai_item: o.itemId,

@@ -35,6 +35,11 @@ export async function addCaregiver(initials: string, now = Date.now()): Promise<
   });
 }
 
+/** Who a person is on research exports (F-58). Stored once on their profile; "caregiver" is the default and is stored as nothing. */
+export async function setCaregiverRole(id: string, role: "caregiver" | "staff" | "researcher") {
+  await db.caregivers.update(id, { role: role === "caregiver" ? undefined : role });
+}
+
 /** True once anything on this phone says this caregiver made it. */
 export async function hasRecords(id: string): Promise<boolean> {
   const by = (r: { by?: string }) => r.by === id;

@@ -12,7 +12,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from
 import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring/items";
 import { mostLogged } from "./mostLogged";
 import { db, localMidnight, madeHere, type StoredObservation } from "../data/db";
-import { utcOffsetMin } from "../data/ids";
+import { utcOffsetMin, zoneName } from "../data/ids";
 import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
@@ -119,7 +119,15 @@ export function LogScreen({
     // A double tap on the same card within 0.6 s is almost always one event.
     if (lastTap.current && lastTap.current.itemId === itemId && t - lastTap.current.t < 600) return;
     lastTap.current = { itemId, t };
-    const obs = { patientId, itemId, at: t, loggedAt: t, ...madeHere(), tzOffsetMin: utcOffsetMin(t) };
+    const obs = {
+      patientId,
+      itemId,
+      at: t,
+      loggedAt: t,
+      ...madeHere(),
+      tzOffsetMin: utcOffsetMin(t),
+      ...(zoneName() ? { tzName: zoneName() } : {}),
+    };
     setSaveError(false);
     let id: number;
     try {

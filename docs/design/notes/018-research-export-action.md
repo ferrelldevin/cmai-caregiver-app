@@ -2,6 +2,8 @@
 
 2026-11-17 · Register: F-56 (built), F-57 and F-58 (proposals only) · Status: built on assumed approval (Devin), sign-off pending (Dr. Gupta) · Switch: `researchExport`, lab build only · No storage change, no database version, no scoring change
 
+> **Update 2026-11-17 (F-58):** picks 1 and 3 are now partly built. A log made after this change saves its own IANA zone name (`tzName`), and a caregiver profile can carry a role (Caregiver, Staff, Researcher), set on the Caregivers page in the lab build. The export uses both and counts how many records still fall back to the phone's zone or the "caregiver" default. Frequency and the review flag stay unstored.
+
 ## Problem
 
 Note 017 filed the research export contract and listed four mismatches with the app's data. The pipeline needs a file the app can actually write. This note builds the "Export for research" action with an assumed answer for each mismatch, so the contract can be tested end to end on made-up data.

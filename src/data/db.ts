@@ -44,6 +44,7 @@ export interface StoredObservation extends Made {
   deleteReason?: string; // one of DELETE_REASONS in logs.ts
   deleteNote?: string; // a few words when the reason is "Other" (no names)
   tzOffsetMin?: number; // minutes from UTC on the phone when it was logged (D-22)
+  tzName?: string; // IANA zone of the phone when it was logged, e.g. "America/New_York" (G2/F-58). Older logs have none
   rev?: number; // revision: 1 when made, +1 on every edit, delete or restore (the research export's `revision`)
   endedAt?: number; // when it stopped, if the caregiver said (F-39). Never read by scoring
 }
@@ -103,6 +104,7 @@ export interface Caregiver {
   initials: string; // 2 or 3 capital letters
   createdAt: number;
   archivedAt?: number;
+  role?: "caregiver" | "staff" | "researcher"; // stamped on research exports; absent means caregiver (F-58)
   pinSalt?: Uint8Array;
   pinHash?: Uint8Array;
   pinIterations?: number;

@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import type { Caregiver, Patient } from "../data/db";
-import { addCaregiver, myResidents, removeCaregiver, setMyResidents } from "../data/caregivers";
+import { addCaregiver, myResidents, removeCaregiver, setCaregiverRole, setMyResidents } from "../data/caregivers";
 import { hasSetupPin } from "../data/pin";
 import { study } from "../study/settings";
 import { Icon } from "./Icon";
@@ -128,6 +128,21 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                   <span className="muted">{c.id === loggingAs ? `${c.id} · logging now` : c.id}</span>
                 </div>
                 <div className="row">
+                  {study.researchExport && (
+                    <select
+                      className="role-select"
+                      aria-label={`Role for ${c.initials}`}
+                      value={c.role ?? "caregiver"}
+                      onChange={async (e) => {
+                        await setCaregiverRole(c.id, e.target.value as NonNullable<Caregiver["role"]>);
+                        onChange();
+                      }}
+                    >
+                      <option value="caregiver">Caregiver</option>
+                      <option value="staff">Staff</option>
+                      <option value="researcher">Researcher</option>
+                    </select>
+                  )}
                   {c.id !== loggingAs && (
                     <button className="ghost small" aria-label={`Log as ${c.initials}`} onClick={() => onLogAs(c.id)}>
                       Log as
