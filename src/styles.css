@@ -2834,3 +2834,26 @@ table.cmp td {
   gap: 4px;
   margin-top: var(--s2, 8px);
 }
+
+/* Change history on the log details sheet (G11, lab build). */
+.log-history summary {
+  font-weight: 700;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.log-history ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s2);
+}
+.log-history li {
+  display: grid;
+  gap: 2px;
+}
+.log-history li span {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}

@@ -3,6 +3,7 @@
 // A delete only marks the log (soft delete); scoring skips marked logs (design note 007).
 
 import { ITEMS } from "../scoring/items";
+import { study } from "../study/settings";
 import { db, madeHere, type LogChange, type StoredObservation } from "./db";
 
 /** Why a log was removed. A pick list, so reasons can be counted and no names get typed. */
@@ -16,6 +17,37 @@ export const DELETE_REASONS = [
 /** The reason recorded when the snackbar's Undo takes back a log just made. */
 export const UNDO_REASON = "Undone right after logging";
 
+/**
+ * Why a log was changed (G11, `changeReasons`, lab build). A pick list and nothing else: no free
+ * text, so the research export can carry it. Edits and deletes both use it; a restore and
+ * "It stopped" are not corrections and carry none.
+ */
+export const CHANGE_REASONS = [
+  "wrong_time",
+  "wrong_item",
+  "duplicate",
+  "wrong_participant",
+  "entered_by_mistake",
+  "other",
+] as const;
+export type ChangeReason = (typeof CHANGE_REASONS)[number];
+/** What a caregiver reads. The delete list has always used these words, so old deletes map to a code. */
+export const REASON_LABEL: Record<ChangeReason, string> = {
+  wrong_time: "Wrong time",
+  wrong_item: "Wrong behavior",
+  duplicate: "Logged twice",
+  wrong_participant: "Wrong patient",
+  entered_by_mistake: "Tapped by mistake",
+  other: "Other",
+};
+const isCode = (v: unknown): v is ChangeReason => (CHANGE_REASONS as readonly string[]).includes(v as string);
+const codeFor = (v: string): ChangeReason | undefined =>
+  isCode(v) ? v : v === UNDO_REASON ? "entered_by_mistake" : CHANGE_REASONS.find((c) => REASON_LABEL[c] === v);
+/** Shown when `changeReasons` is on and a change arrives without a reason. */
+export const NEEDS_REASON = "Pick a reason for this change.";
+/** A change with no valid reason, refused. */
+export class LogReasonError extends Error {}
+
 type Saved = StoredObservation & { id: number };
 const EDITABLE = ["at", "approx", "before", "beforeNote", "endedAt"] as const;
 /** Shown when a change would put the end of a stretch before its start (F-39). */
@@ -25,19 +57,37 @@ const EDIT_MERGE_MS = 5 * 60_000;
 /** A change the caregiver can fix, with a message to show as it is (not a storage failure). */
 export class LogTimeError extends Error {}
 
-/** Throws when the reason is missing, or is "Other" without a note. */
+/** Throws when the reason is missing, or is "Other" without a note (not asked for when `changeReasons` is on: no free text). */
 export async function deleteLog(obs: Saved, reason: string, note?: string, now = Date.now()) {
-  const trimmed = note?.trim() || undefined;
-  if (reason !== UNDO_REASON && !(DELETE_REASONS as readonly string[]).includes(reason))
-    throw new Error("Pick a reason to delete this log.");
-  if (reason === "Other" && !trimmed) throw new Error("Say in a few words why this log is being deleted.");
-  const mark = { deletedAt: now, deleteReason: reason, ...(trimmed ? { deleteNote: trimmed } : {}) };
+  const code = codeFor(reason);
+  if (study.changeReasons) {
+    if (!code) throw new LogReasonError(NEEDS_REASON);
+  } else {
+    if (reason !== UNDO_REASON && !(DELETE_REASONS as readonly string[]).includes(reason))
+      throw new Error("Pick a reason to delete this log.");
+    if (reason === "Other" && !note?.trim()) throw new Error("Say in a few words why this log is being deleted.");
+  }
+  const trimmed = study.changeReasons ? undefined : note?.trim() || undefined;
+  const label = study.changeReasons && code ? REASON_LABEL[code] : reason;
+  const mark = { deletedAt: now, deleteReason: label, ...(trimmed ? { deleteNote: trimmed } : {}) };
   await db.transaction("rw", [db.observations, db.changes], async () => {
     const current = await db.observations.get(obs.id);
     if (!current || current.deletedAt !== undefined) return; // already gone: nothing to record
-    await db.observations.update(obs.id, mark);
-    await record({ observationId: obs.id, patientId: obs.patientId, action: "delete", at: now, to: mark });
+    await db.observations.update(obs.id, { ...mark, rev: await nextRev(obs.id, current) });
+    await record({
+      observationId: obs.id,
+      patientId: obs.patientId,
+      action: "delete",
+      at: now,
+      to: mark,
+      ...(code ? { reason: code } : {}),
+    });
   });
+}
+
+/** The revision a log gets with its next change. Logs made before `rev` existed count their history entries. */
+async function nextRev(id: number, current: StoredObservation) {
+  return (current.rev ?? 1 + (await db.changes.where("observationId").equals(id).count())) + 1;
 }
 
 /** Undo of a delete: the log counts again, and the history keeps both steps. */
@@ -47,13 +97,31 @@ export async function restoreLog(obs: Saved, now = Date.now()) {
     if (!current || current.deletedAt === undefined) return;
     const from = { deletedAt: current.deletedAt, deleteReason: current.deleteReason, deleteNote: current.deleteNote };
     // Dexie's update removes a key set to undefined.
-    await db.observations.update(obs.id, { deletedAt: undefined, deleteReason: undefined, deleteNote: undefined });
+    await db.observations.update(obs.id, {
+      deletedAt: undefined,
+      deleteReason: undefined,
+      deleteNote: undefined,
+      rev: await nextRev(obs.id, current),
+    });
     await record({ observationId: obs.id, patientId: obs.patientId, action: "restore", at: now, from });
   });
 }
 
 /** Saves a change to a log's time or context and records what it was before. A deleted log can't be edited. */
-export async function editLog(obs: Saved, change: Partial<StoredObservation>, now = Date.now()) {
+export async function editLog(obs: Saved, change: Partial<StoredObservation>, now = Date.now(), reason?: string) {
+  return changeLog(obs, change, now, reason, false);
+}
+
+async function changeLog(
+  obs: Saved,
+  change: Partial<StoredObservation>,
+  now: number,
+  reason: string | undefined,
+  correction: boolean,
+) {
+  // G11: a correction needs a reason from the list. "It stopped" is the first end time, not a correction.
+  const code = reason === undefined ? undefined : codeFor(reason);
+  if (study.changeReasons && !correction && !code) throw new LogReasonError(NEEDS_REASON);
   await db.transaction("rw", [db.observations, db.changes, db.patients], async () => {
     const current = await db.observations.get(obs.id);
     if (!current || current.deletedAt !== undefined) return;
@@ -84,18 +152,27 @@ export async function editLog(obs: Saved, change: Partial<StoredObservation>, no
       }
     }
     if (!Object.keys(to).length) return;
-    await db.observations.update(obs.id, to);
+    await db.observations.update(obs.id, { ...to, rev: await nextRev(obs.id, current) });
     // Typing a note saves on every key, so edits a few minutes apart count as one change:
-    // the first "from" and the latest "to" (EDIT_MERGE_MS).
+    // the first "from" and the latest "to" (EDIT_MERGE_MS). With `changeReasons` on, history is
+    // append-only: edits are saved together by Save change, and no entry is ever rewritten.
     const last = (await db.changes.where("observationId").equals(obs.id).sortBy("id")).pop();
-    if (last?.id !== undefined && last.action === "edit" && now - last.at < EDIT_MERGE_MS) {
+    if (!study.changeReasons && last?.id !== undefined && last.action === "edit" && now - last.at < EDIT_MERGE_MS) {
       // A field the earlier entry already touched keeps its first value, even if that was "unset".
       const touched = new Set([...Object.keys(last.from ?? {}), ...Object.keys(last.to ?? {})]);
       const firstFrom = { ...Object.fromEntries(Object.entries(from).filter(([k]) => !touched.has(k))), ...last.from };
       await db.changes.update(last.id, { at: now, from: clean(firstFrom), to: clean({ ...last.to, ...to }) });
       return;
     }
-    await record({ observationId: obs.id, patientId: obs.patientId, action: "edit", at: now, from, to });
+    await record({
+      observationId: obs.id,
+      patientId: obs.patientId,
+      action: "edit",
+      at: now,
+      from,
+      to,
+      ...(code && !correction ? { reason: code } : {}),
+    });
   });
 }
 
@@ -113,4 +190,47 @@ function record({ from, to, ...c }: LogChange) {
 }
 
 /** "It stopped" (F-39, plan 5.7): the end of a stretch of pacing, mannerisms or restlessness, now. Never read by scoring. */
-export const stopLog = (obs: Saved, now = Date.now()) => editLog(obs, { endedAt: now }, now);
+export const stopLog = (obs: Saved, now = Date.now()) => changeLog(obs, { endedAt: now }, now, undefined, true);
+
+/** One version of a log, rebuilt from the history: who changed it, when, why, and what it said after. */
+export interface LogVersion {
+  rev: number;
+  at: number;
+  by?: string;
+  action: "created" | "edit" | "delete" | "restore";
+  reason?: string;
+  values: { at: number; approx: boolean; before?: string; endedAt?: number; deleted: boolean };
+}
+
+/** Every version of a log, oldest first. Version 1 is the log as made. Reads only. */
+export async function logVersions(observationId: number): Promise<LogVersion[]> {
+  const cur = await db.observations.get(observationId);
+  if (!cur) return [];
+  const changes = await db.changes.where("observationId").equals(observationId).sortBy("id");
+  const snap = (o: StoredObservation) => ({
+    at: o.at,
+    approx: !!o.approx,
+    before: o.before,
+    endedAt: o.endedAt,
+    deleted: o.deletedAt !== undefined,
+  });
+  let state: LogVersion["values"] = snap(cur);
+  const out: LogVersion[] = [];
+  for (let i = changes.length - 1; i >= 0; i--) {
+    const c = changes[i];
+    out.push({ rev: i + 2, at: c.at, by: c.by, action: c.action, reason: c.reason, values: state });
+    // Step back over this change. A field that was unset is missing from `from`, so go by `to`.
+    const prev = { ...state };
+    for (const k of Object.keys(c.to ?? {}) as (keyof StoredObservation)[]) {
+      if (k === "at") prev.at = (c.from?.at ?? prev.at) as number;
+      if (k === "approx") prev.approx = !!c.from?.approx;
+      if (k === "before") prev.before = c.from?.before;
+      if (k === "endedAt") prev.endedAt = c.from?.endedAt;
+    }
+    if (c.action === "delete") prev.deleted = false;
+    if (c.action === "restore") prev.deleted = true;
+    state = prev;
+  }
+  out.push({ rev: 1, at: cur.loggedAt, by: cur.by, action: "created", values: state });
+  return out.reverse();
+}

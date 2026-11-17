@@ -103,19 +103,21 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
     setEditing({ obs: o, viaKeyboard: e.detail === 0 });
   }
 
-  async function patch(change: Partial<StoredObservation>) {
-    if (!editing) return;
+  async function patch(change: Partial<StoredObservation>, reason?: string): Promise<boolean> {
+    if (!editing) return false;
     // Show the change at once; the save follows. If the save is refused, the old values come back.
     const before = editing;
     setEditing({ ...editing, obs: { ...editing.obs, ...change } });
     setEditError(null);
     try {
-      await editLog(editing.obs, change);
+      await editLog(editing.obs, change, undefined, reason);
       onChange();
+      return true;
     } catch (e) {
       if (!(e instanceof LogTimeError)) record(e);
       setEditing(before);
       setEditError(e instanceof LogTimeError ? e.message : SAVE_FAILED);
+      return false;
     }
   }
 

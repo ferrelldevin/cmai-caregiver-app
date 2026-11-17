@@ -25,6 +25,13 @@ async function start(p) {
 }
 const tile = (p, name) => p.getByRole("tabpanel").getByRole("button", { name: new RegExp("^" + name) });
 
+// G11: with change reasons on, edits are held until "Save change", which asks why.
+const saveChange = async (sheet, reason = "Wrong time") => {
+  await sheet.getByRole("button", { name: "Save change" }).click();
+  await sheet.getByRole("button", { name: reason }).click();
+  await sheet.getByRole("button", { name: "Save change" }).click();
+};
+
 (async () => {
   const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 2, bypassCSP: true });
@@ -85,6 +92,7 @@ const tile = (p, name) => p.getByRole("tabpanel").getByRole("button", { name: ne
   if (before.getDate() === d.getDate()) {
     const hhmm = (x) => `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
     await ended.fill(hhmm(before));
+    await saveChange(p.locator(".log-sheet"));
     const alert = p.locator(".log-sheet .msg.error");
     await alert.waitFor();
     ok((await alert.textContent()).includes("can't stop before it started"), "an end before the start is refused, and says why");

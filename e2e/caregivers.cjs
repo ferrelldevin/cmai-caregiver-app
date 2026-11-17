@@ -51,6 +51,13 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   };
 }));
 
+// G11: with change reasons on, edits are held until "Save change", which asks why.
+const saveChange = async (sheet, reason = "Wrong time") => {
+  await sheet.getByRole("button", { name: "Save change" }).click();
+  await sheet.getByRole("button", { name: reason }).click();
+  await sheet.getByRole("button", { name: "Save change" }).click();
+};
+
 (async () => {
   const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, bypassCSP: true });
@@ -118,6 +125,7 @@ const stored = (p) => p.evaluate(() => new Promise((resolve, reject) => {
   const sheet = p.getByRole("dialog", { name: /^Hitting/ });
   await sheet.waitFor();
   await sheet.getByRole("button", { name: "Mealtime" }).click();
+  await saveChange(p.locator(".log-sheet"));
   await sheet.getByRole("button", { name: "Done" }).click();
   await p.waitForTimeout(300);
   data = await stored(p);

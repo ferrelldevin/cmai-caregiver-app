@@ -87,7 +87,7 @@ describe("caregiver profiles", () => {
     cg.chooseLoggingCaregiver("C-01");
     const id = await db.observations.add({ patientId: "P-01", itemId: 1, at: T, loggedAt: T, ...madeHere() });
     cg.chooseLoggingCaregiver("C-02");
-    await editLog({ ...(await db.observations.get(id))!, id }, { approx: true }, T + 1000);
+    await editLog({ ...(await db.observations.get(id))!, id }, { approx: true }, T + 1000, "wrong_time");
     expect((await db.observations.get(id))?.by).toBe("C-01");
     expect((await db.changes.toArray())[0]).toMatchObject({ action: "edit", by: "C-02" });
   });

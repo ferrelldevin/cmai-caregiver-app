@@ -33,7 +33,7 @@ Choices not in the request, for Devin to confirm:
 
 - **A log with no stored offset** (made before database version 4) cannot be checked against the zone. It is exported with the zone's offset and counted, not blocked, because blocking would make every old log unexportable.
 - **Role, frequency and review flag come from an optional `extras` argument.** The real action passes none, so it writes the defaults. The seeder passes them, because the app stores none of the three and the sample set needs rated, reviewed and staff or researcher records. That is the only reason the argument exists.
-- **A warning, not a block, when a log was edited in the last 5 minutes.** The change history merges edits made within 5 minutes into one entry, so a later edit would keep the same `revision` with different content, and the reader treats that as a hard error. Wait a few minutes before saving. A permanent fix needs a stored revision counter (F-58).
+- **(Replaced by the revision counter in note 019; the card no longer warns.) A warning, not a block, when a log was edited in the last 5 minutes.** The change history merges edits made within 5 minutes into one entry, so a later edit would keep the same `revision` with different content, and the reader treats that as a hard error. Wait a few minutes before saving. A permanent fix needs a stored revision counter (F-58).
 - **An edit that moves a log out of the range** drops it from a later export of that range, so the reader keeps its older revision. Export a wider range, or the range that holds both times.
 
 ## Acceptance criteria

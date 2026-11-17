@@ -127,12 +127,6 @@ export function ResearchExportCard({ patients, current }: { patients: Patient[];
               Marked "approximate time", exported as exact times: <b>{s.approxTime}</b>
             </li>
           </ul>
-          {s.recentlyEdited > 0 && (
-            <p className="msg">
-              {s.recentlyEdited} {s.recentlyEdited === 1 ? "log was" : "logs were"} edited in the last 5 minutes. Wait a
-              few minutes before saving so a later edit is not missed.
-            </p>
-          )}
           <button
             onClick={() => {
               download(found.fileName, found.text, "application/json");
