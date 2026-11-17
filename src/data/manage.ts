@@ -5,6 +5,7 @@
 // Backups from database version 3 (format 1) and version 4 (format 2) both restore.
 
 import { study } from "../study/settings";
+import { CHANGE_REASONS } from "./logs";
 import {
   ARCHIVE_REASONS,
   checkInKey,
@@ -86,6 +87,10 @@ function cleanLog(o: Record<string, unknown>, inRange: (v: unknown) => v is numb
       if (!inRange(o[k])) return null;
       out[k] = o[k];
     }
+  }
+  if (o.rev !== undefined) {
+    if (!int(o.rev) || o.rev < 1 || o.rev > 1_000_000) return null;
+    out.rev = o.rev;
   }
   if (o.approx !== undefined) {
     if (typeof o.approx !== "boolean") return null;
@@ -197,7 +202,13 @@ export function parseBackup(raw: string, now = Date.now()) {
     const made = cleanMade(c);
     if (!made) return null;
     const side = (v: unknown) => (isObj(v) ? cleanLog(v, inRange) : null);
+    if (
+      c.reason !== undefined &&
+      (typeof c.reason !== "string" || !(CHANGE_REASONS as readonly string[]).includes(c.reason))
+    )
+      return null;
     return {
+      ...(c.reason !== undefined ? { reason: c.reason } : {}),
       observationId: c.observationId,
       patientId: c.patientId,
       action: c.action,

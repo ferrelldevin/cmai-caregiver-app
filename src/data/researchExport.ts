@@ -15,8 +15,6 @@ import { newId } from "./ids";
 export const EXPORT_SCHEMA_VERSION = "1.0.0";
 /** Install ID written for logs made before database version 4. Never the current phone's ID. */
 export const PLACEHOLDER_DEVICE_ID = "00000000-0000-0000-0000-000000000000";
-/** An edit this soon after the last one is merged into it in the change history (logs.ts). */
-const EDIT_MERGE_MS = 5 * 60_000;
 const PARTICIPANT_ID = /^[A-Z]{1,5}(-[A-Z0-9]{1,12})+$/;
 
 export type LoggerRole = "caregiver" | "staff" | "researcher";
@@ -61,8 +59,6 @@ export interface ResearchSummary {
   offsetFromZone: number;
   /** Pick 4: records the caregiver marked approximate; exported as normal, flag not in v1.0.0. */
   approxTime: number;
-  /** Edited in the last 5 minutes: another edit may merge into the same revision. */
-  recentlyEdited: number;
 }
 
 export interface ResearchExport {
@@ -156,7 +152,6 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
     noFrequency: 0,
     offsetFromZone: 0,
     approxTime: 0,
-    recentlyEdited: 0,
   };
   let mismatched = 0;
   const records = logs
@@ -167,7 +162,6 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
       else if (o.tzOffsetMin !== real) mismatched++;
       const mine = (changesOf.get(o.id!) ?? []).sort((a, b) => a.at - b.at || a.id! - b.id!);
       const last = mine[mine.length - 1];
-      if (last?.action === "edit" && now - last.at < EDIT_MERGE_MS) summary.recentlyEdited++;
       const extra = input.extras?.(o) ?? {};
       const frequency = extra.frequency ?? null;
       if (!extra.role) summary.defaultedRole++;
@@ -178,7 +172,7 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
       else summary.deleted++;
       return {
         record_id: o.uid!,
-        revision: 1 + mine.length,
+        revision: o.rev ?? 1 + mine.length, // a log made before `rev` existed counts its history entries
         status: o.deletedAt === undefined ? "active" : "deleted",
         participant_id: patientId,
         device_id: o.deviceId ?? PLACEHOLDER_DEVICE_ID,

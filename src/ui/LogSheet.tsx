@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { StoredObservation } from "../data/db";
-import { DELETE_REASONS } from "../data/logs";
+import { CHANGE_REASONS, DELETE_REASONS, logVersions, REASON_LABEL, type LogVersion } from "../data/logs";
 import { addDays } from "../scoring/engine";
 import { ITEMS } from "../scoring/items";
 import { dayAndTime } from "./format";
@@ -62,12 +62,54 @@ interface Props {
   viaKeyboard: boolean;
   /** Why the last change was not saved, if it was refused. */
   error?: string | null;
-  onPatch: (change: Partial<StoredObservation>) => void;
+  /** With `changeReasons` on, one call per Save change, with the reason's code; otherwise one call per tap, as always. */
+  onPatch: (change: Partial<StoredObservation>, reason?: string) => void | Promise<boolean>;
   onDelete: (reason: string, note?: string) => void;
   onClose: () => void;
 }
 
-export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }: Props) {
+const REASON_LABELS = CHANGE_REASONS.map((c) => REASON_LABEL[c]);
+
+/** What changed between two versions of a log, in words, for the history view. */
+function describe(v: LogVersion, prev?: LogVersion) {
+  if (v.action === "created") return "Logged";
+  if (v.action === "delete") return "Deleted";
+  if (v.action === "restore") return "Restored";
+  const a = prev?.values;
+  const bits: string[] = [];
+  if (a && a.at !== v.values.at) bits.push(`time ${hhmm(a.at)} to ${hhmm(v.values.at)}`);
+  if (a && a.approx !== v.values.approx) bits.push(v.values.approx ? "marked approximate" : "no longer approximate");
+  if (a && a.before !== v.values.before) bits.push(v.values.before ? `before: ${v.values.before}` : "before cleared");
+  if (a && a.endedAt !== v.values.endedAt)
+    bits.push(v.values.endedAt === undefined ? "end cleared" : `stopped ${hhmm(v.values.endedAt)}`);
+  return `Changed: ${bits.join(", ") || "details"}`;
+}
+
+export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, onClose }: Props) {
+  // G11 (`changeReasons`): changes are held until Save change, which asks why. Otherwise they save as made.
+  const staged = study.changeReasons;
+  const [draft, setDraft] = useState<Partial<StoredObservation>>({});
+  const [changing, setChanging] = useState(false); // the reason step for a saved change
+  const [why, setWhy] = useState<string | null>(null);
+  const [saves, setSaves] = useState(0); // counts saved changes, so the history list reloads
+  const [versions, setVersions] = useState<LogVersion[]>([]);
+  const obs = saved && staged ? { ...saved, ...draft } : saved;
+  const dirty = !!saved && Object.entries(draft).some(([k, v]) => saved[k as keyof StoredObservation] !== v);
+  const patch = (change: Partial<StoredObservation>) =>
+    staged ? setDraft((d) => ({ ...d, ...change })) : onPatch(change);
+  useEffect(() => {
+    setDraft({});
+    setChanging(false);
+    setWhy(null);
+  }, [saved?.id]);
+  useEffect(() => {
+    if (!staged || !saved) return setVersions([]);
+    let live = true;
+    logVersions(saved.id).then((v) => live && setVersions(v));
+    return () => {
+      live = false;
+    };
+  }, [staged, saved?.id, saves]);
   const item = obs ? ITEMS[obs.itemId - 1] : null;
   const minutesBefore = obs ? Math.round((obs.loggedAt - obs.at) / 60_000) : 0;
   const noteWanted = useRef(false); // set by tapping Other, so reopening a log does not jump to the note
@@ -91,7 +133,16 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
       deleting && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : sheetRoot.current;
     target?.focus({ preventScroll: true });
   }, [deleting]);
-  const canDelete = reason !== null && (reason !== "Other" || reasonNote.trim() !== "");
+  const canDelete = reason !== null && (staged || reason !== "Other" || reasonNote.trim() !== "");
+  async function saveChange() {
+    const code = CHANGE_REASONS[REASON_LABELS.indexOf(why ?? "")];
+    if (!code) return;
+    const ok = await onPatch(draft, code);
+    if (ok !== false) setDraft({});
+    setSaves((n) => n + 1);
+    setChanging(false);
+    setWhy(null);
+  }
 
   return (
     <Sheet
@@ -99,7 +150,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
       viaKeyboard={viaKeyboard}
       keyboardFocus=".log-sheet input[type='time']"
       className="log-sheet"
-      title={deleting ? "Delete this log?" : (item?.name ?? "")}
+      title={deleting ? "Delete this log?" : changing ? "Why change it?" : (item?.name ?? "")}
       subtitle={
         obs && (
           <>
@@ -111,7 +162,16 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
       headerClose={false}
       footer={
         obs &&
-        (deleting ? (
+        (changing ? (
+          <>
+            <button className="ghost" onClick={() => setChanging(false)}>
+              Back
+            </button>
+            <button disabled={!why} onClick={saveChange}>
+              Save change
+            </button>
+          </>
+        ) : deleting ? (
           <>
             <button className="ghost" onClick={() => setDeleting(false)}>
               Keep log
@@ -135,9 +195,15 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
             >
               <Icon name="trash" size={18} /> Delete log
             </button>
-            <button className="sheet-done" onClick={onClose}>
-              Done
-            </button>
+            {dirty ? (
+              <button className="sheet-done" onClick={() => setChanging(true)}>
+                Save change
+              </button>
+            ) : (
+              <button className="sheet-done" onClick={onClose}>
+                Done
+              </button>
+            )}
           </>
         ))
       }
@@ -155,7 +221,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
               Why are you deleting it?
             </h3>
             <div className="choice-grid" ref={reasons}>
-              {DELETE_REASONS.map((r) => (
+              {(staged ? REASON_LABELS : DELETE_REASONS).map((r) => (
                 <button
                   key={r}
                   className="choice"
@@ -170,7 +236,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                 </button>
               ))}
             </div>
-            {reason === "Other" && (
+            {reason === "Other" && !staged && (
               <label className="other-note">
                 <span>What was wrong with it?</span>
                 <input
@@ -201,7 +267,25 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
           </p>
         </div>
       )}
-      {obs && !deleting && (
+      {obs && changing && (
+        <div className="sheet-scroll">
+          <section className="form-group" aria-labelledby="ls-change-why">
+            <h3 className="form-label" id="ls-change-why">
+              Why are you changing it?
+            </h3>
+            <div className="choice-grid">
+              {REASON_LABELS.map((r) => (
+                <button key={r} className="choice" aria-pressed={why === r} onClick={() => setWhy(r)}>
+                  <span>{r}</span>
+                  {why === r && <Icon name="check" size={18} />}
+                </button>
+              ))}
+            </div>
+          </section>
+          <p className="muted">The old version is kept. The research team can see every change and why.</p>
+        </div>
+      )}
+      {obs && !deleting && !changing && (
         <div className="sheet-scroll">
           <section className="form-group" aria-labelledby="ls-when">
             <h3 className="form-label" id="ls-when">
@@ -216,7 +300,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                   <input
                     type="time"
                     value={hhmm(obs.at)}
-                    onChange={(e) => e.target.value && onPatch({ at: fromClock(e.target.value, obs.loggedAt) })}
+                    onChange={(e) => e.target.value && patch({ at: fromClock(e.target.value, obs.loggedAt) })}
                   />
                 </span>
               </label>
@@ -233,7 +317,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                       aria-label={
                         m === 0 ? "At log, when I logged it" : `${m === 60 ? "1 hr" : `${m} min`} before logging`
                       }
-                      onClick={() => onPatch({ at: obs.loggedAt - m * 60_000 })}
+                      onClick={() => patch({ at: obs.loggedAt - m * 60_000 })}
                     >
                       {m === 0 ? "At log" : m === 60 ? "1 hr" : `${m} min`}
                     </button>
@@ -247,7 +331,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                   role="switch"
                   className="switch"
                   checked={!!obs.approx}
-                  onChange={(e) => onPatch({ approx: e.target.checked })}
+                  onChange={(e) => patch({ approx: e.target.checked })}
                 />
               </label>
               {/* F-39, on assumed approval: when a stretch of pacing, mannerisms or restlessness stopped. Optional, never scored. */}
@@ -262,7 +346,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                       <button
                         className="ghost small"
                         aria-label="Clear when it stopped"
-                        onClick={() => onPatch({ endedAt: undefined })}
+                        onClick={() => patch({ endedAt: undefined })}
                       >
                         Clear
                       </button>
@@ -274,7 +358,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                         type="time"
                         value={obs.endedAt !== undefined ? hhmm(obs.endedAt) : ""}
                         onChange={(e) =>
-                          onPatch({ endedAt: e.target.value ? endFromClock(e.target.value, obs.at) : undefined })
+                          patch({ endedAt: e.target.value ? endFromClock(e.target.value, obs.at) : undefined })
                         }
                       />
                     </span>
@@ -296,7 +380,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                   aria-pressed={obs.before === o}
                   onClick={() => {
                     noteWanted.current = o === "Other" && obs.before !== o;
-                    onPatch({ before: obs.before === o ? undefined : o, beforeNote: undefined });
+                    patch({ before: obs.before === o ? undefined : o, beforeNote: undefined });
                   }}
                 >
                   <span>{o}</span>
@@ -322,7 +406,7 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
                   placeholder="A few words, no names"
                   autoComplete="off"
                   enterKeyHint="done"
-                  onChange={(e) => onPatch({ beforeNote: e.target.value || undefined })}
+                  onChange={(e) => patch({ beforeNote: e.target.value || undefined })}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") (e.target as HTMLInputElement).blur();
                   }}
@@ -330,6 +414,27 @@ export function LogSheet({ obs, viaKeyboard, error, onPatch, onDelete, onClose }
               </label>
             )}
           </section>
+          {staged && dirty && <p className="muted">Your changes are kept when you press Save change.</p>}
+          {/* G11: every version of this log, who made it, when and why. Reads only. */}
+          {staged && versions.length > 1 && (
+            <details className="log-history">
+              <summary>Change history ({versions.length - 1})</summary>
+              <ol>
+                {versions.map((v, i) => (
+                  <li key={v.rev}>
+                    <b>
+                      v{v.rev} · {dayAndTime(v.at)}
+                    </b>
+                    <span>
+                      {describe(v, versions[i - 1])}
+                      {v.reason ? ` · ${REASON_LABEL[v.reason as keyof typeof REASON_LABEL] ?? v.reason}` : ""}
+                      {v.by ? ` · ${v.by}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
         </div>
       )}
     </Sheet>

@@ -44,6 +44,7 @@ export interface StoredObservation extends Made {
   deleteReason?: string; // one of DELETE_REASONS in logs.ts
   deleteNote?: string; // a few words when the reason is "Other" (no names)
   tzOffsetMin?: number; // minutes from UTC on the phone when it was logged (D-22)
+  rev?: number; // revision: 1 when made, +1 on every edit, delete or restore (the research export's `revision`)
   endedAt?: number; // when it stopped, if the caregiver said (F-39). Never read by scoring
 }
 
@@ -74,6 +75,7 @@ export interface LogChange extends Made {
   patientId: string;
   action: "edit" | "delete" | "restore";
   at: number; // when the change was made
+  reason?: string; // a code from CHANGE_REASONS (logs.ts); absent for a restore and for "It stopped"
   from?: Partial<StoredObservation>;
   to?: Partial<StoredObservation>;
 }
@@ -204,6 +206,7 @@ class CmaiDb extends Dexie {
     // Every log gets its unique ID however it is added: a tap, demo data, or a restore.
     this.observations.hook("creating", (_key, o) => {
       if (!o.uid) o.uid = newId();
+      if (o.rev === undefined) o.rev = 1;
     });
     // Sticky (true), so it runs on every open, not only the first.
     this.on(

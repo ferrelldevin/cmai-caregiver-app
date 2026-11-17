@@ -139,10 +139,11 @@ describe("research export builder", () => {
     expect(await rev()).toMatchObject({ revision: 4, status: "active", record_id: edited.record_id });
   });
 
-  it("counts a log edited in the last 5 minutes, which a further edit would merge into", async () => {
+  it("two edits close together still get two revisions, because the log keeps its own counter", async () => {
     const o = await add({});
     await editLog(o, { approx: true }, NOW - 60_000);
-    expect((await buildResearchExport(base)).summary.recentlyEdited).toBe(1);
+    await editLog(o, { approx: false }, NOW - 30_000); // the history merges these; the counter does not
+    expect(records((await buildResearchExport(base)).text)[0]).toMatchObject({ revision: 3 });
   });
 
   it("refuses with a plain message for a bad range, a non-study code, or no resident", async () => {
