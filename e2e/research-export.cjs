@@ -9,7 +9,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 async function axe(p, name) {
   // Scroll so the open card sits mid-screen; at the top edge the sticky bar hides the buttons above it.
-  await p.getByRole("button", { name: "Save file" }).evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await p.locator("#research-h").locator("xpath=..").evaluate((el) => el.scrollIntoView({ block: "center" }));
   await p.locator(".snackbar").waitFor({ state: "hidden" }); // the "Now on" toast would cover a button
   await p.waitForTimeout(300);
   await p.evaluate(axeSource);
@@ -23,6 +23,9 @@ async function openCard(p) {
   await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
   await p.goto(URL.replace(/\/?$/, "/") + "#/data/backup");
   await p.getByRole("heading", { name: "Export for research" }).waitFor();
+  // F-58: a new log carries the phone's zone name, not only its offset.
+  const zone = await p.evaluate(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("observations").objectStore("observations").getAll(); g.onsuccess = () => { r.result.close(); res(g.result[0] && g.result[0].tzName); }; }; }));
+  ok(typeof zone === "string" && /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$/.test(zone), `a new log saves its zone name (${zone})`);
 }
 async function withDemo(p) {
   await openCard(p);
@@ -52,7 +55,7 @@ async function withDemo(p) {
   const found = await p.locator("#research-h").locator("xpath=..").innerText();
   const n = Number(/(\d+)\s+records?/.exec(found)?.[1]);
   ok(n > 10, `it counts the demo resident's logs in the last 14 days (${n})`);
-  ok(/Role set to caregiver because the app does not store one: \d+/.test(found), "it says how many roles were defaulted");
+  ok(/Role set to caregiver because no role is saved for who logged it: \d+/.test(found), "it says how many roles were defaulted");
   ok(/Older logs with no phone ID, shown as all zeros: \d+/.test(found), "it says how many logs have the placeholder ID");
   await p.screenshot({ path: `${OUT}/research-export.png` });
   await axe(p, "research export, found");

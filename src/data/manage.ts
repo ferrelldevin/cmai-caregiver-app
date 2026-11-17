@@ -38,6 +38,7 @@ const text = (v: unknown, max: number): v is string => typeof v === "string" && 
 const CODE = /^[A-Z0-9-]{2,12}$/; // the same rule as the Add patient field
 const CAREGIVER = /^C-[0-9]{2,3}$/; // R2: a code, never a name
 const INITIALS = /^[A-Z]{2,3}$/;
+const ZONE = /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$/; // an IANA zone name such as America/New_York
 const ID = /^[A-Za-z0-9-]{8,64}$/; // uid and deviceId: crypto.randomUUID() on the phone that made them
 const MAX_OFFSET = 14 * 60; // UTC+14 is the furthest any clock sits from UTC
 const oneOf = <T extends string>(v: unknown, list: readonly T[]): v is T => list.includes(v as T);
@@ -73,6 +74,10 @@ function cleanLog(o: Record<string, unknown>, inRange: (v: unknown) => v is numb
   if (o.tzOffsetMin !== undefined) {
     if (!offsetOk(o.tzOffsetMin)) return null;
     out.tzOffsetMin = o.tzOffsetMin;
+  }
+  if (o.tzName !== undefined) {
+    if (typeof o.tzName !== "string" || !ZONE.test(o.tzName)) return null;
+    out.tzName = o.tzName;
   }
   if (o.patientId !== undefined) {
     if (typeof o.patientId !== "string" || !CODE.test(o.patientId)) return null;
@@ -229,6 +234,7 @@ export function parseBackup(raw: string, now = Date.now()) {
       initials: c.initials,
       createdAt: c.createdAt,
       ...(c.archivedAt !== undefined ? { archivedAt: c.archivedAt } : {}),
+      ...(c.role === "staff" || c.role === "researcher" ? { role: c.role } : {}),
     };
   });
   const assignments = keep<Assignment>(data.assignments, (a) => {

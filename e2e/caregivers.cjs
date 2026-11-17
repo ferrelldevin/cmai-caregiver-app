@@ -93,6 +93,12 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await field.fill("ab"); await p.keyboard.press("Enter");
   await p.getByText("Added AB as C-02.").waitFor(); ok(true, "AB is C-02");
   ok((await chip.textContent()).includes("JM"), "the first caregiver added is the one logging");
+  // F-58: a role for research exports, stored once on the profile. Caregiver unless changed.
+  const role = p.getByLabel("Role for JM");
+  ok((await role.inputValue()) === "caregiver", "the role starts as Caregiver");
+  await role.selectOption("researcher");
+  await p.waitForFunction(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("caregivers").objectStore("caregivers").getAll(); g.onsuccess = () => { r.result.close(); res(g.result.some((c) => c.initials === "JM" && c.role === "researcher")); }; }; }));
+  ok((await p.getByLabel("Role for JM").inputValue()) === "researcher", "the role is saved on the profile and shown");
   await p.screenshot({ path: `${OUT}/caregivers-page.png` });
 
   // A log carries who made it; switching is one tap from the chip and never asked for.
@@ -145,8 +151,9 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await p.locator(".pt-banner").click();
   const sw = p.getByRole("dialog", { name: "Choose patient" });
   await sw.waitFor();
+  await sw.locator(".sheet-group").nth(1).waitFor(); // the groups fill in after the assignments load
   const heads = await sw.locator(".sheet-group").allTextContents();
-  ok(heads.join("|") === "My residents|Others on this phone", "the switcher has My residents, then Others on this phone");
+  ok(heads.join("|") === "My residents|Others on this phone", "the switcher has My residents, then Others on this phone: " + heads.join("|"));
   const codes = await sw.locator(".sheet-code").allTextContents();
   ok(codes.join(",") === "P-03,P-01,P-02", "P-03 then P-01 (AB's order), then P-02: " + codes.join(","));
   await p.screenshot({ path: `${OUT}/caregivers-switcher.png` });
