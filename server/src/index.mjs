@@ -1,10 +1,12 @@
 // The sync service. Three routes:
 //   POST /v1/logs    a write key sends one v1.0.0 file
 //   GET  /v1/export  a read key gets one participant and date range back as a v1.0.0 file
-//   GET  /healthz    is it up
-// Every push and pull, allowed or refused, is written to audit_log.
+//                    (add &since=<time> for only the records changed after that time)
+//   GET  /healthz    is it up, and can it reach the database
+// Every push and pull that carries a key, allowed or refused, is written to audit_log, and so is
+// every request without a valid key (denied) and every server error.
 import { createServer } from "node:http";
-import { audit, setup } from "./db.mjs";
+import { audit, pool, setup } from "./db.mjs";
 import { findKey } from "./keys.mjs";
 import { problemWith } from "./contract.mjs";
 import { localDayStart, validZone } from "./dates.mjs";
@@ -15,10 +17,27 @@ const DEFAULT_TZ = process.env.DEFAULT_TZ ?? "America/New_York";
 const ORIGIN = process.env.ALLOWED_ORIGIN || "";
 const MAX_BODY = 5 * 1024 * 1024;
 const PARTICIPANT = /^[A-Z]{1,5}(-[A-Z0-9]{1,12})+$/;
+const SINCE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
+/** `next-since` is backdated by this much so a push that was still committing during a pull is never missed. */
+const SINCE_MARGIN_MS = 5 * 60_000;
+
+if (!validZone(DEFAULT_TZ))
+  throw new Error(`DEFAULT_TZ "${DEFAULT_TZ}" is not a time zone name like America/New_York.`);
+
+const corsFor = () =>
+  ORIGIN
+    ? {
+        "access-control-allow-origin": ORIGIN,
+        "access-control-allow-headers": "authorization, content-type",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-expose-headers": "x-cmai-next-since",
+        vary: "origin",
+      }
+    : {};
 
 const send = (res, status, body, extra = {}) => {
   const text = typeof body === "string" ? body : JSON.stringify(body, null, 2) + "\n";
-  res.writeHead(status, { "content-type": "application/json", "cache-control": "no-store", ...extra });
+  res.writeHead(status, { "content-type": "application/json", "cache-control": "no-store", ...corsFor(), ...extra });
   res.end(text);
 };
 
@@ -33,89 +52,91 @@ async function readBody(req) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-async function push(req, res, key, cors) {
-  if (req.method !== "POST") return send(res, 405, { error: "Use POST." }, cors);
+async function push(req, res, key, remoteAddr) {
+  if (req.method !== "POST") return send(res, 405, { error: "Use POST." });
+  const base = { keyId: key.id, action: "push", dataClass: key.data_class, remoteAddr };
   let doc;
   try {
     doc = JSON.parse(await readBody(req));
   } catch (e) {
-    if (e instanceof Refused) throw e;
-    await audit({ keyId: key.id, action: "push", dataClass: key.data_class, outcome: "refused", detail: "not JSON" });
-    return send(res, 400, { error: "The body is not JSON." }, cors);
+    const detail = e instanceof Refused ? e.message : "not JSON";
+    await audit({ ...base, outcome: "refused", detail });
+    return send(res, e instanceof Refused ? e.status : 400, {
+      error: e instanceof Refused ? e.message : "The body is not JSON.",
+    });
   }
   const h = doc?.header ?? {};
-  const base = {
-    keyId: key.id,
-    action: "push",
-    dataClass: key.data_class,
-    participantId: PARTICIPANT.test(h.participant_id) ? h.participant_id : null,
-  };
+  base.participantId = PARTICIPANT.test(h.participant_id) ? h.participant_id : null;
   const problem = problemWith(doc, key.data_class);
   if (problem) {
     await audit({ ...base, outcome: "refused", detail: problem });
-    return send(res, 422, { error: problem }, cors);
+    return send(res, 422, { error: problem });
   }
   const range = { rangeStart: h.range_start_utc, rangeEnd: h.range_end_utc };
   try {
-    const counts = await pushFile(doc, key);
-    await audit({
-      ...base,
-      ...range,
-      outcome: "ok",
-      count: doc.records.length,
-      detail: `added ${counts.added}, already had ${counts.duplicate}`,
-    });
-    return send(res, 200, { ok: true, ...counts }, cors);
+    const counts = await pushFile(doc, key, { ...base, ...range, outcome: "ok", count: doc.records.length });
+    return send(res, 200, { ok: true, ...counts });
   } catch (e) {
     if (e instanceof Refused) await audit({ ...base, ...range, outcome: "refused", detail: e.message });
     throw e;
   }
 }
 
-async function pull(req, res, key, url) {
+async function pull(req, res, key, url, remoteAddr) {
   if (req.method !== "GET") return send(res, 405, { error: "Use GET." });
   const participantId = url.searchParams.get("participant") ?? "";
   const tz = url.searchParams.get("tz") ?? DEFAULT_TZ;
   const zoneOk = validZone(tz);
   const start = zoneOk && localDayStart(tz, url.searchParams.get("from"));
   const end = zoneOk && localDayStart(tz, url.searchParams.get("to"), 1);
+  const sinceText = url.searchParams.get("since");
+  const since = sinceText === null ? null : new Date(sinceText);
+  const sinceBad = since !== null && (!SINCE.test(sinceText) || Number.isNaN(since.getTime()));
   const base = {
     keyId: key.id,
     action: "pull",
     dataClass: key.data_class,
     participantId: PARTICIPANT.test(participantId) ? participantId : null,
+    remoteAddr,
   };
-  if (!PARTICIPANT.test(participantId) || !start || !end || start >= end) {
+  if (!PARTICIPANT.test(participantId) || !start || !end || start >= end || sinceBad) {
     const problem =
-      "Use ?participant=P-01&from=YYYY-MM-DD&to=YYYY-MM-DD (and optionally &tz=America/New_York). The last day cannot be before the first.";
+      "Use ?participant=P-01&from=YYYY-MM-DD&to=YYYY-MM-DD (optionally &tz=America/New_York and &since=2026-11-17T12:00:00Z). The dates must be real and the last day cannot be before the first.";
     await audit({ ...base, outcome: "refused", detail: problem });
     return send(res, 400, { error: problem });
   }
-  const doc = await pullFile({ dataClass: key.data_class, participantId, start, end });
-  await audit({ ...base, rangeStart: start, rangeEnd: end, outcome: "ok", count: doc.records.length });
+  const asked = new Date();
+  const doc = await pullFile({ dataClass: key.data_class, participantId, start, end, since });
+  await audit({
+    ...base,
+    rangeStart: start,
+    rangeEnd: end,
+    outcome: "ok",
+    count: doc.records.length,
+    detail: since ? `changed since ${since.toISOString()}` : null,
+  });
   const name = `cmai-export_${participantId}_${url.searchParams.get("from")}_${url.searchParams.get("to")}.json`;
-  return send(res, 200, doc, { "content-disposition": `attachment; filename="${name}"` });
+  return send(res, 200, doc, {
+    "content-disposition": `attachment; filename="${name}"`,
+    "x-cmai-next-since": new Date(asked.getTime() - SINCE_MARGIN_MS).toISOString(),
+  });
 }
 
 async function handle(req, res) {
   const url = new URL(req.url, "http://x");
-  const cors = ORIGIN
-    ? {
-        "access-control-allow-origin": ORIGIN,
-        "access-control-allow-headers": "authorization, content-type",
-        "access-control-allow-methods": "POST, OPTIONS",
-        vary: "origin",
-      }
-    : {};
-  if (req.method === "OPTIONS") return send(res, 204, "", cors);
-  if (url.pathname === "/healthz") return send(res, 200, { ok: true });
+  const remoteAddr = req.socket.remoteAddress ?? null;
+  if (req.method === "OPTIONS") return send(res, 204, "");
+  if (url.pathname === "/healthz") {
+    await pool.query("SELECT 1");
+    return send(res, 200, { ok: true });
+  }
 
   const route = url.pathname === "/v1/logs" ? "push" : url.pathname === "/v1/export" ? "pull" : null;
-  if (!route) return send(res, 404, { error: "Not found." }, cors);
+  if (!route) return send(res, 404, { error: "Not found." });
   const key = await findKey(req.headers.authorization);
   if (!key) {
-    await audit({ action: route, outcome: "denied", detail: "no valid key" });
-    return send(res, 401, { error: "A valid key is needed." }, cors);
+    await audit({ action: route, outcome: "denied", detail: "no valid key", remoteAddr });
+    return send(res, 401, { error: "A valid key is needed." });
   }
   if ((route === "push") !== (key.role === "write")) {
     await audit({
@@ -124,17 +145,29 @@ async function handle(req, res) {
       dataClass: key.data_class,
       outcome: "denied",
       detail: `a ${key.role} key cannot ${route}`,
+      remoteAddr,
     });
-    return send(res, 403, { error: `A ${key.role} key cannot do that.` }, cors);
+    return send(res, 403, { error: `A ${key.role} key cannot do that.` });
   }
-  return route === "push" ? push(req, res, key, cors) : pull(req, res, key, url);
+  req.keyContext = { key, route, remoteAddr };
+  return route === "push" ? push(req, res, key, remoteAddr) : pull(req, res, key, url, remoteAddr);
 }
 
 await setup();
 createServer((req, res) => {
-  handle(req, res).catch((e) => {
+  handle(req, res).catch(async (e) => {
     if (e instanceof Refused) return send(res, e.status, { error: e.message });
     console.error(e);
-    send(res, 500, { error: "Something went wrong on the server. Nothing was saved." });
+    const ctx = req.keyContext;
+    // Best effort: the database may be the thing that failed.
+    await audit({
+      keyId: ctx?.key.id,
+      action: ctx?.route ?? "request",
+      dataClass: ctx?.key.data_class,
+      outcome: "error",
+      detail: "server error",
+      remoteAddr: ctx?.remoteAddr,
+    }).catch(() => {});
+    if (!res.headersSent) send(res, 500, { error: "Something went wrong on the server. Nothing was saved." });
   });
 }).listen(PORT, () => console.log(`cmai-sync listening on ${PORT}`));

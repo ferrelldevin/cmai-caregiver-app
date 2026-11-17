@@ -41,6 +41,19 @@ In PowerShell set the keys first: `$env:WRITE_KEY="..."; $env:READ_KEY="..."; no
 curl -H "Authorization: Bearer cmai_read_..." "http://127.0.0.1:8787/v1/export?participant=P-01&from=2026-11-01&to=2026-11-14" -o pull.json
 ```
 
+To get only what changed since the last run (what the daily task should do), add `&since=<time>`. Every pull sends an `x-cmai-next-since` header to use next time. See [note 023](../docs/design/notes/023-self-hosted-sync.md).
+
+## Tests (any shell, repo root)
+
+```bash
+npm ci --prefix server
+npm test --prefix server
+```
+
+## After a reboot
+
+Both containers restart by themselves (`restart: unless-stopped`), but only once Docker Desktop is running. Turn on Docker Desktop > Settings > General > "Start Docker Desktop when you sign in".
+
 ## Stop and clean up
 
 ```bash

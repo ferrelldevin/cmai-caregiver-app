@@ -2,7 +2,7 @@
 // arrives again only as a newer revision; the same revision with different content is refused.
 import { randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
-import { pool } from "./db.mjs";
+import { audit, pool } from "./db.mjs";
 import { utcText } from "./dates.mjs";
 
 export class Refused extends Error {
@@ -12,26 +12,33 @@ export class Refused extends Error {
   }
 }
 
-export async function pushFile(doc, key) {
+/**
+ * Stores a checked file. `okAudit` is the audit row for a successful push; it is written in the
+ * same transaction, so data is never stored without its audit row.
+ */
+export async function pushFile(doc, key, okAudit) {
   const { header, records } = doc;
   const client = await pool.connect();
   const counts = { added: 0, duplicate: 0 };
   try {
     await client.query("BEGIN");
-    for (const r of records) {
+    // Records are handled in a fixed order, each under its own lock, so two pushes that carry the
+    // same record wait for each other instead of racing (or deadlocking on each other).
+    for (const r of [...records].sort((a, b) => a.record_id.localeCompare(b.record_id))) {
+      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [r.record_id]);
       const stored = await client.query(
         "SELECT revision, record, data_class, participant_id FROM observations WHERE record_id = $1",
         [r.record_id],
       );
       for (const old of stored.rows)
         if (old.data_class !== header.data_class || old.participant_id !== header.participant_id)
-          throw new Refused(409, `Record ${r.record_id} is already stored for another participant or data class.`);
+          throw new Refused(409, "A record in this file is already stored for another participant or data class.");
       const sameRevision = stored.rows.find((old) => old.revision === r.revision);
       if (sameRevision) {
         if (!isDeepStrictEqual(sameRevision.record, r))
           throw new Refused(
             409,
-            `Record ${r.record_id} revision ${r.revision} is already stored with different content. Nothing was saved.`,
+            "A record in this file has a revision that is already stored with different content. Nothing was saved.",
           );
         counts.duplicate++;
         continue;
@@ -53,6 +60,7 @@ export async function pushFile(doc, key) {
       );
       counts.added++;
     }
+    await audit({ ...okAudit, detail: `added ${counts.added}, already had ${counts.duplicate}` }, client);
     await client.query("COMMIT");
     return counts;
   } catch (e) {
@@ -63,18 +71,33 @@ export async function pushFile(doc, key) {
   }
 }
 
-/** The newest revision of every record for one participant in [start, end), as a v1.0.0 file. */
-export async function pullFile({ dataClass, participantId, start, end }) {
+/**
+ * The newest revision of every record for one participant that has any revision starting in
+ * [start, end), as a v1.0.0 file. Matching on any revision (not only the newest) means an edit that
+ * moved a log to another day still comes back for its old day, so the reader replaces the old copy.
+ * With `since`, only records that received a new revision after that instant.
+ */
+export async function pullFile({ dataClass, participantId, start, end, since }) {
+  const params = [dataClass, participantId, start, end];
+  let changed = "";
+  if (since) {
+    params.push(since);
+    changed = `AND record_id IN (
+         SELECT record_id FROM observations WHERE data_class = $1 AND participant_id = $2 AND received_at > $5)`;
+  }
   const { rows } = await pool.query(
     `SELECT * FROM (
        SELECT DISTINCT ON (record_id) record, source_device, source_app_version, received_at
        FROM observations
        WHERE data_class = $1 AND participant_id = $2
+         AND record_id IN (
+           SELECT record_id FROM observations
+           WHERE data_class = $1 AND participant_id = $2 AND occurred_start_utc >= $3 AND occurred_start_utc < $4)
+         ${changed}
        ORDER BY record_id, revision DESC
      ) latest
-     WHERE (record->>'occurred_start_utc')::timestamptz >= $3 AND (record->>'occurred_start_utc')::timestamptz < $4
      ORDER BY (record->>'occurred_start_utc')::timestamptz, record->>'record_id'`,
-    [dataClass, participantId, start, end],
+    params,
   );
   const newest = rows.reduce((a, r) => (!a || r.received_at > a.received_at ? r : a), null);
   return {

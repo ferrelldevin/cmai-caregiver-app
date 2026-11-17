@@ -109,6 +109,40 @@ step(
 );
 step(byId[c.record_id].revision === 1, "the untouched log is still revision 1");
 
+console.log("\n3b. A late change on an old day, and only-what-changed pulls (the 7:15 task's way)");
+const cursor = new Date().toISOString();
+await new Promise((done) => setTimeout(done, 50));
+const c2 = { ...c, revision: 2, cmai_item: 13, revised_at_utc: "2026-11-02T19:00:00Z" };
+r = await call("POST", "/v1/logs", WRITE_KEY, file([c2]));
+step(r.status === 200 && r.json.added === 1, "a later edit of one log is accepted");
+const wide = `/v1/export?participant=${PARTICIPANT}&from=2026-11-01&to=2026-11-30`;
+const changed = await call("GET", `${wide}&since=${cursor}`, READ_KEY);
+step(
+  changed.json.records.length === 1 &&
+    changed.json.records[0].record_id === c.record_id &&
+    changed.json.records[0].revision === 2,
+  "pulling since the cursor returns just that one log, as revision 2",
+);
+const later = new Date(Date.now() + 60_000).toISOString();
+const quiet = await call("GET", `${wide}&since=${later}`, READ_KEY);
+step(quiet.status === 200 && quiet.json.records.length === 0, "pulling since a later time returns nothing");
+const withNext = await fetch(BASE + wide, { headers: { authorization: `Bearer ${READ_KEY}` } });
+step(
+  Boolean(Date.parse(withNext.headers.get("x-cmai-next-since"))),
+  "each pull says where the next since should start",
+);
+// An edit that moves a log to the next day: the old day must still hear about it.
+const d1 = record(8, "2026-11-02T20:30:00Z");
+await call("POST", "/v1/logs", WRITE_KEY, file([d1]));
+const d2 = { ...d1, revision: 2, occurred_start_utc: "2026-11-03T14:00:00Z", revised_at_utc: "2026-11-03T14:05:00Z" };
+r = await call("POST", "/v1/logs", WRITE_KEY, file([d2]));
+step(r.status === 200, "an edit that moves a log to the next day is accepted");
+const oldDay = await call("GET", query, READ_KEY);
+step(
+  oldDay.json.records.some((x) => x.record_id === d1.record_id && x.revision === 2),
+  "the old day's pull still returns it, as revision 2, so the reader replaces the old copy",
+);
+
 console.log("\n4. Things that must be refused");
 r = await call("POST", "/v1/logs", WRITE_KEY, file([{ ...a, cmai_item: 9 }]));
 step(r.status === 409, "same revision, different content: 409, nothing saved");
@@ -129,6 +163,22 @@ r = await call("GET", query);
 step(r.status === 401, "no key: 401");
 r = await call("GET", `/v1/export?participant=${PARTICIPANT}&from=2026-11-05&to=2026-11-02`, READ_KEY);
 step(r.status === 400, "a range that runs backwards: 400");
+r = await call("GET", `/v1/export?participant=${PARTICIPANT}&from=2026-11-02&to=2026-02-31`, READ_KEY);
+step(r.status === 400, "an end date that does not exist (2026-02-31): 400, not silently March");
+r = await call("GET", `${query}&since=yesterday`, READ_KEY);
+step(r.status === 400, "a since that is not a time: 400");
+r = await call("POST", "/v1/logs", WRITE_KEY, file([{ ...record(5, "2026-11-02T21:00:00Z"), utc_offset_min: -240 }]));
+step(r.status === 422, "an offset that does not match the zone (the lab reader would stop on it): refused");
+const moved = file([{ ...a, participant_id: "P-OTHER" }]);
+moved.header.participant_id = "P-OTHER";
+r = await call("POST", "/v1/logs", WRITE_KEY, moved);
+step(r.status === 409, "a record already stored for another participant: 409");
+const big = await fetch(BASE + "/v1/logs", {
+  method: "POST",
+  headers: { authorization: `Bearer ${WRITE_KEY}`, "content-type": "application/json" },
+  body: JSON.stringify({ pad: "x".repeat(6 * 1024 * 1024) }),
+}).catch(() => null);
+step(big === null || big.status === 413, "a 6 MB body: refused (413, or the connection is cut)");
 const p4 = await call("GET", `/v1/export?participant=P-NOBODY&from=2026-11-02&to=2026-11-02`, READ_KEY);
 step(p4.status === 200 && p4.json.records.length === 0, "an unknown participant: an empty file, not an error");
 save("pull-empty.json", p4.json);

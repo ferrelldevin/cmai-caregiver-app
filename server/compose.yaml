@@ -22,13 +22,29 @@ services:
       context: ..
       dockerfile: server/Dockerfile
     restart: unless-stopped
+    init: true
     depends_on:
       db: { condition: service_healthy }
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-cmai}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-cmai}
+      # Separate settings (not one URL), so a password with @ / : # or % needs no escaping.
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-cmai}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-cmai}
       PORT: 8787
       DEFAULT_TZ: ${DEFAULT_TZ:-America/New_York}
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     ports:
       # Localhost only by default. Set BIND_ADDR=0.0.0.0 (or a LAN address) only after asking Devin.
       - "${BIND_ADDR:-127.0.0.1}:${HOST_PORT:-8787}:8787"

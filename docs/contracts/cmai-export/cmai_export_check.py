@@ -202,6 +202,9 @@ def main(argv=None) -> int:
         pids = {d["header"]["participant_id"] for _, d in docs}
         if len(pids) > 1:
             _fail("files", f"more than one participant in one run: {sorted(pids)}")
+        classes = {d["header"]["data_class"] for _, d in docs}
+        if len(classes) > 1:
+            _fail("files", f"more than one data class in one run: {sorted(classes)}. Never mix them")
         live = merge(docs)
     except (ContractError, json.JSONDecodeError) as e:
         print(f"REJECTED: {e}", file=sys.stderr)

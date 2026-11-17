@@ -1,0 +1,39 @@
+name: Sync server
+
+# Unit tests for the self-hosted sync server, then the whole stack in Docker with made-up data (design note 023).
+on:
+  pull_request:
+    paths:
+      - "server/**"
+      - "docs/contracts/cmai-export/**"
+      - ".github/workflows/server.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    name: Sync server
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Install server packages
+        run: npm ci --prefix server
+      - name: Unit tests
+        run: npm test --prefix server
+      - name: Start the stack
+        run: |
+          echo "POSTGRES_PASSWORD=ci-$(openssl rand -hex 16)" > server/.env
+          docker compose -f server/compose.yaml up -d --build --wait --wait-timeout 120
+      - name: Smoke test with made-up data
+        run: |
+          WRITE_KEY=$(docker compose -f server/compose.yaml exec -T sync node src/admin.mjs key:create --role write --class self-test --label ci | tail -1)
+          READ_KEY=$(docker compose -f server/compose.yaml exec -T sync node src/admin.mjs key:create --role read --class self-test --label ci | tail -1)
+          WRITE_KEY="$WRITE_KEY" READ_KEY="$READ_KEY" node server/smoke.mjs http://127.0.0.1:8787
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose -f server/compose.yaml logs --no-color --tail 100

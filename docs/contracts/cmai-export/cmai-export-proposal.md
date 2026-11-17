@@ -104,7 +104,7 @@ Agreed by Devin 2026-11-17: keeps two codebases apart and keeps CMAI licensing a
 ### Changelog
 
 - 2026-11-17, still v1.0.0 (nothing reads it yet): participant ID pattern loosened so the app's codes `P-01` and `P-DEMO-A` pass; the rule that synthetic files must use `SYN-` IDs is removed, so `data_class` is the only synthetic/real marker. Tradeoff: the reader no longer catches a real code labeled synthetic by mistake. Decided by Devin (register F-56).
-- 2026-11-17, still v1.0.0: the reader `cmai_export_check.py` accepts `data_class` `self-test` (Devin's own logs from a self-hosted test server, register F-62, assumed, sign-off pending). The schema is unchanged and still allows only `synthetic` and `real`; the test server checks a self-test file as synthetic. The reader still refuses to merge files of different classes.
+- 2026-11-17, still v1.0.0: the reader `cmai_export_check.py` accepts `data_class` `self-test` (Devin's own logs from a self-hosted test server, register F-62, assumed, sign-off pending). The schema is unchanged and still allows only `synthetic` and `real`; the test server checks a self-test file as synthetic. The reader now also refuses to merge files of different data classes in one run (it checked only participants before).
 
 ### Open points
 
