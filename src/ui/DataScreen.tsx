@@ -16,6 +16,7 @@ import { ClockScreen } from "./ClockScreen";
 import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
+import { ResearchExportCard } from "./ResearchExportCard";
 import { Sheet } from "./Sheet";
 import { canInstall, install, isInstalled, onInstallChange } from "./install";
 import type { DataPage } from "./route";
@@ -454,6 +455,9 @@ export function DataScreen({
             )}
             {msgFor("export")}
           </section>
+        )}
+        {page === "backup" && study.researchExport && (
+          <ResearchExportCard patients={patients.filter(isActive)} current={current} />
         )}
         {page === "display" && <DisplaySettings />}
         {page === "safe" && (

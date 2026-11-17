@@ -15,6 +15,7 @@ export interface StudySettings {
   exportV2: boolean; // D-23 (plan 5.10): new CSV columns and files
   protectBackup: boolean; // F-10 (plan 5.11)
   archivePatients: boolean; // D-20 (plan 5.1): a patient with real logs is archived, not erased
+  researchExport: boolean; // F-56: "Export for research", the JSON file for the lab pipeline (contract v1.0.0)
 }
 
 const CAREGIVER: StudySettings = {
@@ -30,6 +31,7 @@ const CAREGIVER: StudySettings = {
   exportV2: false,
   protectBackup: false,
   archivePatients: false,
+  researchExport: false,
 };
 
 const LAB: StudySettings = {
@@ -45,6 +47,7 @@ const LAB: StudySettings = {
   exportV2: true,
   protectBackup: true,
   archivePatients: true,
+  researchExport: true,
 };
 
 export type StudyMode = "caregiver" | "lab";

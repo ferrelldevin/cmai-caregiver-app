@@ -5,3 +5,4 @@ package-lock.json
 e2e
 storybook-static
 docs/test-cases.json
+docs/contracts/cmai-export/samples/README.md
