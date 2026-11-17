@@ -16,6 +16,7 @@ const TODAY = {
   protectBackup: false,
   archivePatients: false,
   researchExport: false,
+  realExports: false,
 };
 
 describe("study settings", () => {
@@ -39,6 +40,7 @@ describe("study settings", () => {
     expect(lab.labView && lab.caregiverProfiles && lab.pin && lab.blindCmai).toBe(true);
     expect(lab.watchingHours && lab.stoppedTap && lab.extraBeforeChips && lab.exportV2 && lab.protectBackup).toBe(true);
     expect(lab.archivePatients && lab.researchExport).toBe(true);
+    expect(lab.realExports).toBe(false); // real data waits on Dr. Gupta in writing, not on a build mode
     expect(lab.ratingsVisibleToCaregivers).toBe(false);
   });
 

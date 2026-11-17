@@ -8,6 +8,7 @@
 // and role are not stored so they are null, false and "caregiver"; "approximate time" and watched
 // stretches have no field in v1.0.0. The summary counts how many records used each pick.
 
+import { study } from "../study/settings";
 import { db, thisDevice, type StoredObservation } from "./db";
 import { newId } from "./ids";
 
@@ -36,6 +37,8 @@ export interface ResearchExportInput {
   tz?: string;
   now?: number;
   exportId?: string;
+  /** A test passes true to prove the switch works. Otherwise the `realExports` setting decides. */
+  allowReal?: boolean;
   /** The install ID for the header. Defaults to this phone's; a test passes a fixed one. */
   deviceId?: string;
   appVersion?: string;
@@ -125,6 +128,11 @@ export async function buildResearchExport(input: ResearchExportInput): Promise<R
     throw new ExportBlocked("This resident's code is not a study ID like P-01, so it cannot be exported.");
   const patient = await db.patients.get(patientId);
   if (!patient) throw new ExportBlocked("Pick a resident to export.");
+  // G1: made-up data only until Dr. Gupta says in writing where real exports may live.
+  if (!patient.demo && !(input.allowReal ?? study.realExports))
+    throw new ExportBlocked(
+      "Only made-up (demo) residents can be exported for now. Exports of real residents stay off until Dr. Gupta says in writing where they may be kept.",
+    );
   const deviceId = input.deviceId ?? thisDevice();
   if (!deviceId) throw new ExportBlocked("The app is still starting. Try again in a moment.");
   const start = dayStart(tz, startDay);

@@ -3,6 +3,7 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { db, type StoredObservation } from "../src/data/db";
+import { settingsFor, study } from "../src/study/settings";
 import { deleteLog, editLog, restoreLog } from "../src/data/logs";
 import {
   buildResearchExport,
@@ -40,7 +41,7 @@ const records = (text: string) => JSON.parse(text).records as Record<string, unk
 
 beforeEach(async () => {
   for (const t of db.tables) await t.clear();
-  await db.patients.put({ id: "P-01", anchor: ny(10, 20, 0) });
+  await db.patients.put({ id: "P-01", anchor: ny(10, 20, 0), demo: true });
 });
 
 describe("research export builder", () => {
@@ -74,7 +75,11 @@ describe("research export builder", () => {
       offsetFromZone: 1,
       approxTime: 1,
     });
-    expect(JSON.parse(out.text).header).toMatchObject({ data_class: "real", record_count: 2, participant_id: "P-01" });
+    expect(JSON.parse(out.text).header).toMatchObject({
+      data_class: "synthetic",
+      record_count: 2,
+      participant_id: "P-01",
+    });
     expect(out.text).not.toContain("approx"); // v1.0.0 has no field for it
   });
 
@@ -164,10 +169,19 @@ describe("research export builder", () => {
     expect(a.summary.total).toBe(2);
   });
 
-  it("a demo resident is marked synthetic", async () => {
-    await db.patients.put({ id: "P-01", anchor: ny(10, 20, 0), demo: true });
+  it("G1: a resident who is not demo data is refused, and the setting is off in every build", async () => {
+    await db.patients.put({ id: "P-01", anchor: ny(10, 20, 0) });
+    await add({});
+    await expect(buildResearchExport(base)).rejects.toThrow(/Only made-up \(demo\) residents can be exported/);
+    expect(study.realExports).toBe(false);
+    expect(settingsFor("lab").realExports).toBe(false);
+  });
+
+  it("G1: with the switch on (a test passes it), a real resident is marked real, a demo one synthetic", async () => {
     await add({});
     expect(JSON.parse((await buildResearchExport(base)).text).header.data_class).toBe("synthetic");
+    await db.patients.put({ id: "P-01", anchor: ny(10, 20, 0) });
+    expect(JSON.parse((await buildResearchExport({ ...base, allowReal: true })).text).header.data_class).toBe("real");
   });
 
   it("takes role, frequency and review flag from the hook when one is given, and checks nothing else", async () => {
