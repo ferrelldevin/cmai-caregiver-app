@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gupta-lab.odu.example/schemas/cmai-export/1.1.0-draft",
+  "title": "CMAI Tracker research export (v1.1.0 DRAFT, not in use)",
+  "description": "DRAFT of contract v1.1.0 (MINOR): v1.0.0 plus optional fields only, so every v1.0.0 file is still valid once its schema_version is read as 1.0.0. Not built, not agreed. Item numbers only; never item wording, names or free text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "header", "records"],
+  "properties": {
+    "schema_version": {
+      "enum": ["1.0.0", "1.1.0"]
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "export_id",
+        "exported_at_utc",
+        "app_version",
+        "device_id",
+        "participant_id",
+        "data_class",
+        "range_start_utc",
+        "range_end_utc",
+        "record_count"
+      ],
+      "properties": {
+        "export_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "exported_at_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "app_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+][0-9A-Za-z.-]+)?$"
+        },
+        "device_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "participant_id": {
+          "$ref": "#/$defs/participant_id"
+        },
+        "data_class": {
+          "enum": ["synthetic", "real"]
+        },
+        "range_start_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "range_end_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "app_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "description": "Git commit the app was built from. Optional."
+        },
+        "rule_version": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{1,40}$",
+          "description": "Scoring rule version in the app that wrote the file (RULE_VERSION). Optional."
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "observation_windows": {
+      "type": "array",
+      "description": "Stretches the caregiver was watching (F-38, D-23). Without them a quiet day cannot be told from a day nobody watched. Optional; absent means unknown, not none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["start_utc", "end_utc"],
+        "properties": {
+          "start_utc": {
+            "$ref": "#/$defs/utc"
+          },
+          "end_utc": {
+            "$ref": "#/$defs/utc"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "utc": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "participant_id": {
+      "type": "string",
+      "pattern": "^[A-Z]{1,5}(-[A-Z0-9]{1,12})+$"
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "revision",
+        "status",
+        "participant_id",
+        "device_id",
+        "logger_role",
+        "occurred_start_utc",
+        "occurred_end_utc",
+        "utc_offset_min",
+        "tz_name",
+        "logged_at_utc",
+        "revised_at_utc",
+        "cmai_item",
+        "frequency",
+        "rating_scale",
+        "reviewed"
+      ],
+      "properties": {
+        "record_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": ["active", "deleted"]
+        },
+        "participant_id": {
+          "$ref": "#/$defs/participant_id"
+        },
+        "device_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "logger_role": {
+          "enum": ["caregiver", "staff", "researcher"]
+        },
+        "occurred_start_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "occurred_end_utc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/utc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "utc_offset_min": {
+          "type": "integer",
+          "minimum": -720,
+          "maximum": 840
+        },
+        "tz_name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_]+(/[A-Za-z0-9_+-]+)*$"
+        },
+        "logged_at_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "revised_at_utc": {
+          "$ref": "#/$defs/utc"
+        },
+        "cmai_item": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 29
+        },
+        "frequency": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 7
+        },
+        "rating_scale": {
+          "enum": ["cmai_freq_1_7", "none"]
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "time_approximate": {
+          "type": "boolean",
+          "description": "The caregiver marked the time as a guess. Optional; absent means exact or unknown."
+        },
+        "change_reason": {
+          "enum": ["wrong_time", "wrong_item", "duplicate", "wrong_participant", "entered_by_mistake", "other"],
+          "description": "Why the latest change (edit or delete) was made (G11). Absent on revision 1 and on restores."
+        }
+      }
+    }
+  }
+}

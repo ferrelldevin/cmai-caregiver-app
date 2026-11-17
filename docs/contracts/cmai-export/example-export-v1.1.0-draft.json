@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.1.0",
+  "header": {
+    "export_id": "29a73b2c-f9cc-4f64-a584-a61c0c91a3db",
+    "exported_at_utc": "2026-11-09T15:00:00Z",
+    "app_version": "0.3.0",
+    "device_id": "3f2b9c1e-6a4d-4e8b-9c7a-1d5e8f0a2b64",
+    "participant_id": "P-DEMO-A",
+    "data_class": "synthetic",
+    "range_start_utc": "2026-10-25T04:00:00Z",
+    "range_end_utc": "2026-11-09T05:00:00Z",
+    "record_count": 3,
+    "app_commit": "0123abc",
+    "rule_version": "cmai-count-rule-2"
+  },
+  "records": [
+    {
+      "record_id": "c3458f24-44ee-46e6-812e-49c6c25a3d00",
+      "revision": 1,
+      "status": "active",
+      "participant_id": "P-DEMO-A",
+      "device_id": "3f2b9c1e-6a4d-4e8b-9c7a-1d5e8f0a2b64",
+      "logger_role": "caregiver",
+      "occurred_start_utc": "2026-10-25T05:00:00Z",
+      "occurred_end_utc": null,
+      "utc_offset_min": -240,
+      "tz_name": "America/New_York",
+      "logged_at_utc": "2026-10-25T12:01:00Z",
+      "revised_at_utc": "2026-10-25T12:01:00Z",
+      "cmai_item": 14,
+      "frequency": 3,
+      "rating_scale": "cmai_freq_1_7",
+      "reviewed": false,
+      "time_approximate": true
+    },
+    {
+      "record_id": "6ddc1c97-4a7a-4736-ab31-396242d031f7",
+      "revision": 2,
+      "status": "active",
+      "participant_id": "P-DEMO-A",
+      "device_id": "3f2b9c1e-6a4d-4e8b-9c7a-1d5e8f0a2b64",
+      "logger_role": "caregiver",
+      "occurred_start_utc": "2026-10-25T06:18:00Z",
+      "occurred_end_utc": "2026-10-25T06:40:00Z",
+      "utc_offset_min": -240,
+      "tz_name": "America/New_York",
+      "logged_at_utc": "2026-10-25T12:28:00Z",
+      "revised_at_utc": "2026-10-25T12:28:00Z",
+      "cmai_item": 23,
+      "frequency": 3,
+      "rating_scale": "cmai_freq_1_7",
+      "reviewed": false,
+      "change_reason": "wrong_time"
+    },
+    {
+      "record_id": "52eaed9a-f40e-4bc6-be69-752f1b325ab0",
+      "revision": 1,
+      "status": "active",
+      "participant_id": "P-DEMO-A",
+      "device_id": "3f2b9c1e-6a4d-4e8b-9c7a-1d5e8f0a2b64",
+      "logger_role": "caregiver",
+      "occurred_start_utc": "2026-10-25T10:42:00Z",
+      "occurred_end_utc": "2026-10-25T11:09:00Z",
+      "utc_offset_min": -240,
+      "tz_name": "America/New_York",
+      "logged_at_utc": "2026-10-25T13:40:19Z",
+      "revised_at_utc": "2026-10-25T13:40:19Z",
+      "cmai_item": 9,
+      "frequency": null,
+      "rating_scale": "none",
+      "reviewed": false
+    }
+  ],
+  "observation_windows": [
+    {
+      "start_utc": "2026-11-02T13:00:00Z",
+      "end_utc": "2026-11-02T21:00:00Z"
+    }
+  ]
+}
