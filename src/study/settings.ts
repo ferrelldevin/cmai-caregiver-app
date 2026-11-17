@@ -15,6 +15,7 @@ export interface StudySettings {
   exportV2: boolean; // D-23 (plan 5.10): new CSV columns and files
   protectBackup: boolean; // F-10 (plan 5.11)
   archivePatients: boolean; // D-20 (plan 5.1): a patient with real logs is archived, not erased
+  realExports: boolean; // G1: allow "Export for research" for a resident who is not demo data. Off in both builds until Dr. Gupta says in writing where real exports may be kept (P-03, P-04)
   researchExport: boolean; // F-56: "Export for research", the JSON file for the lab pipeline (contract v1.0.0)
 }
 
@@ -31,6 +32,7 @@ const CAREGIVER: StudySettings = {
   exportV2: false,
   protectBackup: false,
   archivePatients: false,
+  realExports: false,
   researchExport: false,
 };
 
@@ -47,6 +49,7 @@ const LAB: StudySettings = {
   exportV2: true,
   protectBackup: true,
   archivePatients: true,
+  realExports: false, // not a sign-off feature: stays off in the lab build too
   researchExport: true,
 };
 

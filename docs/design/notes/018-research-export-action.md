@@ -18,7 +18,7 @@ Note 017 filed the research export contract and listed four mismatches with the 
 - `src/ui/ResearchExportCard.tsx`: on Settings > Backup, lab build only. Pick a resident and two days, "Check range" shows the summary, "Save file" downloads it.
 - File name `cmai-export_<participant>_<first day>_<last day>.json`. The range is whole local days in the phone's zone: first day 00:00 to the end of the last day, written as UTC.
 - One record per log. `record_id` is the log's `uid`. `revision` is 1 + the number of entries in the change history for that log (edit, delete and restore each count). A delete is a tombstone (`status: "deleted"`); a restore is a normal later revision. Every file is a full snapshot of the latest revision of every log in the range.
-- `data_class`: a demo resident is `synthetic`, any other is `real`. Item numbers only; the file holds no wording, notes or delete reasons.
+- `data_class`: a demo resident is `synthetic`. Any other resident is refused until the `realExports` setting is turned on (G1, below), and would then be `real`. Item numbers only; the file holds no wording, notes or delete reasons.
 
 ## The four assumed picks
 
@@ -56,3 +56,7 @@ Each is checked by a test that names it.
 - Storing the zone name, role, frequency, review flag and a revision counter at log time: F-58, proposal only. It changes storage.
 - Real participant data, any scoring change, the lab pipeline side.
 - A caregiver build: the switch is off there, so nothing shows.
+
+## G1. Real-resident exports are blocked (follow-up PR)
+
+The first version would have exported a non-demo resident as `data_class: "real"`. That breaks the made-up-data-only rule, so the action now refuses any resident who is not demo data, with a plain message. The switch is `realExports` in `src/study/settings.ts`, off in both builds, and it is not a lab sign-off feature: one pull request turns it on, only after Dr. Gupta says in writing where real exports may be kept (P-03, P-04). Tests: `tests/researchExportBuilder.test.ts` ("G1"), `e2e/research-export.cjs` (a real resident P-07 is refused, a demo resident exports).
