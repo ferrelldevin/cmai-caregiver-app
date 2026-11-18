@@ -44,6 +44,7 @@ const LAB_CHECKS = [
   { name: "lab: it stopped", file: "e2e/it-stopped.cjs" },
   { name: "lab: research export", file: "e2e/research-export.cjs" },
   { name: "lab: change reasons", file: "e2e/change-reasons.cjs" },
+  { name: "lab: send to lab server", file: "e2e/sync.cjs" },
 ];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");
@@ -65,7 +66,12 @@ function setup() {
     ["Install dependencies", "npm", ["ci"]],
     ["Install " + BROWSER, "npx", ["playwright", "install", BROWSER]],
     ["Build", "npm", ["run", "build"]],
-    ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab" }],
+    [
+      "Build (lab)",
+      "npx",
+      ["vite", "build", "--outDir", LAB_DIR],
+      { VITE_STUDY_MODE: "lab", VITE_SYNC_ORIGIN: "http://127.0.0.1:8787" },
+    ],
   ].filter(([name]) => !(name === "Install chromium" && process.env.CHROME)); // CHROME points at a Chromium already on the machine
   for (const [name, cmd, args, env] of steps) {
     say(name);

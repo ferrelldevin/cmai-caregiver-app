@@ -42,7 +42,7 @@
           "$ref": "#/$defs/participant_id"
         },
         "data_class": {
-          "enum": ["synthetic", "real"]
+          "enum": ["synthetic", "real", "self-test"]
         },
         "range_start_utc": {
           "$ref": "#/$defs/utc"

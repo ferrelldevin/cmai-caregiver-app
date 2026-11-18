@@ -18,6 +18,7 @@ export interface StudySettings {
   changeReasons: boolean; // G11: every edit and delete needs a reason from a pick list; history is append-only; a history view per log
   realExports: boolean; // G1: allow "Export for research" for a resident who is not demo data. Off in both builds until Dr. Gupta says in writing where real exports may be kept (P-03, P-04)
   researchExport: boolean; // F-56: "Export for research", the JSON file for the lab pipeline (contract v1.0.0)
+  syncToLab: boolean; // F-62: the card that sends a self-test resident's logs to the lab server. Even in the lab build nothing is sent until someone turns it on and gives it a key
 }
 
 const CAREGIVER: StudySettings = {
@@ -36,6 +37,7 @@ const CAREGIVER: StudySettings = {
   changeReasons: false,
   realExports: false,
   researchExport: false,
+  syncToLab: false,
 };
 
 const LAB: StudySettings = {
@@ -54,6 +56,7 @@ const LAB: StudySettings = {
   changeReasons: true,
   realExports: false, // not a sign-off feature: stays off in the lab build too
   researchExport: true,
+  syncToLab: true,
 };
 
 export type StudyMode = "caregiver" | "lab";

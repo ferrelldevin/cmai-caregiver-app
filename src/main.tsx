@@ -6,6 +6,7 @@ import { askToKeepData } from "./data/persist";
 import { loadLoggingCaregiver } from "./data/caregivers";
 import { loadSession } from "./data/session";
 import { ErrorBoundary } from "./ui/ErrorScreen";
+import { startSync } from "./ui/syncRunner";
 import { listenForErrors } from "./ui/diagnostics";
 import { listenForDisplay } from "./ui/display";
 import { listenForInstall } from "./ui/install";
@@ -33,3 +34,4 @@ void Promise.all([loadLoggingCaregiver(), loadSession()]).finally(() =>
 
 // After the first paint, and never blocking it.
 void askToKeepData();
+startSync();

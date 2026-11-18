@@ -17,6 +17,7 @@ import { ago, shortDate } from "./format";
 import { Icon, type IconName } from "./Icon";
 import { PatientAvatar } from "./PatientAvatar";
 import { ResearchExportCard } from "./ResearchExportCard";
+import { SyncCard } from "./SyncCard";
 import { Sheet } from "./Sheet";
 import { canInstall, install, isInstalled, onInstallChange } from "./install";
 import type { DataPage } from "./route";
@@ -459,6 +460,7 @@ export function DataScreen({
         {page === "backup" && study.researchExport && (
           <ResearchExportCard patients={patients.filter(isActive)} current={current} />
         )}
+        {page === "backup" && study.syncToLab && <SyncCard patients={patients.filter(isActive)} onChange={onChange} />}
         {page === "display" && <DisplaySettings />}
         {page === "safe" && (
           <section className="card" aria-label="Keep data safe on this phone">

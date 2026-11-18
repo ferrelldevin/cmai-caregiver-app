@@ -145,6 +145,7 @@ export function parseBackup(raw: string, now = Date.now()) {
   const patients = keep<Patient>(data.patients, (p) => {
     if (typeof p.id !== "string" || !CODE.test(p.id) || !inRange(p.anchor)) return null;
     if (p.demo !== undefined && p.demo !== true) return null;
+    if (p.selfTest !== undefined && (p.selfTest !== true || p.demo)) return null;
     if (p.color !== undefined && (!int(p.color) || p.color < 0 || p.color > 63)) return null;
     // Archived (D-20): a date and a reason from the list, or neither.
     if ((p.archivedAt === undefined) !== (p.archiveReason === undefined)) return null;
@@ -154,6 +155,7 @@ export function parseBackup(raw: string, now = Date.now()) {
       id: p.id,
       anchor: p.anchor,
       ...(p.demo ? { demo: true } : {}),
+      ...(p.selfTest ? { selfTest: true } : {}),
       ...(p.color !== undefined ? { color: p.color } : {}),
       ...(p.archivedAt !== undefined ? { archivedAt: p.archivedAt, archiveReason: p.archiveReason as string } : {}),
       ...(p.archiveNote !== undefined ? { archiveNote: p.archiveNote as string } : {}),
