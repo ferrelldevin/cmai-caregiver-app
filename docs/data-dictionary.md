@@ -143,7 +143,7 @@ A missing key and an empty CSV cell mean the same thing: not recorded.
 | `from`          | object, or missing            | The fields as they were, only those that changed |
 | `to`            | object, or missing            | The fields as they became                        |
 
-Edits to the same log less than 5 minutes apart are merged into one entry with the first `from` and the latest `to` (`EDIT_MERGE_MS` in `src/data/logs.ts`). Not recorded: who made the change (R2, plan step 5.1).
+Edits to the same log less than 5 minutes apart are merged into one entry with the first `from` and the latest `to` (`EDIT_MERGE_MS` in `src/data/logs.ts`). A behavior correction (F-64, lab build) is an `edit` entry with reason `wrong_item` whose `from` and `to` hold `itemId`; it is never merged. Not recorded: who made the change (R2, plan step 5.1).
 
 Example (made-up): a log's time moved 15 minutes later, and another log deleted.
 
