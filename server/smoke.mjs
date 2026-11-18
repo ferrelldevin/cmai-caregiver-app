@@ -173,15 +173,20 @@ const moved = file([{ ...a, participant_id: "P-OTHER" }]);
 moved.header.participant_id = "P-OTHER";
 r = await call("POST", "/v1/logs", WRITE_KEY, moved);
 step(r.status === 409, "a record already stored for another participant: 409");
+r = await call("PUT", "/v1/logs", WRITE_KEY, file([a]));
+step(r.status === 405, "the wrong method: 405");
+r = await call("GET", `/v1/export?participant=${PARTICIPANT}&from=2020-01-01&to=2026-12-31`, READ_KEY);
+step(r.status === 400, "a range of more than 800 days: 400");
+const p4 = await call("GET", `/v1/export?participant=P-NOBODY&from=2026-11-02&to=2026-11-02`, READ_KEY);
+step(p4.status === 200 && p4.json.records.length === 0, "an unknown participant: an empty file, not an error");
+save("pull-empty.json", p4.json);
+// Last: the refused 6 MB upload leaves its connection unusable, so nothing may follow it.
 const big = await fetch(BASE + "/v1/logs", {
   method: "POST",
   headers: { authorization: `Bearer ${WRITE_KEY}`, "content-type": "application/json" },
   body: JSON.stringify({ pad: "x".repeat(6 * 1024 * 1024) }),
 }).catch(() => null);
 step(big === null || big.status === 413, "a 6 MB body: refused (413, or the connection is cut)");
-const p4 = await call("GET", `/v1/export?participant=P-NOBODY&from=2026-11-02&to=2026-11-02`, READ_KEY);
-step(p4.status === 200 && p4.json.records.length === 0, "an unknown participant: an empty file, not an error");
-save("pull-empty.json", p4.json);
 
 console.log(
   failed
