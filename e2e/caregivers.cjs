@@ -177,6 +177,39 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await axe(p, "switcher with My residents");
   await sw.getByRole("button", { name: /^P-02/ }).click();
   ok((await p.locator(".pt-id b").textContent()) === "P-02", "a resident outside My residents is one tap away");
+
+  // Removing a caregiver asks first (design note 026): Cancel keeps them, the confirm removes or archives.
+  await p.locator("nav.tabs button", { hasText: "Settings" }).click();
+  await p.locator(".menu-row", { hasText: "Caregivers" }).click();
+  await p.getByLabel("Caregiver initials").fill("qr"); await p.keyboard.press("Enter");
+  await p.getByText("Added QR as C-03.").waitFor();
+  await p.getByRole("button", { name: "Remove QR" }).click();
+  const ask = p.getByRole("dialog", { name: "Remove QR?" });
+  await ask.waitFor();
+  ok((await ask.textContent()).includes("stay, with the code C-03"), "Remove asks first and says the logs keep the code");
+  await axe(p, "Remove caregiver sheet");
+  await p.screenshot({ path: `${OUT}/caregivers-remove.png` });
+  await ask.getByRole("button", { name: "Cancel" }).click();
+  await ask.waitFor({ state: "hidden" });
+  ok(await p.getByRole("button", { name: "Remove QR" }).isVisible(), "Cancel keeps the caregiver");
+  await p.getByRole("button", { name: "Remove QR" }).click();
+  await ask.getByRole("button", { name: "Remove QR" }).click();
+  await p.getByText("Removed QR (C-03).").waitFor();
+  const profiles = () => p.evaluate(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("caregivers").objectStore("caregivers").getAll(); g.onsuccess = () => { r.result.close(); res(g.result); }; }; }));
+  ok(!(await profiles()).some((c) => c.id === "C-03"), "confirming deletes a caregiver with no logs");
+  await p.getByRole("button", { name: "Remove JM" }).click();
+  await p.getByRole("dialog", { name: "Remove JM?" }).getByRole("button", { name: "Remove JM" }).click();
+  await p.getByText("JM (C-01) is archived. Their logs keep their code.").waitFor();
+  ok((await profiles()).some((c) => c.id === "C-01" && c.archivedAt) && (await stored(p)).observations.some((o) => o.by === "C-01"), "confirming archives a caregiver who has logs, and the logs keep C-01");
+  ok((await p.getByRole("button", { name: "Remove JM" }).count()) === 0, "the archived caregiver leaves the list");
+  await p.getByRole("button", { name: "Remove AB" }).click();
+  ok((await p.getByRole("dialog", { name: "Remove AB?" }).textContent()).includes("AB is logging now"), "removing whoever is logging says nobody will be chosen");
+  await p.keyboard.press("Escape");
+  ok(await p.getByRole("button", { name: "Remove AB" }).isVisible(), "Esc keeps the caregiver");
+  ok(await p.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Remove AB"), "closing the sheet puts focus back on the button that opened it");
+  await p.getByRole("button", { name: "Remove AB" }).click();
+  await p.getByRole("dialog", { name: "Remove AB?" }).getByRole("button", { name: "Remove AB" }).click();
+  await p.locator(".cg-chip", { hasText: "Who?" }).waitFor(); ok(true, "after removing whoever was logging, nobody is chosen");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();
 
