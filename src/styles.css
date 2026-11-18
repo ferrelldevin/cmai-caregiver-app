@@ -744,22 +744,23 @@ input[type="checkbox"] {
    message, just above the tab bar, so it never sits on a page title or a Back button (design note 028). */
 .switch-notice {
   position: fixed;
-  left: 50%;
+  left: 12px;
+  right: 12px;
   bottom: calc(96px + env(safe-area-inset-bottom));
-  transform: translate(-50%, 4px);
+  width: fit-content;
+  margin: 0 auto;
+  transform: translateY(4px);
   z-index: 5;
-  margin: 0;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  max-width: calc(100% - 24px);
   padding: var(--s2) var(--s4);
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-text);
   font-size: var(--fs-sm);
   font-weight: 700;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   box-shadow: var(--shadow-2);
   opacity: 0;
   pointer-events: none;
@@ -773,7 +774,7 @@ body:has(.snackbar) .switch-notice {
 }
 .switch-notice.on {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: none;
 }
 
 /* Patient switcher sheet (src/ui/PatientSheet.tsx): from the bottom on a phone, centered on desktop. */
