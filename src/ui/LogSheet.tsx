@@ -4,12 +4,15 @@
 // then one action row at the bottom: Delete on the left, Done on the right (Devin, 2026-10-24). Design note: docs/design/notes/003-log-confirmation.md.
 // Delete is two steps: pick a reason, then confirm. The log is kept, marked deleted with the
 // reason (D-14, design note 007).
+// "Change" beside the behavior (F-64, design note 025) corrects a wrong pick on the same log: pick
+// the right one, confirm. It saves at once with the reason "Wrong behavior"; nothing is deleted.
 
 import { useEffect, useRef, useState } from "react";
 import type { StoredObservation } from "../data/db";
 import { CHANGE_REASONS, DELETE_REASONS, logVersions, REASON_LABEL, type LogVersion } from "../data/logs";
 import { addDays } from "../scoring/engine";
-import { ITEMS } from "../scoring/items";
+import { GROUP_LABELS, ITEMS, type FactorGroup } from "../scoring/items";
+import { SHORT_NAMES } from "./behavior-names";
 import { dayAndTime } from "./format";
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
@@ -33,6 +36,7 @@ export const BEFORE_OPTIONS = [
   "Nothing noticed",
   "Other",
 ];
+const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"]; // as on the Log screen
 const EARLIER = [0, 5, 15, 30, 60]; // minutes before the log was made
 
 const hhmm = (t: number) => {
@@ -65,6 +69,8 @@ interface Props {
   /** With `changeReasons` on, one call per Save change, with the reason's code; otherwise one call per tap, as always. */
   onPatch: (change: Partial<StoredObservation>, reason?: string) => void | Promise<boolean>;
   onDelete: (reason: string, note?: string) => void;
+  /** Corrects which behavior the log is for (F-64). Resolves false when it was not saved. */
+  onCorrect?: (itemId: number) => Promise<boolean>;
   onClose: () => void;
 }
 
@@ -77,6 +83,8 @@ function describe(v: LogVersion, prev?: LogVersion) {
   if (v.action === "restore") return "Restored";
   const a = prev?.values;
   const bits: string[] = [];
+  if (a && a.itemId !== v.values.itemId)
+    bits.push(`behavior ${SHORT_NAMES[a.itemId]} to ${SHORT_NAMES[v.values.itemId]}`);
   if (a && a.at !== v.values.at) bits.push(`time ${hhmm(a.at)} to ${hhmm(v.values.at)}`);
   if (a && a.approx !== v.values.approx) bits.push(v.values.approx ? "marked approximate" : "no longer approximate");
   if (a && a.before !== v.values.before) bits.push(v.values.before ? `before: ${v.values.before}` : "before cleared");
@@ -85,7 +93,7 @@ function describe(v: LogVersion, prev?: LogVersion) {
   return `Changed: ${bits.join(", ") || "details"}`;
 }
 
-export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, onClose }: Props) {
+export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, onCorrect, onClose }: Props) {
   // G11 (`changeReasons`): changes are held until Save change, which asks why. Otherwise they save as made.
   const staged = study.changeReasons;
   const [draft, setDraft] = useState<Partial<StoredObservation>>({});
@@ -116,6 +124,8 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
   const [deleting, setDeleting] = useState(false); // the reason-and-confirm step
   const [reason, setReason] = useState<string | null>(null);
   const [reasonNote, setReasonNote] = useState("");
+  const [picking, setPicking] = useState(false); // the pick-the-right-behavior step (F-64)
+  const [pick, setPick] = useState<number | null>(null);
   const reasons = useRef<HTMLDivElement>(null);
   const deleteByKey = useRef(false);
   // Another log, or the sheet closing, always starts back at the details.
@@ -123,16 +133,19 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
     setDeleting(false);
     setReason(null);
     setReasonNote("");
+    setPicking(false);
+    setPick(null);
   }, [obs?.id]);
   // The button pressed is gone once the step changes, so focus moves into the new step: the
   // first reason from the keyboard, else the dialog itself (no stray focus ring on a tap, F-14).
   const sheetRoot = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (deleting) sheetRoot.current = reasons.current?.closest("dialog") ?? null;
+    const step = deleting || picking;
+    if (step) sheetRoot.current = reasons.current?.closest("dialog") ?? null;
     const target =
-      deleting && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : sheetRoot.current;
+      step && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : sheetRoot.current;
     target?.focus({ preventScroll: true });
-  }, [deleting]);
+  }, [deleting, picking]);
   const canDelete = reason !== null && (staged || reason !== "Other" || reasonNote.trim() !== "");
   async function saveChange() {
     const code = CHANGE_REASONS[REASON_LABELS.indexOf(why ?? "")];
@@ -143,6 +156,16 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
     setChanging(false);
     setWhy(null);
   }
+  async function saveBehavior() {
+    if (pick === null || !onCorrect) return;
+    if (await onCorrect(pick)) {
+      // An end time held in the draft goes with the old behavior if the new one has none (F-39).
+      if (!ITEMS[pick - 1].continuous) setDraft(({ endedAt: _gone, ...rest }) => rest);
+      setSaves((n) => n + 1);
+    }
+    setPicking(false);
+    setPick(null);
+  }
 
   return (
     <Sheet
@@ -150,11 +173,19 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
       viaKeyboard={viaKeyboard}
       keyboardFocus=".log-sheet input[type='time']"
       className="log-sheet"
-      title={deleting ? "Delete this log?" : changing ? "Why change it?" : (item?.name ?? "")}
+      title={
+        deleting
+          ? "Delete this log?"
+          : picking
+            ? "Which behavior was it?"
+            : changing
+              ? "Why change it?"
+              : (item?.name ?? "")
+      }
       subtitle={
         obs && (
           <>
-            {deleting ? `${item?.name} · ` : ""}
+            {deleting || picking ? `${item?.name} · ` : ""}
             {obs.patientId} · logged {dayAndTime(obs.loggedAt)}
           </>
         )
@@ -169,6 +200,15 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
             </button>
             <button disabled={!why} onClick={saveChange}>
               Save change
+            </button>
+          </>
+        ) : picking ? (
+          <>
+            <button className="ghost" onClick={() => setPicking(false)}>
+              Back
+            </button>
+            <button disabled={pick === null} onClick={saveBehavior}>
+              Change behavior
             </button>
           </>
         ) : deleting ? (
@@ -285,8 +325,52 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
           <p className="muted">The old version is kept. The research team can see every change and why.</p>
         </div>
       )}
-      {obs && !deleting && !changing && (
+      {obs && picking && (
+        <div className="sheet-scroll" ref={reasons}>
+          {GROUP_ORDER.map((g) => (
+            <section className="form-group" key={g} aria-labelledby={`ls-pick-${g}`}>
+              <h3 className="form-label" id={`ls-pick-${g}`}>
+                {GROUP_LABELS[g]}
+              </h3>
+              <div className="choice-grid">
+                {ITEMS.filter((i) => i.group === g && i.id !== obs.itemId).map((i) => (
+                  <button key={i.id} className="choice" aria-pressed={pick === i.id} onClick={() => setPick(i.id)}>
+                    <span>{i.name}</span>
+                    {pick === i.id && <Icon name="check" size={18} />}
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+          <p className="muted">
+            Same log, same time, counted once. Your first pick is kept in its history, marked Wrong behavior.
+          </p>
+        </div>
+      )}
+      {obs && !deleting && !changing && !picking && (
         <div className="sheet-scroll">
+          {study.correctBehavior && onCorrect && item && (
+            <section className="form-group" aria-labelledby="ls-what">
+              <h3 className="form-label" id="ls-what">
+                Behavior
+              </h3>
+              <div className="form-card">
+                <div className="form-row">
+                  <span>{item.name}</span>
+                  <button
+                    className="ghost small"
+                    aria-label="Change behavior"
+                    onClick={(e) => {
+                      deleteByKey.current = e.detail === 0;
+                      setPicking(true);
+                    }}
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
           <section className="form-group" aria-labelledby="ls-when">
             <h3 className="form-label" id="ls-when">
               When it happened

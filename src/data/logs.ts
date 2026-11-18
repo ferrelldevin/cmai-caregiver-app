@@ -1,5 +1,5 @@
-// Changing a log after it is made: edit, delete, restore. Every change is written to the
-// change history in the same transaction, so the history and the log can't disagree.
+// Changing a log after it is made: edit, correct the behavior, delete, restore. Every change is
+// written to the change history in the same transaction, so the history and the log can't disagree.
 // A delete only marks the log (soft delete); scoring skips marked logs (design note 007).
 
 import { ITEMS } from "../scoring/items";
@@ -157,7 +157,14 @@ async function changeLog(
     // the first "from" and the latest "to" (EDIT_MERGE_MS). With `changeReasons` on, history is
     // append-only: edits are saved together by Save change, and no entry is ever rewritten.
     const last = (await db.changes.where("observationId").equals(obs.id).sortBy("id")).pop();
-    if (!study.changeReasons && last?.id !== undefined && last.action === "edit" && now - last.at < EDIT_MERGE_MS) {
+    // A behavior correction (it carries a reason) is always its own entry, so nothing merges into it.
+    if (
+      !study.changeReasons &&
+      last?.id !== undefined &&
+      last.action === "edit" &&
+      !last.reason &&
+      now - last.at < EDIT_MERGE_MS
+    ) {
       // A field the earlier entry already touched keeps its first value, even if that was "unset".
       const touched = new Set([...Object.keys(last.from ?? {}), ...Object.keys(last.to ?? {})]);
       const firstFrom = { ...Object.fromEntries(Object.entries(from).filter(([k]) => !touched.has(k))), ...last.from };
@@ -172,6 +179,39 @@ async function changeLog(
       from,
       to,
       ...(code && !correction ? { reason: code } : {}),
+    });
+  });
+}
+
+/** A correction that names a number that is not one of the 29 behaviors, refused. */
+export class LogItemError extends Error {}
+
+/**
+ * Corrects which behavior a log is for (F-64, design note 025). The same log, never a new one: its
+ * unique ID, time and maker stay, the revision goes up by one, and the history keeps the old
+ * behavior with the reason `wrong_item`, so it is counted once and nothing is lost. A deleted log
+ * can't be corrected. An end time is dropped when the new behavior does not come in stretches (F-39).
+ */
+export async function correctItem(obs: Saved, itemId: number, now = Date.now()) {
+  const item = Number.isInteger(itemId) ? ITEMS[itemId - 1] : undefined;
+  if (!item) throw new LogItemError("Pick one of the 29 behaviors.");
+  await db.transaction("rw", [db.observations, db.changes], async () => {
+    const current = await db.observations.get(obs.id);
+    if (!current || current.deletedAt !== undefined || current.itemId === itemId) return;
+    const dropEnd = current.endedAt !== undefined && !item.continuous;
+    await db.observations.update(obs.id, {
+      itemId,
+      ...(dropEnd ? { endedAt: undefined } : {}),
+      rev: await nextRev(obs.id, current),
+    });
+    await record({
+      observationId: obs.id,
+      patientId: obs.patientId,
+      action: "edit",
+      at: now,
+      reason: "wrong_item",
+      from: { itemId: current.itemId, ...(dropEnd ? { endedAt: current.endedAt } : {}) },
+      to: { itemId },
     });
   });
 }
@@ -199,7 +239,7 @@ export interface LogVersion {
   by?: string;
   action: "created" | "edit" | "delete" | "restore";
   reason?: string;
-  values: { at: number; approx: boolean; before?: string; endedAt?: number; deleted: boolean };
+  values: { itemId: number; at: number; approx: boolean; before?: string; endedAt?: number; deleted: boolean };
 }
 
 /** Every version of a log, oldest first. Version 1 is the log as made. Reads only. */
@@ -208,6 +248,7 @@ export async function logVersions(observationId: number): Promise<LogVersion[]> 
   if (!cur) return [];
   const changes = await db.changes.where("observationId").equals(observationId).sortBy("id");
   const snap = (o: StoredObservation) => ({
+    itemId: o.itemId,
     at: o.at,
     approx: !!o.approx,
     before: o.before,
@@ -219,9 +260,11 @@ export async function logVersions(observationId: number): Promise<LogVersion[]> 
   for (let i = changes.length - 1; i >= 0; i--) {
     const c = changes[i];
     out.push({ rev: i + 2, at: c.at, by: c.by, action: c.action, reason: c.reason, values: state });
-    // Step back over this change. A field that was unset is missing from `from`, so go by `to`.
+    // Step back over this change. A field that was unset is missing from `from`, and one that was
+    // cleared is missing from `to`, so go by both.
     const prev = { ...state };
-    for (const k of Object.keys(c.to ?? {}) as (keyof StoredObservation)[]) {
+    for (const k of new Set([...Object.keys(c.from ?? {}), ...Object.keys(c.to ?? {})])) {
+      if (k === "itemId") prev.itemId = c.from?.itemId ?? prev.itemId;
       if (k === "at") prev.at = (c.from?.at ?? prev.at) as number;
       if (k === "approx") prev.approx = !!c.from?.approx;
       if (k === "before") prev.before = c.from?.before;

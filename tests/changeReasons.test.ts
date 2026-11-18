@@ -113,11 +113,11 @@ describe("G11 change reasons (lab build)", () => {
       [5, "restore", "C-02", undefined, T + 40 * MIN],
     ]);
     expect(v.map((x) => x.values)).toEqual([
-      { at: T, approx: false, before: undefined, endedAt: undefined, deleted: false },
-      { at: T - 10 * MIN, approx: false, before: undefined, endedAt: undefined, deleted: false },
-      { at: T - 10 * MIN, approx: true, before: "Mealtime", endedAt: undefined, deleted: false },
-      { at: T - 10 * MIN, approx: true, before: "Mealtime", endedAt: undefined, deleted: true },
-      { at: T - 10 * MIN, approx: true, before: "Mealtime", endedAt: undefined, deleted: false },
+      { itemId: 1, at: T, approx: false, before: undefined, endedAt: undefined, deleted: false },
+      { itemId: 1, at: T - 10 * MIN, approx: false, before: undefined, endedAt: undefined, deleted: false },
+      { itemId: 1, at: T - 10 * MIN, approx: true, before: "Mealtime", endedAt: undefined, deleted: false },
+      { itemId: 1, at: T - 10 * MIN, approx: true, before: "Mealtime", endedAt: undefined, deleted: true },
+      { itemId: 1, at: T - 10 * MIN, approx: true, before: "Mealtime", endedAt: undefined, deleted: false },
     ]);
     expect((await db.observations.get(o.id))?.rev).toBe(5); // rev is 1 + changes, always
   });
