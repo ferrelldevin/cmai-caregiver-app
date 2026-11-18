@@ -130,9 +130,34 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   const who = p.getByRole("dialog", { name: "Who is logging?" });
   await who.waitFor(); ok(true, "the chip opens Who is logging?");
   await axe(p, "Who is logging? sheet");
+  // The sheet's two buttons sit side by side with space between them, never touching.
+  const acts = await who.locator(".sheet-actions button").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; }));
+  ok(acts.length === 2 && acts[0].t < acts[1].b && acts[1].t < acts[0].b && acts[1].l - acts[0].r >= 8, "Manage caregivers and Sign out share a row with space between them");
   await who.getByRole("button", { name: /^AB/ }).click();
   await newPin(p, "AB", "3691");
   await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching (through AB's new PIN) says who is logging now");
+  // The message sits just above the tab bar: clear of the banner, any page title and any Back button.
+  await p.waitForTimeout(300);
+  const spot = await p.evaluate(() => {
+    const box = (sel) => { const e = document.querySelector(sel); if (!e) return null; const r = e.getBoundingClientRect(); return { t: r.top, b: r.bottom, l: r.left, r: r.right }; };
+    const n = box(".switch-notice"), tabs = box("nav.tabs"), pin = box(".pin");
+    const hits = [...document.querySelectorAll("h1, h2, .back-btn")].filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.left < n.r && r.right > n.l && r.top < n.b && r.bottom > n.t; }).length;
+    return { aboveTabs: n.b <= tabs.t, belowBanner: n.t >= pin.b, hits, inView: n.l >= 0 && n.r <= innerWidth };
+  });
+  ok(spot.aboveTabs && spot.belowBanner && spot.inView && spot.hits === 0, `the message sits above the tab bar and covers no title or Back button (${JSON.stringify(spot)})`);
+  // The longest message the app can make (a 12-letter patient code) wraps inside a 320 px screen.
+  await p.setViewportSize({ width: 320, height: 844 });
+  const long = await p.evaluate(() => {
+    const n = document.querySelector(".switch-notice"), c = n.cloneNode(true);
+    c.className = "switch-notice on"; c.removeAttribute("role"); c.lastChild.textContent = " Now on WWWWWWWWWWWW";
+    n.parentNode.appendChild(c);
+    const r = c.getBoundingClientRect(), tabs = document.querySelector("nav.tabs").getBoundingClientRect();
+    const out = { l: r.left, r: r.right, b: r.bottom, w: innerWidth, tabsTop: tabs.top, clipped: c.scrollWidth > c.clientWidth };
+    c.remove();
+    return out;
+  });
+  ok(long.l >= 0 && long.r <= long.w && long.b <= long.tabsTop && !long.clipped, `the longest message stays inside a 320 px screen (${JSON.stringify(long)})`);
+  await p.setViewportSize({ width: 390, height: 844 });
   ok((await chip.textContent()).includes("AB"), "the chip shows AB");
   await p.waitForTimeout(700);
   await p.getByRole("tabpanel").getByRole("button", { name: /^Kicking/ }).click(); await p.locator(".snackbar", { hasText: "Kicking" }).waitFor();
@@ -226,11 +251,22 @@ const saveChange = async (sheet, reason = "Wrong time") => {
     await q.getByLabel("Caregiver initials").fill("JM"); await q.keyboard.press("Enter");
     await newPin(q, "JM", "2580");
     await q.getByText("C-01 · logging now").waitFor();
+    // Three wide letters, the most a caregiver can have, stay inside the round badge.
+    await q.getByLabel("Caregiver initials").fill("WWW"); await q.keyboard.press("Enter");
+    await q.getByText("Added WWW as C-02.").waitFor();
+    // The text box's corners must lie inside the circle, not just inside the square around it.
+    const fits = (sel) => q.locator(sel, { hasText: "WWW" }).evaluateAll((els) => els.length > 0 && els.every((e) => {
+      const g = document.createRange(); g.selectNodeContents(e);
+      const t = g.getBoundingClientRect(), radius = e.clientWidth / 2;
+      return e.classList.contains("long") && e.clientWidth === e.clientHeight && Math.hypot(t.width / 2, t.height / 2) <= radius;
+    }));
+    ok(await fits(".patient-list .cg-badge"), `three letters fit the badge in the caregiver list, ${name}`);
     await axe(q, `caregivers page, ${name}`);
     await q.locator("nav.tabs button", { hasText: "Log" }).click();
     await q.locator(".cg-chip").click();
     await q.getByRole("dialog", { name: "Who is logging?" }).waitFor();
     await axe(q, `Who is logging?, ${name}`);
+    ok(await fits(".sheet-row .cg-badge"), `three letters fit the badge in Who is logging?, ${name}`);
     await c.close();
   }
   await b.close();
