@@ -96,7 +96,7 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   // F-58: a role for research exports, stored once on the profile. Caregiver unless changed.
   const role = p.getByRole("radiogroup", { name: "Role for JM" });
   ok(await role.getByRole("radio", { name: "Caregiver" }).isChecked(), "the role starts as Caregiver");
-  await role.getByRole("radio", { name: "Researcher" }).click();
+  await role.getByRole("radio", { name: "Researcher" }).check();
   await p.waitForFunction(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("caregivers").objectStore("caregivers").getAll(); g.onsuccess = () => { r.result.close(); res(g.result.some((c) => c.initials === "JM" && c.role === "researcher")); }; }; }));
   ok(await role.getByRole("radio", { name: "Researcher" }).isChecked(), "the role is saved on the profile and shown");
   // The role sits on its own line: nothing in a caregiver's row overlaps or runs past the card.
@@ -106,9 +106,13 @@ const saveChange = async (sheet, reason = "Wrong time") => {
       const text = li.querySelector(".patient-main").getBoundingClientRect();
       const actions = li.querySelector(".row").getBoundingClientRect();
       const pick = li.querySelector(".role-pick").getBoundingClientRect();
-      const labels = [...li.querySelectorAll(".role-pick label span")];
+      const choices = [...li.querySelectorAll(".role-pick label")];
       return text.right <= actions.left && actions.right <= card.right + 1 && pick.right <= card.right + 1 &&
-        pick.top >= actions.bottom && labels.every((s) => s.scrollWidth <= s.clientWidth && s.getBoundingClientRect().height >= 44);
+        pick.top >= Math.max(text.bottom, actions.bottom) &&
+        choices.every((l) => {
+          const word = l.querySelector("span"), hit = l.querySelector("input").getBoundingClientRect();
+          return word.scrollWidth <= word.clientWidth && hit.height >= 44 && hit.left >= pick.left && hit.right <= pick.right + 1;
+        });
     });
   });
   ok(fit, "at phone width each row's text, actions and role fit the card without overlapping, and every role target is 44 px tall");

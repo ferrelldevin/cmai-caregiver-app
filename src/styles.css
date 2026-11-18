@@ -1904,6 +1904,7 @@ button.text-danger {
 .role-pick {
   grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   padding: 4px;
@@ -1918,15 +1919,13 @@ button.text-danger {
 }
 /* The narrowest phones: the word "Role" moves above its three choices. */
 @media (max-width: 359px) {
-  .role-pick {
-    flex-wrap: wrap;
-  }
   .role-pick-label {
     flex-basis: 100%;
     padding-top: 4px;
   }
 }
-/* Each choice is as wide as its word needs, so the longest one is never cut on a narrow phone. */
+/* Each choice is as wide as its word needs, so the longest one is never cut on a narrow phone.
+   If they still do not fit (very large text), a choice moves to the next line. */
 .role-pick label {
   position: relative;
   flex: 1 1 auto;

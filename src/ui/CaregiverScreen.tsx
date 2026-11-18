@@ -13,7 +13,8 @@ import { Sheet } from "./Sheet";
 import { SetupPinCard } from "./SignInScreen";
 
 // F-58: the role stamped on research exports. Three fixed choices, so all three stay in view and one tap picks.
-const ROLES: [NonNullable<Caregiver["role"]>, string][] = [
+type Role = NonNullable<Caregiver["role"]>;
+const ROLES: [Role, string][] = [
   ["caregiver", "Caregiver"],
   ["staff", "Staff"],
   ["researcher", "Researcher"],
@@ -32,6 +33,8 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
   const [mine, setMine] = useState<string[]>([]);
   const me = caregivers.find((c) => c.id === loggingAs);
+  // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
+  const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
   // With the PIN on, the phone needs a setup PIN before its first caregiver (plan 5.3).
   const [needsSetup, setNeedsSetup] = useState(false);
   useEffect(() => {
@@ -159,8 +162,9 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                           type="radio"
                           name={`role-${c.id}`}
                           value={value}
-                          checked={(c.role ?? "caregiver") === value}
+                          checked={(pickedRole[c.id] ?? c.role ?? "caregiver") === value}
                           onChange={async () => {
+                            setPickedRole((picked) => ({ ...picked, [c.id]: value }));
                             await setCaregiverRole(c.id, value);
                             onChange();
                           }}
