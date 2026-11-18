@@ -1890,10 +1890,8 @@ button.text-danger {
 }
 .add-patient {
   display: grid;
-  grid-template-columns: minmax(
-    0,
-    1fr
-  ); /* the column may shrink below its widest child, so a 320 px phone does not scroll sideways */
+  /* The column may shrink below its widest child, so a 320 px phone does not scroll sideways. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s1);
 }
 .field-label {
