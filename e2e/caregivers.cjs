@@ -265,7 +265,7 @@ const saveChange = async (sheet, reason = "Wrong time") => {
     await q.setViewportSize({ width: 320, height: 844 });
     const narrow = await q.evaluate(() => ({
       over: document.documentElement.scrollWidth - innerWidth,
-      oneLine: [...document.querySelectorAll(".cg-list .patient-main .muted")].every((e) => e.getClientRects().length === 1 && e.scrollWidth <= e.clientWidth + 1),
+      oneLine: [...document.querySelectorAll(".cg-list .cg-code")].every((e) => e.getClientRects().length === 1) && [...document.querySelectorAll(".cg-list .patient-main")].every((e) => e.scrollWidth <= e.clientWidth + 1),
       inCard: [...document.querySelectorAll(".cg-list button")].every((e) => e.getBoundingClientRect().right <= e.closest(".card").getBoundingClientRect().right),
     }));
     ok(narrow.over <= 0 && narrow.oneLine && narrow.inCard, `the caregiver list fits a 320 px phone, ${name} (${JSON.stringify(narrow)})`);

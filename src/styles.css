@@ -1920,13 +1920,13 @@ button.text-danger {
 .patient-list li > .row {
   flex-wrap: nowrap;
 }
-/* On a 320 px phone a caregiver's buttons take their own line, so the code never breaks in two. */
+/* A caregiver's code never breaks in two. On a 320 px phone the buttons take their own line. */
 @media (max-width: 359px) {
   .cg-list li > .row {
     grid-column: 1 / -1;
   }
 }
-.cg-list .patient-main .muted {
+.cg-code {
   white-space: nowrap;
 }
 /* Role on a caregiver's row (F-58, lab build): its own line under the row, three choices in view.
@@ -2948,6 +2948,10 @@ table.cmp td {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+}
+/* iOS Safari centers the value of a full-width date field; keep it at the start, like the list above. */
+.rx-field > input[type="date"]::-webkit-date-and-time-value {
+  text-align: start;
 }
 
 /* Change history on the log details sheet (G11, lab build). */

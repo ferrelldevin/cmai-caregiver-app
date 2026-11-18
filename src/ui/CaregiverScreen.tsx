@@ -141,7 +141,10 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                 </span>
                 <div className="patient-main">
                   <b>{c.initials}</b>
-                  <span className="muted">{c.id === loggingAs ? `${c.id} · logging now` : c.id}</span>
+                  <span className="muted">
+                    <span className="cg-code">{c.id}</span>
+                    {c.id === loggingAs && " · logging now"}
+                  </span>
                 </div>
                 <div className="row">
                   {c.id !== loggingAs && (

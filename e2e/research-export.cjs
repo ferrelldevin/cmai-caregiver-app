@@ -43,12 +43,14 @@ async function withDemo(p) {
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
   await openCard(p);
   // Every control on the card lines up on both edges, at phone width and on a 320 px phone.
-  for (const w of [390, 320]) {
+  for (const w of [430, 390, 320]) {
     await p.setViewportSize({ width: w, height: 844 });
     const edges = await p.evaluate(() => ["#rx-patient", "#rx-start", "#rx-end"].map((s) => document.querySelector(s)).concat([...document.querySelectorAll("#research-h ~ .rx-field > button")]).map((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right)]; }));
     const stacked = edges.every(([l, r]) => l === edges[0][0] && r === edges[0][1]);
     const halves = edges[1][0] === edges[0][0] && edges[2][1] === edges[0][1] && Math.abs((edges[1][1] - edges[1][0]) - (edges[2][1] - edges[2][0])) <= 1;
     ok(edges.length === 4 && (stacked || halves), `the export fields line up on both edges at ${w} px (${JSON.stringify(edges)})`);
+    if (w === 430) ok(halves && !stacked, "with room, the two days share a row in equal halves");
+    ok(await p.evaluate(() => ["#rx-start", "#rx-end"].every((s) => { const e = document.querySelector(s); return e.scrollWidth <= e.clientWidth; })), `each date shows in full at ${w} px`);
     ok((await p.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0, `no sideways scroll on Backup at ${w} px`);
   }
   await p.setViewportSize({ width: 390, height: 844 });
