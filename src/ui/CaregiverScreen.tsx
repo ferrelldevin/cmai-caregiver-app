@@ -12,6 +12,13 @@ import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 import { SetupPinCard } from "./SignInScreen";
 
+// F-58: the role stamped on research exports. Three fixed choices, so all three stay in view and one tap picks.
+const ROLES: [NonNullable<Caregiver["role"]>, string][] = [
+  ["caregiver", "Caregiver"],
+  ["staff", "Staff"],
+  ["researcher", "Researcher"],
+];
+
 interface PageProps {
   caregivers: Caregiver[];
   loggingAs: string | null;
@@ -128,21 +135,6 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                   <span className="muted">{c.id === loggingAs ? `${c.id} · logging now` : c.id}</span>
                 </div>
                 <div className="row">
-                  {study.researchExport && (
-                    <select
-                      className="role-select"
-                      aria-label={`Role for ${c.initials}`}
-                      value={c.role ?? "caregiver"}
-                      onChange={async (e) => {
-                        await setCaregiverRole(c.id, e.target.value as NonNullable<Caregiver["role"]>);
-                        onChange();
-                      }}
-                    >
-                      <option value="caregiver">Caregiver</option>
-                      <option value="staff">Staff</option>
-                      <option value="researcher">Researcher</option>
-                    </select>
-                  )}
                   {c.id !== loggingAs && (
                     <button className="ghost small" aria-label={`Log as ${c.initials}`} onClick={() => onLogAs(c.id)}>
                       Log as
@@ -156,6 +148,28 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                     Remove
                   </button>
                 </div>
+                {study.researchExport && (
+                  <div className="role-pick" role="radiogroup" aria-label={`Role for ${c.initials}`}>
+                    <span className="role-pick-label" aria-hidden>
+                      Role
+                    </span>
+                    {ROLES.map(([value, label]) => (
+                      <label key={value}>
+                        <input
+                          type="radio"
+                          name={`role-${c.id}`}
+                          value={value}
+                          checked={(c.role ?? "caregiver") === value}
+                          onChange={async () => {
+                            await setCaregiverRole(c.id, value);
+                            onChange();
+                          }}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

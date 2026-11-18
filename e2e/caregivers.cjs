@@ -94,11 +94,24 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await p.getByText("Added AB as C-02.").waitFor(); ok(true, "AB is C-02");
   ok((await chip.textContent()).includes("JM"), "the first caregiver added is the one logging");
   // F-58: a role for research exports, stored once on the profile. Caregiver unless changed.
-  const role = p.getByLabel("Role for JM");
-  ok((await role.inputValue()) === "caregiver", "the role starts as Caregiver");
-  await role.selectOption("researcher");
+  const role = p.getByRole("radiogroup", { name: "Role for JM" });
+  ok(await role.getByRole("radio", { name: "Caregiver" }).isChecked(), "the role starts as Caregiver");
+  await role.getByRole("radio", { name: "Researcher" }).click();
   await p.waitForFunction(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("caregivers").objectStore("caregivers").getAll(); g.onsuccess = () => { r.result.close(); res(g.result.some((c) => c.initials === "JM" && c.role === "researcher")); }; }; }));
-  ok((await p.getByLabel("Role for JM").inputValue()) === "researcher", "the role is saved on the profile and shown");
+  ok(await role.getByRole("radio", { name: "Researcher" }).isChecked(), "the role is saved on the profile and shown");
+  // The role sits on its own line: nothing in a caregiver's row overlaps or runs past the card.
+  const fit = await p.evaluate(() => {
+    const card = document.querySelector(".patient-list").getBoundingClientRect();
+    return [...document.querySelectorAll(".patient-list li")].every((li) => {
+      const text = li.querySelector(".patient-main").getBoundingClientRect();
+      const actions = li.querySelector(".row").getBoundingClientRect();
+      const pick = li.querySelector(".role-pick").getBoundingClientRect();
+      const labels = [...li.querySelectorAll(".role-pick label span")];
+      return text.right <= actions.left && actions.right <= card.right + 1 && pick.right <= card.right + 1 &&
+        pick.top >= actions.bottom && labels.every((s) => s.scrollWidth <= s.clientWidth && s.getBoundingClientRect().height >= 44);
+    });
+  });
+  ok(fit, "at phone width each row's text, actions and role fit the card without overlapping, and every role target is 44 px tall");
   await p.screenshot({ path: `${OUT}/caregivers-page.png` });
 
   // A log carries who made it; switching is one tap from the chip and never asked for.
