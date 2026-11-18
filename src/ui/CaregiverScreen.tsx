@@ -35,6 +35,8 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   const me = caregivers.find((c) => c.id === loggingAs);
   // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
   const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
+  // Removing asks first, in the same sheet a patient gets (design note 024).
+  const [confirmRemove, setConfirmRemove] = useState<{ c: Caregiver; viaKeyboard: boolean } | null>(null);
   // With the PIN on, the phone needs a setup PIN before its first caregiver (plan 5.3).
   const [needsSetup, setNeedsSetup] = useState(false);
   useEffect(() => {
@@ -69,6 +71,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   }
 
   async function remove(c: Caregiver) {
+    setConfirmRemove(null);
     const how = await removeCaregiver(c.id);
     if (c.id === loggingAs) onLogAs(null);
     setMsg({
@@ -146,7 +149,10 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                   <button
                     className="ghost small danger-text"
                     aria-label={`Remove ${c.initials}`}
-                    onClick={() => remove(c)}
+                    onClick={(e) => {
+                      setMsg(null);
+                      setConfirmRemove({ c, viaKeyboard: e.detail === 0 });
+                    }}
                   >
                     Remove
                   </button>
@@ -178,6 +184,39 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
             ))}
           </ul>
         )}
+        <Sheet
+          open={!!confirmRemove}
+          viaKeyboard={confirmRemove?.viaKeyboard ?? false}
+          keyboardFocus=".confirm-cancel"
+          className="confirm-sheet"
+          title={confirmRemove ? `Remove ${confirmRemove.c.initials}?` : ""}
+          headerClose={false}
+          footer={
+            confirmRemove && (
+              <>
+                <button className="ghost confirm-cancel" onClick={() => setConfirmRemove(null)}>
+                  Cancel
+                </button>
+                <button className="danger" onClick={() => remove(confirmRemove.c)}>
+                  Remove {confirmRemove.c.initials}
+                </button>
+              </>
+            )
+          }
+          onClose={() => setConfirmRemove(null)}
+        >
+          {confirmRemove && (
+            <div className="sheet-scroll">
+              <p>
+                {confirmRemove.c.initials} ({confirmRemove.c.id}) leaves the list on this phone. Logs{" "}
+                {confirmRemove.c.initials} already made stay, with the code {confirmRemove.c.id}.
+              </p>
+              {confirmRemove.c.id === loggingAs && (
+                <p className="muted">{confirmRemove.c.initials} is logging now. After this, nobody is chosen.</p>
+              )}
+            </div>
+          )}
+        </Sheet>
       </section>
 
       {me && patients.length > 0 && (
