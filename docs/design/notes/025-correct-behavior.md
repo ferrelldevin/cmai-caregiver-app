@@ -24,11 +24,16 @@ What was missing was only a way to do it: the behavior was not an editable field
 - `correctItem(log, item)` in `src/data/logs.ts`. One transaction: the log's item number changes, `rev` + 1, and one history entry is added with action `edit`, reason `wrong_item`, `from: { itemId: old }`, `to: { itemId: new }`. The log's unique ID, times, maker and phone do not change. No row is added to `observations`.
 - The reason is always `wrong_item` and is not asked for: changing the behavior has only one reason.
 - A deleted log can't be corrected. Picking the same behavior does nothing. A number outside 1 to 29 is refused.
+- It returns the log as stored afterwards, so the sheet shows what is really saved, or nothing when the log was deleted meanwhile (another tab); the sheet then says the log was deleted and changes nothing.
 - **End time (F-39).** If the log has an end time and the new behavior does not come in stretches, the end time is removed in the same change and kept in the entry's `from`.
 - The entry is never merged with a later quick edit (the caregiver build merges edits under 5 minutes apart).
 - **Sheet.** A "Behavior" row at the top of the log details with a Change button. It opens a list of the other 28 behaviors in the Log screen's four groups. Pick one, press Change behavior. Back saves nothing. It saves at once, apart from any held edits (note 019).
 - **History view** shows "behavior A to B · Wrong behavior" and each version's behavior.
 - Fixed while here: the history view did not show an end time coming back when stepping over an edit that cleared it.
+
+## Independent review
+
+Codex (CLI 0.159.2) read the code diff on 2026-11-18 and found three things, all confirmed against the code and fixed: a correction refused for a deleted log looked saved in the sheet; the sheet kept stale fields after a correction; Back from the pick list by keyboard lost the Change button's focus. It found no fault in the history step-back or the merge guard. Each fix has a check (`tests/correctItem.test.ts`, `e2e/correct-behavior.cjs`).
 
 ## Not changed
 

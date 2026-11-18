@@ -126,6 +126,8 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
   const [reasonNote, setReasonNote] = useState("");
   const [picking, setPicking] = useState(false); // the pick-the-right-behavior step (F-64)
   const [pick, setPick] = useState<number | null>(null);
+  const changeButton = useRef<HTMLButtonElement>(null);
+  const wasPicking = useRef(false);
   const reasons = useRef<HTMLDivElement>(null);
   const deleteByKey = useRef(false);
   // Another log, or the sheet closing, always starts back at the details.
@@ -142,8 +144,10 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
   useEffect(() => {
     const step = deleting || picking;
     if (step) sheetRoot.current = reasons.current?.closest("dialog") ?? null;
-    const target =
-      step && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : sheetRoot.current;
+    // Back from the pick list by keyboard returns to the Change button that opened it.
+    const back = !step && wasPicking.current && deleteByKey.current ? changeButton.current : sheetRoot.current;
+    wasPicking.current = picking;
+    const target = step && deleteByKey.current ? reasons.current?.querySelector<HTMLElement>(".choice") : back;
     target?.focus({ preventScroll: true });
   }, [deleting, picking]);
   const canDelete = reason !== null && (staged || reason !== "Other" || reasonNote.trim() !== "");
@@ -360,6 +364,7 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
                   <button
                     className="ghost small"
                     aria-label="Change behavior"
+                    ref={changeButton}
                     onClick={(e) => {
                       deleteByKey.current = e.detail === 0;
                       setPicking(true);

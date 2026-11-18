@@ -79,12 +79,19 @@ describe("correcting a log's behavior (F-64)", () => {
     expect(await db.observations.get(o.id)).toMatchObject({ itemId: 7, rev: 1 });
   });
 
-  it("does nothing for the same behavior or a deleted log", async () => {
+  it("returns the log as stored, so the sheet shows what another tab changed meanwhile", async () => {
     const o = await make(7);
-    await correctItem(o, 7);
+    await editLog(o, { before: "Mealtime" }, T + 2 * MIN); // made elsewhere; `o` is now stale
+    const stored = await correctItem(o, 8, T + 10 * MIN);
+    expect(stored).toMatchObject({ id: o.id, itemId: 8, before: "Mealtime", rev: 3 });
+  });
+
+  it("does nothing for the same behavior or a deleted log, and says a deleted log was not saved", async () => {
+    const o = await make(7);
+    expect(await correctItem(o, 7)).toMatchObject({ itemId: 7, rev: 1 });
     expect(await db.changes.count()).toBe(0);
     await deleteLog(o, "Tapped by mistake", undefined, T + 2 * MIN);
-    await correctItem(o, 8, T + 3 * MIN);
+    expect(await correctItem(o, 8, T + 3 * MIN)).toBeNull();
     expect(await db.observations.get(o.id)).toMatchObject({ itemId: 7, rev: 2 });
     expect(await db.changes.count()).toBe(1);
   });

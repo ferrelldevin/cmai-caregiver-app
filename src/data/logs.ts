@@ -183,6 +183,8 @@ async function changeLog(
   });
 }
 
+/** Shown when a log was deleted (on this phone, in another tab) while its sheet was open. */
+export const LOG_GONE = "This log was deleted, so it can't be changed. Close this and check Today.";
 /** A correction that names a number that is not one of the 29 behaviors, refused. */
 export class LogItemError extends Error {}
 
@@ -191,13 +193,15 @@ export class LogItemError extends Error {}
  * unique ID, time and maker stay, the revision goes up by one, and the history keeps the old
  * behavior with the reason `wrong_item`, so it is counted once and nothing is lost. A deleted log
  * can't be corrected. An end time is dropped when the new behavior does not come in stretches (F-39).
+ * Resolves to the log as stored afterwards, or null when it is gone or deleted and nothing was saved.
  */
-export async function correctItem(obs: Saved, itemId: number, now = Date.now()) {
+export async function correctItem(obs: Saved, itemId: number, now = Date.now()): Promise<Saved | null> {
   const item = Number.isInteger(itemId) ? ITEMS[itemId - 1] : undefined;
   if (!item) throw new LogItemError("Pick one of the 29 behaviors.");
-  await db.transaction("rw", [db.observations, db.changes], async () => {
+  return db.transaction("rw", [db.observations, db.changes], async () => {
     const current = await db.observations.get(obs.id);
-    if (!current || current.deletedAt !== undefined || current.itemId === itemId) return;
+    if (!current || current.deletedAt !== undefined) return null;
+    if (current.itemId === itemId) return current as Saved;
     const dropEnd = current.endedAt !== undefined && !item.continuous;
     await db.observations.update(obs.id, {
       itemId,
@@ -213,6 +217,7 @@ export async function correctItem(obs: Saved, itemId: number, now = Date.now()) 
       from: { itemId: current.itemId, ...(dropEnd ? { endedAt: current.endedAt } : {}) },
       to: { itemId },
     });
+    return ((await db.observations.get(obs.id)) as Saved | undefined) ?? null;
   });
 }
 

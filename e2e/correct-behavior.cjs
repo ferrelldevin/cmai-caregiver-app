@@ -70,9 +70,50 @@ async function openSheet(p) {
   ok(hist.length === 2 && hist[1].includes("behavior Hitting to Kicking") && hist[1].includes("Wrong behavior"), "the history view shows the old and new behavior and the reason");
   await p.screenshot({ path: `${OUT}/correct-behavior-history.png` });
   await axe(p, "after the correction");
-  await sheet.getByRole("button", { name: "Done" }).click();
+  ok((await p.evaluate(() => [...document.querySelectorAll(".tile")].find((t) => t.textContent.startsWith("Kicking"))?.querySelector(".tile-count")?.textContent ?? "")).startsWith("1"), "Kicking's tile counts the log today");
+
+  // Keyboard: Back from the pick list returns focus to the Change button.
+  await sheet.getByRole("button", { name: "Change behavior" }).focus();
+  await p.keyboard.press("Enter");
+  await p.getByRole("dialog", { name: /^Which behavior was it/ }).waitFor();
+  await sheet.getByRole("button", { name: "Back" }).focus();
+  await p.keyboard.press("Enter");
+  await p.getByRole("dialog", { name: /^Kicking/ }).waitFor();
+  ok(await p.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Change behavior"), "Back by keyboard returns focus to Change");
+
+  // A held edit (note 019) survives a correction and is saved on its own, with its own reason.
+  await sheet.getByRole("button", { name: "Mealtime" }).click();
+  await sheet.getByRole("button", { name: "Change behavior" }).click();
+  await sheet.getByRole("button", { name: "Pushing" }).click();
+  await sheet.getByRole("button", { name: "Change behavior" }).click();
+  await p.getByRole("dialog", { name: /^Pushing/ }).waitFor();
+  d = await stored(p);
+  ok(d.logs[0].itemId === 10 && d.logs[0].rev === 3 && d.logs[0].before === undefined, "a correction saves at once and leaves a held edit unsaved");
+  await sheet.getByRole("button", { name: "Save change" }).click();
+  await sheet.getByRole("button", { name: "Other" }).click();
+  await sheet.getByRole("button", { name: "Save change" }).click();
+  await sheet.getByText("Change history (3)").waitFor();
+  d = await stored(p);
+  ok(d.logs[0].itemId === 10 && d.logs[0].before === "Mealtime" && d.logs[0].rev === 4, "the held edit then saves on the corrected log");
+
+  // Deleted behind the open sheet (another tab): the correction is refused and the sheet says so.
+  await p.evaluate(() => new Promise((res) => {
+    const r = indexedDB.open("cmai-tracker");
+    r.onsuccess = () => {
+      const st = r.result.transaction("observations", "readwrite").objectStore("observations");
+      const g = st.getAll();
+      g.onsuccess = () => { st.put({ ...g.result[0], deletedAt: Date.now(), deleteReason: "Tapped by mistake" }).onsuccess = res; };
+    };
+  }));
+  await sheet.getByRole("button", { name: "Change behavior" }).click();
+  await sheet.getByRole("button", { name: "Kicking" }).click();
+  await sheet.getByRole("button", { name: "Change behavior" }).click();
+  await sheet.getByRole("alert").waitFor();
+  d = await stored(p);
+  ok((await sheet.getByRole("alert").innerText()).includes("was deleted") && d.logs[0].itemId === 10 && d.changes.length === 3, "a log deleted behind the sheet is not changed, and the sheet says so");
+  await p.keyboard.press("Escape");
+  await p.locator(".log-sheet[open]").waitFor({ state: "detached" }).catch(() => {});
   const tiles = p.getByRole("tabpanel");
-  ok((await tiles.getByRole("button", { name: /^Kicking/ }).locator(".tile-count").innerText()).startsWith("1"), "Kicking's tile counts the log today");
   ok(!(await tiles.getByRole("button", { name: /^Hitting/ }).locator(".tile-count").count()), "Hitting's tile no longer counts it");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();
