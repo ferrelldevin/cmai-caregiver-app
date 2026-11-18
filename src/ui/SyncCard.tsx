@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { db, type Patient } from "../data/db";
 import type { SyncState } from "../data/sync";
 import { Icon } from "./Icon";
-import { changeSyncConfig, runSync, secondsUntilRetry, useSyncState } from "./syncRunner";
+import { changeSyncConfig, runSync, secondsUntilRetry, sendEverythingAgain, useSyncState } from "./syncRunner";
 
 const clock = (t: number) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
@@ -120,9 +120,18 @@ export function SyncCard({ patients, onChange }: { patients: Patient[]; onChange
       <p aria-live="polite" className={state.kind === "ok" ? "ok-line" : "muted"} data-sync-state={state.kind}>
         {statusLine(state, secondsUntilRetry())}
       </p>
-      <button className="ghost" onClick={() => void runSync(true)} disabled={!config.on}>
-        Send now
-      </button>
+      <div className="row wrap">
+        <button className="ghost" onClick={() => void runSync(true)} disabled={!config.on}>
+          Send now
+        </button>
+        <button className="ghost" onClick={sendEverythingAgain} disabled={!config.on}>
+          Send everything again
+        </button>
+      </div>
+      <p className="muted">
+        "Send everything again" is for after the lab server was replaced or emptied. The server ignores anything it
+        already has.
+      </p>
     </section>
   );
 }

@@ -48,12 +48,31 @@ export function saveConfig(config: SyncConfig, store: KeyValue | null = browserS
 
 type Sent = Record<string, string>; // resident code -> fingerprint of the records the server last accepted
 
-function loadSent(store: KeyValue | null): Sent {
+/**
+ * What the server last accepted is only true for one server and one key. A different address or a
+ * new key starts from nothing, so a replaced or migrated server is sent everything again.
+ */
+async function scopeOf(origin: string, key: string): Promise<string> {
+  return `${origin}|${(await fingerprint(key)).slice(0, 16)}`;
+}
+
+function loadSent(store: KeyValue | null, scope: string): Sent {
   try {
-    const raw = JSON.parse(store?.getItem(SENT_KEY) ?? "{}");
-    return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    const raw = JSON.parse(store?.getItem(SENT_KEY) ?? "null");
+    return raw?.scope === scope && raw.prints && typeof raw.prints === "object" && !Array.isArray(raw.prints)
+      ? raw.prints
+      : {};
   } catch {
     return {};
+  }
+}
+
+/** Forget what the server accepted, so the next pass sends every self-test resident in full (the "Send everything again" button). */
+export function resetSent(store: KeyValue | null = browserStore()): void {
+  try {
+    store?.setItem(SENT_KEY, "null");
+  } catch {
+    /* blocked storage: nothing was remembered anyway */
   }
 }
 
@@ -93,6 +112,8 @@ export async function selfTestResidents(): Promise<Patient[]> {
 export interface SyncDeps {
   origin: string;
   config: SyncConfig;
+  /** The settings as they are right now. Read again just before each send, so turning sending off, removing the key or unmarking a resident mid-pass stops what has not gone out yet. */
+  getConfig?: () => SyncConfig;
   fetch?: typeof fetch;
   now?: number;
   /** Where "what the server last accepted" is kept. Defaults to this phone's localStorage. */
@@ -101,9 +122,23 @@ export interface SyncDeps {
 
 /**
  * One pass: for each self-test resident whose records changed since the server last accepted them,
- * build the export and send it. Stops at the first failure and says why. Never throws.
+ * build the export and send it. Stops at the first failure and says why. Never throws: an unexpected
+ * error on the phone is reported as a retryable wait.
  */
 export async function syncOnce(deps: SyncDeps): Promise<SyncState> {
+  try {
+    return await pass(deps);
+  } catch {
+    return {
+      kind: "waiting",
+      reason: "Something went wrong on this phone. It will try again.",
+      unsent: 1,
+      refused: false,
+    };
+  }
+}
+
+async function pass(deps: SyncDeps): Promise<SyncState> {
   const { origin, config } = deps;
   const send = deps.fetch ?? fetch;
   const now = deps.now ?? Date.now();
@@ -112,7 +147,8 @@ export async function syncOnce(deps: SyncDeps): Promise<SyncState> {
   if (!origin) return { kind: "no-server" };
   if (!config.key) return { kind: "no-key" };
 
-  const sent = loadSent(store);
+  const scope = await scopeOf(origin, config.key);
+  const sent = loadSent(store, scope);
   const todo: { patient: Patient; text: string; print: string }[] = [];
   let upToDate = 0;
   for (const patient of await selfTestResidents()) {
@@ -139,19 +175,29 @@ export async function syncOnce(deps: SyncDeps): Promise<SyncState> {
   if (!upToDate && !todo.length) return { kind: "no-residents" };
 
   let delivered = 0;
+  let skipped = 0;
   for (const { patient, text, print } of todo) {
+    // Settings and marks can change while an earlier resident is being sent: look again before this one goes.
+    const live = deps.getConfig?.() ?? config;
+    if (!live.on) return { kind: "off" };
+    if (!live.key) return { kind: "no-key" };
+    const fresh = await db.patients.get(patient.id);
+    if (!fresh || fresh.selfTest !== true || fresh.demo || !isActive(fresh)) {
+      skipped++;
+      continue;
+    }
     let res: Response;
     try {
       res = await send(`${origin}/v1/logs`, {
         method: "POST",
-        headers: { authorization: `Bearer ${config.key}`, "content-type": "application/json" },
+        headers: { authorization: `Bearer ${live.key}`, "content-type": "application/json" },
         body: text,
       });
     } catch {
       return {
         kind: "waiting",
         reason: "The lab server cannot be reached.",
-        unsent: todo.length - delivered,
+        unsent: todo.length - delivered - skipped,
         refused: false,
       };
     }
@@ -166,13 +212,18 @@ export async function syncOnce(deps: SyncDeps): Promise<SyncState> {
       return {
         kind: "waiting",
         reason: said || `The server answered ${res.status}.`,
-        unsent: todo.length - delivered,
+        unsent: todo.length - delivered - skipped,
         refused,
       };
     }
     sent[patient.id] = print;
     delivered++;
-    store?.setItem(SENT_KEY, JSON.stringify(sent)); // saved per resident, so a later failure does not resend this one
+    try {
+      // Saved per resident, so a later failure does not resend this one. If the phone will not save it, the next pass just sends it again.
+      store?.setItem(SENT_KEY, JSON.stringify({ scope, prints: sent }));
+    } catch {
+      /* full or blocked storage */
+    }
   }
-  return { kind: "ok", at: now, sent: upToDate + delivered };
+  return upToDate + delivered ? { kind: "ok", at: now, sent: upToDate + delivered } : { kind: "no-residents" };
 }

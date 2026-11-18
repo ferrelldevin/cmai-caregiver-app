@@ -6,7 +6,15 @@
 
 import { useSyncExternalStore } from "react";
 import { study } from "../study/settings";
-import { loadConfig, retryDelaySec, saveConfig, syncOnce, type SyncConfig, type SyncState } from "../data/sync";
+import {
+  loadConfig,
+  resetSent,
+  retryDelaySec,
+  saveConfig,
+  syncOnce,
+  type SyncConfig,
+  type SyncState,
+} from "../data/sync";
 
 const TICK_MS = 20_000;
 
@@ -38,21 +46,31 @@ export const useSyncState = () => ({
 export const secondsUntilRetry = () =>
   state.kind === "waiting" ? Math.max(0, Math.ceil((notBefore - Date.now()) / 1000)) : 0;
 
-/** One attempt now. `manual` skips the wait (the "Send now" button). */
+let again = false; // someone asked for a pass while one was running: do one more when it ends
+
+/** One attempt now. `manual` skips the wait (the "Send now" button and changes made in the card). */
 export async function runSync(manual = false): Promise<void> {
-  if (!study.syncToLab || running) return;
+  if (!study.syncToLab) return;
+  if (running) {
+    if (manual) again = true; // do not lose a change made mid-pass
+    return;
+  }
   if (!manual && Date.now() < notBefore) return;
   running = true;
   try {
-    const next = await syncOnce({ origin: __SYNC_ORIGIN__, config });
-    if (next.kind === "waiting") {
-      tries += 1;
-      notBefore = Date.now() + (next.refused ? 900 : retryDelaySec(tries)) * 1000;
-    } else {
-      tries = 0;
-      notBefore = 0;
-    }
-    publish(next);
+    do {
+      again = false;
+      // getConfig: the pass looks again before each send, so a switch turned off mid-pass stops it.
+      const next = await syncOnce({ origin: __SYNC_ORIGIN__, config, getConfig: () => config });
+      if (next.kind === "waiting") {
+        tries += 1;
+        notBefore = Date.now() + (next.refused ? 900 : retryDelaySec(tries)) * 1000;
+      } else {
+        tries = 0;
+        notBefore = 0;
+      }
+      publish(next);
+    } while (again);
   } finally {
     running = false;
   }
@@ -60,10 +78,22 @@ export async function runSync(manual = false): Promise<void> {
 
 export function changeSyncConfig(next: SyncConfig): void {
   config = next;
-  saveConfig(next);
+  try {
+    saveConfig(next);
+  } catch {
+    /* full or blocked storage: the setting holds until the app is closed */
+  }
   tries = 0;
   notBefore = 0;
   publish(next.on ? state : { kind: "off" });
+  void runSync(true);
+}
+
+/** Send every self-test resident in full again, whatever the app thinks the server has (after a server was replaced or emptied). */
+export function sendEverythingAgain(): void {
+  resetSent();
+  tries = 0;
+  notBefore = 0;
   void runSync(true);
 }
 
@@ -73,7 +103,8 @@ export function startSync(): void {
   started = true;
   void runSync(true);
   setInterval(() => void runSync(), TICK_MS);
-  window.addEventListener("online", () => void runSync(true));
+  // Coming back online retries a network failure at once, but never a "no" from the server before its 15 minutes.
+  window.addEventListener("online", () => void runSync(!(state.kind === "waiting" && state.refused)));
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") void runSync();
   });

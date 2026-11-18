@@ -11,6 +11,7 @@ import {
   classify,
   loadConfig,
   NO_CONFIG,
+  resetSent,
   retryDelaySec,
   saveConfig,
   selfTestResidents,
@@ -245,7 +246,7 @@ describe("repeats, edits and failures", () => {
     const s = server(200, 503);
     const result = await run(s, store);
     expect(result).toMatchObject({ kind: "waiting", unsent: 1 });
-    const saved = JSON.parse(store.data["cmai-sync-sent"]);
+    const saved = JSON.parse(store.data["cmai-sync-sent"]).prints;
     expect(Object.keys(saved)).toHaveLength(1);
     const again = server(200);
     expect(await run(again, store)).toMatchObject({ kind: "ok", sent: 2 });
@@ -282,6 +283,96 @@ describe("repeats, edits and failures", () => {
       expect(result).toMatchObject({ kind: "waiting", refused: true, reason: "P-07: The export could not be built." });
     } finally {
       (db.observations as unknown as { where: unknown }).where = original;
+    }
+  });
+});
+
+describe("changes made while a pass is running, and a different server", () => {
+  it("a resident unmarked while an earlier one is being sent is not sent", async () => {
+    await resident("P-07", { selfTest: true });
+    await resident("P-08", { selfTest: true });
+    const store = memory();
+    const calls: string[] = [];
+    const f = (async (_url: string, init: RequestInit) => {
+      const doc = JSON.parse(init.body as string);
+      calls.push(doc.header.participant_id);
+      if (calls.length === 1) await db.patients.update(calls[0] === "P-07" ? "P-08" : "P-07", { selfTest: undefined });
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const result = await syncOnce({ origin: ORIGIN, config: ON, fetch: f, now: NOW, store });
+    expect(calls).toHaveLength(1);
+    expect(result).toMatchObject({ kind: "ok", sent: 1 });
+  });
+
+  it("an archived resident, a removed key, or the switch turned off mid-pass stops what has not gone out", async () => {
+    for (const change of ["archive", "key", "off"] as const) {
+      for (const t of db.tables) await t.clear();
+      await resident("P-07", { selfTest: true });
+      await resident("P-08", { selfTest: true });
+      let live = { ...ON };
+      let n = 0;
+      const f = (async () => {
+        n++;
+        if (n === 1) {
+          if (change === "archive") await db.patients.update("P-08", { archivedAt: NOW, archiveReason: "Duplicate" });
+          if (change === "archive") await db.patients.update("P-07", { archivedAt: NOW, archiveReason: "Duplicate" });
+          if (change === "key") live = { on: true, key: "" };
+          if (change === "off") live = { on: false, key: ON.key };
+        }
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch;
+      const result = await syncOnce({
+        origin: ORIGIN,
+        config: ON,
+        getConfig: () => live,
+        fetch: f,
+        now: NOW,
+        store: memory(),
+      });
+      expect(n, change).toBe(1);
+      expect(result.kind, change).toBe(change === "archive" ? "ok" : change === "key" ? "no-key" : "off");
+    }
+  });
+
+  it("a new key or a different server address is sent everything again; so is 'send everything again'", async () => {
+    await resident("P-07", { selfTest: true });
+    const store = memory();
+    const s = server();
+    await run(s, store);
+    await run(s, store);
+    expect(s.calls).toHaveLength(1);
+    await run(s, store, { on: true, key: "cmai_write_anotherkeyanotherkeyanother" });
+    expect(s.calls).toHaveLength(2);
+    await run(s, store, { on: true, key: "cmai_write_anotherkeyanotherkeyanother" }, "https://other.example:8787");
+    expect(s.calls).toHaveLength(3);
+    await run(s, store, { on: true, key: "cmai_write_anotherkeyanotherkeyanother" }, "https://other.example:8787");
+    expect(s.calls).toHaveLength(3);
+    resetSent(store);
+    await run(s, store, { on: true, key: "cmai_write_anotherkeyanotherkeyanother" }, "https://other.example:8787");
+    expect(s.calls).toHaveLength(4);
+    expect(() => resetSent(null)).not.toThrow();
+  });
+
+  it("a phone that cannot save its notes, or cannot read its database, reports a wait instead of crashing", async () => {
+    await resident("P-07", { selfTest: true });
+    const full: KeyValue = {
+      getItem: () => null,
+      setItem: () => {
+        throw new Error("QuotaExceededError");
+      },
+    };
+    expect(await run(server(), full)).toMatchObject({ kind: "ok", sent: 1 }); // it was accepted; it will just be sent again later
+    const original = db.patients.toArray.bind(db.patients);
+    (db.patients as unknown as { toArray: unknown }).toArray = () => Promise.reject(new Error("disk"));
+    try {
+      expect(await run(server(), memory())).toEqual({
+        kind: "waiting",
+        reason: "Something went wrong on this phone. It will try again.",
+        unsent: 1,
+        refused: false,
+      });
+    } finally {
+      (db.patients as unknown as { toArray: unknown }).toArray = original;
     }
   });
 });
