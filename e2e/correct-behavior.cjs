@@ -39,6 +39,7 @@ async function openSheet(p) {
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
   const sheet = await openSheet(p);
   const before = (await stored(p)).logs[0];
+  await p.waitForTimeout(400); // the sheet has finished sliding up
   await p.screenshot({ path: `${OUT}/correct-behavior-row.png` });
   await axe(p, "details with the behavior row");
 
