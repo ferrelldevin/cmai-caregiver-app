@@ -45,13 +45,26 @@ The server must allow the page's origin (`ALLOWED_ORIGIN`) and the phone must be
 
 ## Checked (2026-11-17, Devin-Desktop, made-up data)
 
-| Check                                                                                                   | How                                                                                                                                                                                                                           |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rules: who is sent, repeats skipped, resend after an edit, each failure class, partial failure, backoff | 17 unit tests, `tests/sync.test.ts`                                                                                                                                                                                           |
-| The card in a real browser, server pretended                                                            | `e2e/sync.cjs`, in `npm run checks`: switch starts off, nothing sent until key and switch, down then up, refusal text, no other address reachable, axe 0 violations, both builds' page policy                                 |
-| The whole path, nothing pretended                                                                       | `e2e/sync-live.cjs` against the real Docker stack: send, **server stopped and started with the app open**, the app's own retry sends, a delete arrives as a revision-2 tombstone, the lab reader merges, the audit log has it |
+| Check                                                                                                                                                | How                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rules: who is sent, repeats skipped, resend after an edit, each failure class, partial failure, backoff, changes mid-pass, a different server or key | 21 unit tests, `tests/sync.test.ts`                                                                                                                                                                                           |
+| The card in a real browser, server pretended                                                                                                         | `e2e/sync.cjs`, in `npm run checks`: switch starts off, nothing sent until key and switch, down then up, refusal text, no other address reachable, axe 0 violations, both builds' page policy                                 |
+| The whole path, nothing pretended                                                                                                                    | `e2e/sync-live.cjs` against the real Docker stack: send, **server stopped and started with the app open**, the app's own retry sends, a delete arrives as a revision-2 tombstone, the lab reader merges, the audit log has it |
 
 Not covered: a real phone, the Tailscale HTTPS route, and a closed-tab send (impossible by design).
+
+## Review (Codex, 2026-11-17; server side is in note 023)
+
+Run by Devin through `second-opinion.mjs`, code and made-up tests only. Each finding was checked against the code.
+
+- **Fixed:**
+  - Settings and marks are read again just before each send, so a resident unmarked or archived, a key removed, or the switch turned off while an earlier resident is being sent does not go out. A change made in the card during a pass triggers one more pass.
+  - What the server last accepted is remembered per server address and key. A new key, a new address, or the new "Send everything again" button (for a replaced or emptied server) sends everything again.
+  - An unexpected error on the phone, such as a full storage or an unreadable database, becomes a "will try again" state. Before, it could stop the retries without a message.
+  - Coming back online no longer retries a "no" from the server before its 15 minutes. It still retries a network failure at once.
+- **Not changed, and why:** the file is rebuilt on every try rather than kept byte for byte, because the server ignores repeats by content.
+- **Open:** a record's exported role or time zone can change after it was sent, which the server refuses for an unchanged revision. This comes from F-58 (see note 023). Recovery is `data:delete` on the server plus "Send everything again".
+- **Not covered by a test:** the runner's timers and the `online` event (they need a browser clock); the live and mocked browser runs cover them in part.
 
 ## Not done
 
