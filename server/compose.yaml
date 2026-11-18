@@ -1,0 +1,52 @@
+# One file, all settings by environment variable (copy .env.example to .env). No host paths:
+# data lives in a named volume. Moving to an ODU server = copy server/ + this file + a new .env.
+name: cmai-sync
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cmai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in server/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-cmai}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cmai} -d ${POSTGRES_DB:-cmai}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # No ports: only the sync service can reach the database.
+  sync:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      # Separate settings (not one URL), so a password with @ / : # or % needs no escaping.
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-cmai}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-cmai}
+      PORT: 8787
+      DEFAULT_TZ: ${DEFAULT_TZ:-America/New_York}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    ports:
+      # Localhost only by default. Set BIND_ADDR=0.0.0.0 (or a LAN address) only after asking Devin.
+      - "${BIND_ADDR:-127.0.0.1}:${HOST_PORT:-8787}:8787"
+volumes:
+  dbdata:
