@@ -17,7 +17,16 @@ import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
 import { backupReminder } from "../data/backupReminder";
-import { deleteLog, editLog, LogTimeError, restoreLog, stopLog, UNDO_REASON } from "../data/logs";
+import {
+  deleteLog,
+  correctItem,
+  editLog,
+  LOG_GONE,
+  LogTimeError,
+  restoreLog,
+  stopLog,
+  UNDO_REASON,
+} from "../data/logs";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
@@ -182,6 +191,27 @@ export function LogScreen({
     setHeld(false);
     setEditError(null);
     setEditing({ obs: o, viaKeyboard: e.detail === 0 });
+  }
+
+  // F-64: the same log with the right behavior. The sheet then shows the log as it is stored now.
+  async function correct(itemId: number): Promise<boolean> {
+    if (!editing) return false;
+    setEditError(null);
+    let stored: SavedObs | null;
+    try {
+      stored = await correctItem(editing.obs, itemId);
+    } catch (e) {
+      record(e);
+      setEditError(SAVE_FAILED);
+      return false;
+    }
+    onChange();
+    if (!stored) {
+      setEditError(LOG_GONE);
+      return false;
+    }
+    setEditing({ ...editing, obs: stored });
+    return true;
   }
 
   async function patch(change: Partial<StoredObservation>, reason?: string): Promise<boolean> {
@@ -429,6 +459,7 @@ export function LogScreen({
         viaKeyboard={editing?.viaKeyboard ?? false}
         error={editError}
         onPatch={patch}
+        onCorrect={correct}
         onDelete={(reason, note) => editing && remove(editing.obs, reason, note)}
         onClose={() => {
           setEditing(null);

@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- Correct a wrong behavior, lab build only (F-64, design note 025): "Change" beside the behavior on the log details sheet. The same log is corrected and its history keeps the first pick with the reason Wrong behavior; nothing is deleted, no second log is made, and it is counted once. No database version, no export format change, no scoring change.
 - Each new log saves the phone's time-zone name, and each caregiver profile can carry a role (Caregiver, Staff, Researcher) in the lab build; the research export uses both (F-58). Older records keep the old defaults. No database version.
 - Design note 022 (F-61): how real research exports could be locked with a lab-held passphrase. Design only; nothing built.
 - Draft of research export contract v1.1.0 (F-60): v1.0.0 plus five optional fields, as a schema, an example and a test. Not built and not in use; waiting for Devin's go.
