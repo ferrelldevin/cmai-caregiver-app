@@ -1899,6 +1899,77 @@ button.text-danger {
 .patient-list li > .row {
   flex-wrap: nowrap;
 }
+/* Role on a caregiver's row (F-58, lab build): its own line under the row, three choices in view.
+   Real radio buttons, drawn as one segmented control like the quick times on the log sheet. */
+.role-pick {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+.role-pick-label {
+  padding: 0 var(--s2);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+/* The narrowest phones: the word "Role" moves above its three choices. */
+@media (max-width: 359px) {
+  .role-pick-label {
+    flex-basis: 100%;
+    padding-top: 4px;
+  }
+}
+/* Each choice is as wide as its word needs, so the longest one is never cut on a narrow phone.
+   If they still do not fit (very large text), a choice moves to the next line. */
+.role-pick label {
+  position: relative;
+  flex: 1 1 auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.role-pick input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.role-pick label span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.role-pick input:checked + span {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.role-pick input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  box-shadow: 0 0 0 5px var(--focus-edge);
+}
+[data-contrast="high"] .role-pick {
+  border-color: var(--text);
+}
+[data-contrast="high"] .role-pick input:checked + span {
+  border-width: 2px;
+}
 .patient-main {
   display: flex;
   flex-wrap: wrap;
