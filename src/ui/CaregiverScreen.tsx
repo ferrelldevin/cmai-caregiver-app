@@ -36,7 +36,10 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
   const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
   // Removing asks first, in the same sheet a patient gets (design note 026).
-  const [confirmRemove, setConfirmRemove] = useState<{ c: Caregiver; viaKeyboard: boolean } | null>(null);
+  // Held by code and looked up in the current list, so the sheet never shows or removes a profile that has changed.
+  const [removing, setRemoving] = useState<{ id: string; viaKeyboard: boolean } | null>(null);
+  const removeTarget = removing ? caregivers.find((c) => c.id === removing.id) : undefined;
+  const confirmRemove = removing && removeTarget ? { c: removeTarget, viaKeyboard: removing.viaKeyboard } : null;
   // With the PIN on, the phone needs a setup PIN before its first caregiver (plan 5.3).
   const [needsSetup, setNeedsSetup] = useState(false);
   useEffect(() => {
@@ -71,7 +74,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   }
 
   async function remove(c: Caregiver) {
-    setConfirmRemove(null);
+    setRemoving(null);
     const how = await removeCaregiver(c.id);
     if (c.id === loggingAs) onLogAs(null);
     setMsg({
@@ -151,7 +154,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                     aria-label={`Remove ${c.initials}`}
                     onClick={(e) => {
                       setMsg(null);
-                      setConfirmRemove({ c, viaKeyboard: e.detail === 0 });
+                      setRemoving({ id: c.id, viaKeyboard: e.detail === 0 });
                     }}
                   >
                     Remove
@@ -194,7 +197,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
           footer={
             confirmRemove && (
               <>
-                <button className="ghost confirm-cancel" onClick={() => setConfirmRemove(null)}>
+                <button className="ghost confirm-cancel" onClick={() => setRemoving(null)}>
                   Cancel
                 </button>
                 <button className="danger" onClick={() => remove(confirmRemove.c)}>
@@ -203,7 +206,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
               </>
             )
           }
-          onClose={() => setConfirmRemove(null)}
+          onClose={() => setRemoving(null)}
         >
           {confirmRemove && (
             <div className="sheet-scroll">

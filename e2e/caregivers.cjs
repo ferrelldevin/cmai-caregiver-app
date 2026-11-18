@@ -194,14 +194,22 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   ok(await p.getByRole("button", { name: "Remove QR" }).isVisible(), "Cancel keeps the caregiver");
   await p.getByRole("button", { name: "Remove QR" }).click();
   await ask.getByRole("button", { name: "Remove QR" }).click();
-  await p.getByText("Removed QR (C-03).").waitFor(); ok(true, "confirming removes a caregiver with no logs");
+  await p.getByText("Removed QR (C-03).").waitFor();
+  const profiles = () => p.evaluate(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("caregivers").objectStore("caregivers").getAll(); g.onsuccess = () => { r.result.close(); res(g.result); }; }; }));
+  ok(!(await profiles()).some((c) => c.id === "C-03"), "confirming deletes a caregiver with no logs");
   await p.getByRole("button", { name: "Remove JM" }).click();
   await p.getByRole("dialog", { name: "Remove JM?" }).getByRole("button", { name: "Remove JM" }).click();
-  await p.getByText("JM (C-01) is archived. Their logs keep their code.").waitFor(); ok(true, "confirming archives a caregiver who has logs");
+  await p.getByText("JM (C-01) is archived. Their logs keep their code.").waitFor();
+  ok((await profiles()).some((c) => c.id === "C-01" && c.archivedAt) && (await stored(p)).observations.some((o) => o.by === "C-01"), "confirming archives a caregiver who has logs, and the logs keep C-01");
+  ok((await p.getByRole("button", { name: "Remove JM" }).count()) === 0, "the archived caregiver leaves the list");
   await p.getByRole("button", { name: "Remove AB" }).click();
   ok((await p.getByRole("dialog", { name: "Remove AB?" }).textContent()).includes("AB is logging now"), "removing whoever is logging says nobody will be chosen");
   await p.keyboard.press("Escape");
   ok(await p.getByRole("button", { name: "Remove AB" }).isVisible(), "Esc keeps the caregiver");
+  ok(await p.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Remove AB"), "closing the sheet puts focus back on the button that opened it");
+  await p.getByRole("button", { name: "Remove AB" }).click();
+  await p.getByRole("dialog", { name: "Remove AB?" }).getByRole("button", { name: "Remove AB" }).click();
+  await p.locator(".cg-chip", { hasText: "Who?" }).waitFor(); ok(true, "after removing whoever was logging, nobody is chosen");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();
 
