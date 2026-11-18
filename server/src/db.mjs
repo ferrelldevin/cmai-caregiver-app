@@ -1,9 +1,20 @@
 // Database: connection pool and the one-time table setup. Safe to run on every start.
 // Connection settings come from the standard PGHOST, PGPORT, PGUSER, PGPASSWORD and PGDATABASE
 // variables, so a password with odd characters never has to survive being put inside a URL.
+import { createHash } from "node:crypto";
 import pg from "pg";
 
-export const pool = new pg.Pool();
+// Two database logins. The owner (PGUSER, from the compose file) makes and changes the tables, and is
+// used only by setup() at start. The service and the admin commands run as `cmai_app`, which can read
+// and add rows but cannot alter or drop a table or trigger, and cannot change or delete the audit log.
+// Its password is derived from the owner's, so there is no second secret to keep.
+const APP_ROLE = "cmai_app";
+const appPassword = () =>
+  createHash("sha256")
+    .update(`cmai-app:${process.env.PGPASSWORD ?? ""}`)
+    .digest("hex");
+
+export const pool = new pg.Pool({ user: APP_ROLE, password: appPassword() });
 // An idle connection that drops (database restart) must not crash the service.
 pool.on("error", (e) => console.error("database connection error:", e.message));
 
@@ -62,8 +73,26 @@ CREATE TRIGGER audit_log_no_truncate BEFORE TRUNCATE ON audit_log
   FOR EACH STATEMENT EXECUTE FUNCTION audit_log_append_only();
 `;
 
+const GRANTS = () => `
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${APP_ROLE}') THEN CREATE ROLE ${APP_ROLE} LOGIN; END IF;
+END $$;
+ALTER ROLE ${APP_ROLE} WITH LOGIN PASSWORD '${appPassword()}'; -- hex digits only, safe to write inline
+REVOKE ALL ON api_keys, observations, audit_log FROM ${APP_ROLE};
+GRANT SELECT, INSERT ON api_keys, observations, audit_log TO ${APP_ROLE};
+GRANT UPDATE (revoked_at) ON api_keys TO ${APP_ROLE};
+GRANT DELETE ON observations TO ${APP_ROLE}; -- only for the admin "data:delete" command; no route deletes
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${APP_ROLE};
+`;
+
 export async function setup() {
-  await pool.query(SETUP);
+  const owner = new pg.Pool({ max: 1 });
+  try {
+    await owner.query(SETUP);
+    await owner.query(GRANTS());
+  } finally {
+    await owner.end();
+  }
 }
 
 /** Longest text kept in an audit row. Sender-chosen text is never copied in, only fixed messages. */

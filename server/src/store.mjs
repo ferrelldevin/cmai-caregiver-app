@@ -22,6 +22,11 @@ export async function pushFile(doc, key, okAudit) {
   const counts = { added: 0, duplicate: 0 };
   try {
     await client.query("BEGIN");
+    // A push is quick. These caps keep it that way, so a stuck one cannot hold its rows past the margin
+    // the pull cursor allows for (see SINCE_MARGIN_MS in index.mjs).
+    await client.query("SET LOCAL statement_timeout = '30s'");
+    await client.query("SET LOCAL lock_timeout = '15s'");
+    await client.query("SET LOCAL idle_in_transaction_session_timeout = '30s'");
     // Records are handled in a fixed order, each under its own lock, so two pushes that carry the
     // same record wait for each other instead of racing (or deadlocking on each other).
     for (const r of [...records].sort((a, b) => a.record_id.localeCompare(b.record_id))) {

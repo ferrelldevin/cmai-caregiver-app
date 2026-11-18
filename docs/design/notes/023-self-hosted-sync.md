@@ -10,15 +10,15 @@ Note 020 found that logs live only on the phone, so a daily pull has nothing to 
 
 One compose file in `server/`, two containers, all settings by environment variable.
 
-| Part               | What it is                                                                | Notes                                                                                                               |
-| ------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `db`               | PostgreSQL 17                                                             | No published port. Only the sync service can reach it. Data in a named volume (no host path)                        |
-| `sync`             | Node 22, one small service (`pg` and `ajv` are its only dependencies)     | `POST /v1/logs`, `GET /v1/export`, `GET /healthz`. Database settings are separate `PG*` variables, not one URL      |
-| Keys               | Random secrets, stored only as a SHA-256 hash                             | Role `write` or `read`, a data class, revocable. Made and revoked with `server/src/admin.mjs`, which is audited too |
-| Audit              | `audit_log` table, append-only (triggers refuse UPDATE, DELETE, TRUNCATE) | Every push and pull, allowed, refused or failed: when, which key, which participant, range, outcome, source address |
-| `server/test/`     | 8 unit tests (dates, contract checks)                                     | `npm test --prefix server`                                                                                          |
-| `server/smoke.mjs` | 32 checks against a running server, made-up data only                     | Prints each step so it can be watched                                                                               |
-| CI                 | `.github/workflows/server.yml`                                            | Unit tests, then the stack in Docker and the smoke script, on pull requests that touch `server/` or the contract    |
+| Part               | What it is                                                                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `db`               | PostgreSQL 17                                                             | No published port. Only the sync service can reach it. Data in a named volume (no host path)                                                                                                                                                                                                                                                                                                                                         |
+| `sync`             | Node 22, one small service (`pg` and `ajv` are its only dependencies)     | `POST /v1/logs`, `GET /v1/export`, `GET /healthz`. Database settings are separate `PG*` variables, not one URL                                                                                                                                                                                                                                                                                                                       |
+| Keys               | Random secrets, stored only as a SHA-256 hash                             | Role `write` or `read`, a data class, revocable. Made and revoked with `server/src/admin.mjs`, which is audited too                                                                                                                                                                                                                                                                                                                  |
+| Audit              | `audit_log` table, append-only (triggers refuse UPDATE, DELETE, TRUNCATE) | Every push and pull that carries a key, allowed or refused, and every wrong method, server error (best effort: if the database itself is down there is nothing to write to), key made or revoked, and data removed: when, which key, participant, range, outcome, source address. Not audited: browser permission checks (OPTIONS), and requests without a valid key beyond 30 a minute per address (one row says the limit was hit) |
+| `server/test/`     | 8 unit tests (dates, contract checks)                                     | `npm test --prefix server`                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `server/smoke.mjs` | 32 checks against a running server, made-up data only                     | Prints each step so it can be watched                                                                                                                                                                                                                                                                                                                                                                                                |
+| CI                 | `.github/workflows/server.yml`                                            | Unit tests, then the stack in Docker and the smoke script, on pull requests that touch `server/` or the contract                                                                                                                                                                                                                                                                                                                     |
 
 ### The three routes
 
@@ -52,7 +52,7 @@ Checked on 2026-11-17 on made-up data: the smoke script passes 32 of 32 and the 
 Three classes, kept apart at every step: `synthetic` (made-up demo data), `self-test` (Devin's own logs from using the app) and `real` (a participant). The class is part of the key, not a switch the sender flips.
 
 - A key has one class. A push whose file says another class is refused. A read key returns only its own class.
-- **`real` has no key class at all.** The database refuses it (`CHECK`), so a bug in the service cannot store it. The service connects as the database owner, so someone with the `.env` could change that check; this is a guard against mistakes, not against the person who runs the server. The app is blocked too (`realExports`, G1). Letting real data in would mean a deliberate change to the app, the table check and the key rules, after Dr. Gupta's written answer. An existing database volume does not pick up a changed `CHECK` by itself (there are no numbered migrations yet), so that change would also need a migration.
+- **`real` has no key class at all.** The database refuses the label (`CHECK`), so a bug in the service cannot store a file that says `real`. This is a rule about the label, not the contents: the server cannot tell whether a file labeled `self-test` or `synthetic` really holds made-up data. That is a trust boundary: whoever holds a write key is trusted, and the app only sends residents the tester marked. The service no longer runs as the database owner: it runs as `cmai_app`, which can read and add rows but cannot alter or drop tables or triggers, and cannot update, delete or truncate the audit log. Whoever holds the owner password (`.env`) can still change anything, and an existing volume does not pick up a changed `CHECK` (no numbered migrations). The app is blocked too (`realExports`, G1).
 - **Self-test data stays on the desktop.** It lives in the Docker volume on Devin-Desktop. It never goes to GitHub, CI, fixtures or an AI chat. The smoke script and CI use only made-up records the script creates itself; a real self-test log is never copied into the repo. `.checks/` and `server/.env` are ignored by git.
 - **Nothing the sender wrote goes into the audit log.** Refusals use fixed wording, and audit text is cut at 200 characters, so a refused file's content cannot be stored there.
 
@@ -68,7 +68,7 @@ Three classes, kept apart at every step: `synthetic` (made-up demo data), `self-
 - The sync port is published on `127.0.0.1` only. Nothing on the LAN or the internet can reach it. Changing `BIND_ADDR` is a decision for Devin, asked each time.
 - **A phone cannot reach it yet, and the reason is not only the port.** The deployed app is served over HTTPS (GitHub Pages), and a browser blocks calls from an HTTPS page to a plain `http://` address (mixed content). A plain-HTTP LAN address would also send the write key unencrypted. PR 2 needs an HTTPS route first: a Tailscale HTTPS address (the tailnet already exists for the sensor dashboard) or a small reverse proxy. That choice is made before PR 2, not after.
 - No admin web page. Keys are made inside the container.
-- No rate limit: any page open on the desktop can send requests to `127.0.0.1:8787`, and each unauthenticated request writes an audit row. Harmless on a tester's desktop; add a limit before it faces more than localhost.
+- Requests without a valid key are limited to 30 a minute per address, so a page open on the machine cannot fill the audit log; a pull is limited to 800 days. There is no limit for requests with a valid key.
 
 ## Moving to an ODU server
 
@@ -78,7 +78,7 @@ Steps for (a): copy `server/` and `docs/contracts/cmai-export/cmai-export.schema
 
 **Data does not move by itself.** Keys, stored logs and the audit trail live in the database volume. Moving them needs `pg_dump` and `pg_restore`; moving the code does not. Changing `POSTGRES_PASSWORD` after the first start does nothing, because the volume keeps the first one.
 
-Not covered, to settle with whoever runs the ODU server: TLS, volume backups, who holds the read key, retention, numbered migrations, and a non-owner database login for the service.
+Not covered, to settle with whoever runs the ODU server: TLS, volume backups, who holds the read key, retention, and numbered migrations.
 
 ## Not built here (the app side is note 024; the rest are separate decisions)
 
@@ -88,9 +88,26 @@ Not covered, to settle with whoever runs the ODU server: TLS, volume backups, wh
 - The 7:15 task calling the endpoint (needs a read key in a file only Devin's account can read, and the `since` cursor saved between runs).
 - Removing a participant's test data (no delete path yet; the smoke script leaves a new made-up participant each run).
 
-## Review
+## Reviews
 
-2026-11-17: an independent read of the code by a second Claude model (Fable 5.2, at Devin's request) found a pull-model gap, a push race, audit gaps, contract checks the server lacked, a date bug, and a reader gap. Three were re-checked against the code before any change. Fixed in this PR: all of those, plus the smaller items (flag parsing, health check, `DEFAULT_TZ` check, connection errors, container health check). Left open and written above: a non-owner database login, rate limit, migrations, key-to-participant binding, TLS.
+**1. Fable 5.2 (a second Claude model), 2026-11-17, at Devin's request.** Found a pull-model gap, a push race, audit gaps, contract checks the server lacked, a date bug and a reader gap. Three findings were re-checked against the code before any change. All fixed in this PR except what is written above as open.
+
+**2. Codex (OpenAI, run by Devin through `second-opinion.mjs`), 2026-11-17.** 13 findings on this server and the app side. Each was checked against the code.
+
+- **Fixed here:**
+  - The incremental-pull cursor can no longer be outrun. A push's statement, lock and idle times are capped at 30 s, well inside the 5-minute margin, so a push cannot commit later than the margin allows.
+  - The service now runs without owner rights, so the audit trail is append-only against the service itself.
+  - Wrong-method requests are audited, unauthenticated requests are rate-limited, and a pull is capped at 800 days.
+  - Replies sent before a body was read no longer cut the sender off.
+  - An admin `data:delete` lets a tester start over.
+- **Not changed, and why:**
+  - CORS for GET: a browser never pulls; the lab task is not a browser.
+  - The service listening on all container interfaces: it must, for the published port, and the only other container on the network is the database.
+  - Resending the identical file after a failed try: the server ignores repeats by content, so a new `export_id` is harmless.
+  - Real data being "impossible": it is a trust boundary, now worded as one.
+- **Open, from this review:** a record whose exported role or time zone changes after it was sent is refused with 409 for its unchanged revision. The export reads the caregiver's current role, and the phone's current zone for logs made before F-58. The way out is `data:delete` for that participant and "Send everything again" in the app. A real fix needs the role and zone saved on each log (a database version), which is a separate decision (F-58).
+
+Note 024 has the app-side findings.
 
 ## Open questions for Dr. Gupta (register P-15)
 

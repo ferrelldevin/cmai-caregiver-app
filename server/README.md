@@ -58,6 +58,14 @@ npm test --prefix server
 
 Both containers restart by themselves (`restart: unless-stopped`), but only once Docker Desktop is running. Turn on Docker Desktop > Settings > General > "Start Docker Desktop when you sign in".
 
+## Start over with test data
+
+```bash
+docker compose -f server/compose.yaml exec sync node src/admin.mjs data:delete --participant P-07 --class self-test
+```
+
+Removes that participant's stored records (the audit log keeps a row saying so). In the app, press "Send everything again" afterwards.
+
 ## Stop and clean up
 
 ```bash

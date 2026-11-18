@@ -3,6 +3,8 @@
 //   docker compose exec sync node src/admin.mjs key:list
 //   docker compose exec sync node src/admin.mjs key:revoke <id>
 //   docker compose exec sync node src/admin.mjs audit [count]
+//   docker compose exec sync node src/admin.mjs data:delete --participant P-07 --class self-test
+//     (removes one participant's stored records in one class, for a tester starting over; the audit log keeps the record of it)
 // Making and revoking keys is written to the audit log too.
 import { audit, pool, setup } from "./db.mjs";
 import { createKey } from "./keys.mjs";
@@ -40,6 +42,20 @@ if (cmd === "key:create") {
   ]);
   if (rowCount) await audit({ keyId: id, action: "key:revoke", outcome: "ok" });
   console.log(rowCount ? `Key ${id} revoked.` : "No live key with that id.");
+} else if (cmd === "data:delete") {
+  const participant = flag("participant");
+  const dataClass = flag("class");
+  if (!/^[A-Z]{1,5}(-[A-Z0-9]{1,12})+$/.test(participant ?? "") || !["self-test", "synthetic"].includes(dataClass)) {
+    console.error("Usage: data:delete --participant P-07 --class self-test|synthetic");
+    process.exitCode = 1;
+  } else {
+    const { rowCount } = await pool.query("DELETE FROM observations WHERE participant_id = $1 AND data_class = $2", [
+      participant,
+      dataClass,
+    ]);
+    await audit({ action: "data:delete", dataClass, participantId: participant, outcome: "ok", count: rowCount });
+    console.log(`Removed ${rowCount} stored revisions for ${participant} (${dataClass}).`);
+  }
 } else if (cmd === "audit") {
   const { rows } = await pool.query(
     "SELECT id, at, key_id, action, data_class, participant_id, range_start, range_end, outcome, record_count, remote_addr, detail FROM audit_log ORDER BY id DESC LIMIT $1",
@@ -47,7 +63,7 @@ if (cmd === "key:create") {
   );
   console.table(rows);
 } else {
-  console.error("Commands: key:create, key:list, key:revoke <id>, audit [count]");
+  console.error("Commands: key:create, key:list, key:revoke <id>, audit [count], data:delete");
   process.exitCode = 1;
 }
 await pool.end();

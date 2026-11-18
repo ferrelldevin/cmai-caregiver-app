@@ -10,6 +10,7 @@ import { audit, pool, setup } from "./db.mjs";
 import { findKey } from "./keys.mjs";
 import { problemWith } from "./contract.mjs";
 import { localDayStart, validZone } from "./dates.mjs";
+import { makeLimiter } from "./limit.mjs";
 import { pullFile, pushFile, Refused } from "./store.mjs";
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -17,6 +18,8 @@ const DEFAULT_TZ = process.env.DEFAULT_TZ ?? "America/New_York";
 const ORIGIN = process.env.ALLOWED_ORIGIN || "";
 const MAX_BODY = 5 * 1024 * 1024;
 const PARTICIPANT = /^[A-Z]{1,5}(-[A-Z0-9]{1,12})+$/;
+const MAX_RANGE_DAYS = 800; // a pull returns every record in range; keep one answer a sensible size
+const unauthenticated = makeLimiter(30, 60_000); // requests without a valid key, per address, per minute
 const SINCE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 /** `next-since` is backdated by this much so a push that was still committing during a pull is never missed. */
 const SINCE_MARGIN_MS = 5 * 60_000;
@@ -53,8 +56,11 @@ async function readBody(req) {
 }
 
 async function push(req, res, key, remoteAddr) {
-  if (req.method !== "POST") return send(res, 405, { error: "Use POST." });
   const base = { keyId: key.id, action: "push", dataClass: key.data_class, remoteAddr };
+  if (req.method !== "POST") {
+    await audit({ ...base, outcome: "denied", detail: "wrong method" });
+    return send(res, 405, { error: "Use POST." });
+  }
   let doc;
   try {
     doc = JSON.parse(await readBody(req));
@@ -83,7 +89,17 @@ async function push(req, res, key, remoteAddr) {
 }
 
 async function pull(req, res, key, url, remoteAddr) {
-  if (req.method !== "GET") return send(res, 405, { error: "Use GET." });
+  if (req.method !== "GET") {
+    await audit({
+      keyId: key.id,
+      action: "pull",
+      dataClass: key.data_class,
+      outcome: "denied",
+      detail: "wrong method",
+      remoteAddr,
+    });
+    return send(res, 405, { error: "Use GET." });
+  }
   const participantId = url.searchParams.get("participant") ?? "";
   const tz = url.searchParams.get("tz") ?? DEFAULT_TZ;
   const zoneOk = validZone(tz);
@@ -99,9 +115,16 @@ async function pull(req, res, key, url, remoteAddr) {
     participantId: PARTICIPANT.test(participantId) ? participantId : null,
     remoteAddr,
   };
-  if (!PARTICIPANT.test(participantId) || !start || !end || start >= end || sinceBad) {
+  if (
+    !PARTICIPANT.test(participantId) ||
+    !start ||
+    !end ||
+    start >= end ||
+    sinceBad ||
+    end - start > MAX_RANGE_DAYS * 86_400_000
+  ) {
     const problem =
-      "Use ?participant=P-01&from=YYYY-MM-DD&to=YYYY-MM-DD (optionally &tz=America/New_York and &since=2026-11-17T12:00:00Z). The dates must be real and the last day cannot be before the first.";
+      "Use ?participant=P-01&from=YYYY-MM-DD&to=YYYY-MM-DD (optionally &tz=America/New_York and &since=2026-11-17T12:00:00Z). The dates must be real, the last day cannot be before the first, and the range can be at most 800 days.";
     await audit({ ...base, outcome: "refused", detail: problem });
     return send(res, 400, { error: problem });
   }
@@ -125,6 +148,7 @@ async function pull(req, res, key, url, remoteAddr) {
 async function handle(req, res) {
   const url = new URL(req.url, "http://x");
   const remoteAddr = req.socket.remoteAddress ?? null;
+  // A browser's permission check before a push. It carries no key and touches no data, so it is answered and not audited.
   if (req.method === "OPTIONS") return send(res, 204, "");
   if (url.pathname === "/healthz") {
     await pool.query("SELECT 1");
@@ -135,8 +159,19 @@ async function handle(req, res) {
   if (!route) return send(res, 404, { error: "Not found." });
   const key = await findKey(req.headers.authorization);
   if (!key) {
-    await audit({ action: route, outcome: "denied", detail: "no valid key", remoteAddr });
-    return send(res, 401, { error: "A valid key is needed." });
+    // Without a limit, anything that can reach the port could make the service write an audit row per request.
+    const turn = unauthenticated(remoteAddr ?? "unknown");
+    if (turn.ok) await audit({ action: route, outcome: "denied", detail: "no valid key", remoteAddr });
+    else if (turn.first)
+      await audit({
+        action: route,
+        outcome: "denied",
+        detail: "too many requests without a key; the rest this minute are not logged",
+        remoteAddr,
+      });
+    return turn.ok
+      ? send(res, 401, { error: "A valid key is needed." })
+      : send(res, 429, { error: "Too many requests." });
   }
   if ((route === "push") !== (key.role === "write")) {
     await audit({
@@ -155,6 +190,8 @@ async function handle(req, res) {
 
 await setup();
 createServer((req, res) => {
+  // A reply sent before the body was read (wrong method, bad key) must not leave the sender writing into a closed connection.
+  res.on("finish", () => req.resume());
   handle(req, res).catch(async (e) => {
     if (e instanceof Refused) return send(res, e.status, { error: e.message });
     console.error(e);
