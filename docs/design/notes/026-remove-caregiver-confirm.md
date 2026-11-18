@@ -1,4 +1,4 @@
-# 024. Removing a caregiver asks first
+# 026. Removing a caregiver asks first
 
 2026-11-18 · Register: F-45 (caregiver profiles) · Status: built on assumed approval (Devin), sign-off pending (Dr. Gupta) · Switch: `caregiverProfiles`, lab build only · No storage change · No scoring change
 

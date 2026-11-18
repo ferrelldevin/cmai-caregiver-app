@@ -178,7 +178,7 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await sw.getByRole("button", { name: /^P-02/ }).click();
   ok((await p.locator(".pt-id b").textContent()) === "P-02", "a resident outside My residents is one tap away");
 
-  // Removing a caregiver asks first (design note 024): Cancel keeps them, the confirm removes or archives.
+  // Removing a caregiver asks first (design note 026): Cancel keeps them, the confirm removes or archives.
   await p.locator("nav.tabs button", { hasText: "Settings" }).click();
   await p.locator(".menu-row", { hasText: "Caregivers" }).click();
   await p.getByLabel("Caregiver initials").fill("qr"); await p.keyboard.press("Enter");

@@ -35,7 +35,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   const me = caregivers.find((c) => c.id === loggingAs);
   // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
   const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
-  // Removing asks first, in the same sheet a patient gets (design note 024).
+  // Removing asks first, in the same sheet a patient gets (design note 026).
   const [confirmRemove, setConfirmRemove] = useState<{ c: Caregiver; viaKeyboard: boolean } | null>(null);
   // With the PIN on, the phone needs a setup PIN before its first caregiver (plan 5.3).
   const [needsSetup, setNeedsSetup] = useState(false);
