@@ -1,7 +1,7 @@
 // Database: connection pool and the one-time table setup. Safe to run on every start.
 // Connection settings come from the standard PGHOST, PGPORT, PGUSER, PGPASSWORD and PGDATABASE
 // variables, so a password with odd characters never has to survive being put inside a URL.
-import { createHash } from "node:crypto";
+import { scryptSync } from "node:crypto";
 import pg from "pg";
 
 // Two database logins. The owner (PGUSER, from the compose file) makes and changes the tables, and is
@@ -9,10 +9,10 @@ import pg from "pg";
 // and add rows but cannot alter or drop a table or trigger, and cannot change or delete the audit log.
 // Its password is derived from the owner's, so there is no second secret to keep.
 const APP_ROLE = "cmai_app";
+// scrypt (slow on purpose), so a leaked app password does not make the owner password cheap to guess.
+let derived;
 const appPassword = () =>
-  createHash("sha256")
-    .update(`cmai-app:${process.env.PGPASSWORD ?? ""}`)
-    .digest("hex");
+  (derived ??= scryptSync(process.env.PGPASSWORD ?? "", "cmai-sync-app-role", 32).toString("hex"));
 
 export const pool = new pg.Pool({ user: APP_ROLE, password: appPassword() });
 // An idle connection that drops (database restart) must not crash the service.
