@@ -1890,6 +1890,10 @@ button.text-danger {
 }
 .add-patient {
   display: grid;
+  grid-template-columns: minmax(
+    0,
+    1fr
+  ); /* the column may shrink below its widest child, so a 320 px phone does not scroll sideways */
   gap: var(--s1);
 }
 .field-label {
@@ -1917,6 +1921,15 @@ button.text-danger {
 }
 .patient-list li > .row {
   flex-wrap: nowrap;
+}
+/* On a 320 px phone a caregiver's buttons take their own line, so the code never breaks in two. */
+@media (max-width: 359px) {
+  .cg-list li > .row {
+    grid-column: 1 / -1;
+  }
+}
+.cg-list .patient-main .muted {
+  white-space: nowrap;
 }
 /* Role on a caregiver's row (F-58, lab build): its own line under the row, three choices in view.
    Real radio buttons, drawn as one segmented control like the quick times on the log sheet. */
@@ -2923,6 +2936,20 @@ table.cmp td {
   display: grid;
   gap: 4px;
   margin-top: var(--s2, 8px);
+}
+/* The two days share a row with equal halves where there is room, and stack on a narrow phone. Each
+   field fills its space so every control on the card lines up on both edges (design note 029). */
+.rx-range {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  column-gap: var(--s2);
+}
+.rx-field > select,
+.rx-field > input,
+.rx-field > button {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Change history on the log details sheet (G11, lab build). */

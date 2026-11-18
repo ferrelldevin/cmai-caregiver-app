@@ -42,6 +42,16 @@ async function withDemo(p) {
   const p = await ctx.newPage();
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
   await openCard(p);
+  // Every control on the card lines up on both edges, at phone width and on a 320 px phone.
+  for (const w of [390, 320]) {
+    await p.setViewportSize({ width: w, height: 844 });
+    const edges = await p.evaluate(() => ["#rx-patient", "#rx-start", "#rx-end"].map((s) => document.querySelector(s)).concat([...document.querySelectorAll("#research-h ~ .rx-field > button")]).map((e) => { const r = e.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right)]; }));
+    const stacked = edges.every(([l, r]) => l === edges[0][0] && r === edges[0][1]);
+    const halves = edges[1][0] === edges[0][0] && edges[2][1] === edges[0][1] && Math.abs((edges[1][1] - edges[1][0]) - (edges[2][1] - edges[2][0])) <= 1;
+    ok(edges.length === 4 && (stacked || halves), `the export fields line up on both edges at ${w} px (${JSON.stringify(edges)})`);
+    ok((await p.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0, `no sideways scroll on Backup at ${w} px`);
+  }
+  await p.setViewportSize({ width: 390, height: 844 });
   await p.getByRole("button", { name: "Check range" }).click();
   await p.getByRole("alert").getByText(/Only made-up \(demo\) residents can be exported/).waitFor();
   ok(!(await p.getByRole("button", { name: "Save file" }).count()), "a real resident (P-07) is refused in words and nothing can be saved (G1)");

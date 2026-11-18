@@ -133,7 +133,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
           </p>
         )}
         {caregivers.length > 0 && (
-          <ul className="patient-list">
+          <ul className="patient-list cg-list">
             {caregivers.map((c) => (
               <li key={c.id} className={c.id === loggingAs ? "current" : ""}>
                 <span className={c.initials.length > 2 ? "cg-badge long" : "cg-badge"} aria-hidden>

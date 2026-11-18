@@ -60,7 +60,7 @@ export function ResearchExportCard({ patients, current }: { patients: Patient[];
           ))}
         </select>
       </div>
-      <div className="row wrap">
+      <div className="rx-range">
         <div className="rx-field">
           <label htmlFor="rx-start" className="field-label">
             First day
