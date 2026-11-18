@@ -261,6 +261,15 @@ const saveChange = async (sheet, reason = "Wrong time") => {
       return e.classList.contains("long") && e.clientWidth === e.clientHeight && Math.hypot(t.width / 2, t.height / 2) <= radius;
     }));
     ok(await fits(".patient-list .cg-badge"), `three letters fit the badge in the caregiver list, ${name}`);
+    // A 320 px phone: no sideways scroll, and each caregiver's code stays on one line.
+    await q.setViewportSize({ width: 320, height: 844 });
+    const narrow = await q.evaluate(() => ({
+      over: document.documentElement.scrollWidth - innerWidth,
+      oneLine: [...document.querySelectorAll(".cg-list .cg-code")].every((e) => e.getClientRects().length === 1) && [...document.querySelectorAll(".cg-list .patient-main")].every((e) => e.scrollWidth <= e.clientWidth + 1),
+      inCard: [...document.querySelectorAll(".cg-list button")].every((e) => e.getBoundingClientRect().right <= e.closest(".card").getBoundingClientRect().right),
+    }));
+    ok(narrow.over <= 0 && narrow.oneLine && narrow.inCard, `the caregiver list fits a 320 px phone, ${name} (${JSON.stringify(narrow)})`);
+    await q.setViewportSize({ width: 390, height: 844 });
     await axe(q, `caregivers page, ${name}`);
     await q.locator("nav.tabs button", { hasText: "Log" }).click();
     await q.locator(".cg-chip").click();

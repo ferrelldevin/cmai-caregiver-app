@@ -46,6 +46,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Fixed
 
+- Settings no longer scrolls 4 px sideways on a 320 px phone. Lab build: the fields on "Export for research" line up on both edges, and on a 320 px phone a caregiver's code stays on one line (design note 029).
 - The short message after a switch ("Now on P-02", "AB is logging") now shows just above the tab bar instead of on top of the page title or the Back button. Lab build: three-letter initials fit their round badge, and "Manage caregivers" and "Sign out" no longer touch (design note 028).
 - Lab build: removing a caregiver now asks first, in the same confirm sheet a patient gets. Before, one tap on "Remove" removed or archived them (F-45, design note 026).
 - Lab build: a caregiver's role is now three choices on their own line (Caregiver, Staff, Researcher) instead of a dropdown that covered the caregiver's code and pushed "Remove" off the card at phone width (F-58, design note 027).
