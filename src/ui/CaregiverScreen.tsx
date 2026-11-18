@@ -12,6 +12,14 @@ import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
 import { SetupPinCard } from "./SignInScreen";
 
+// F-58: the role stamped on research exports. Three fixed choices, so all three stay in view and one tap picks.
+type Role = NonNullable<Caregiver["role"]>;
+const ROLES: [Role, string][] = [
+  ["caregiver", "Caregiver"],
+  ["staff", "Staff"],
+  ["researcher", "Researcher"],
+];
+
 interface PageProps {
   caregivers: Caregiver[];
   loggingAs: string | null;
@@ -25,6 +33,8 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
   const [mine, setMine] = useState<string[]>([]);
   const me = caregivers.find((c) => c.id === loggingAs);
+  // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
+  const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
   // With the PIN on, the phone needs a setup PIN before its first caregiver (plan 5.3).
   const [needsSetup, setNeedsSetup] = useState(false);
   useEffect(() => {
@@ -128,21 +138,6 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                   <span className="muted">{c.id === loggingAs ? `${c.id} · logging now` : c.id}</span>
                 </div>
                 <div className="row">
-                  {study.researchExport && (
-                    <select
-                      className="role-select"
-                      aria-label={`Role for ${c.initials}`}
-                      value={c.role ?? "caregiver"}
-                      onChange={async (e) => {
-                        await setCaregiverRole(c.id, e.target.value as NonNullable<Caregiver["role"]>);
-                        onChange();
-                      }}
-                    >
-                      <option value="caregiver">Caregiver</option>
-                      <option value="staff">Staff</option>
-                      <option value="researcher">Researcher</option>
-                    </select>
-                  )}
                   {c.id !== loggingAs && (
                     <button className="ghost small" aria-label={`Log as ${c.initials}`} onClick={() => onLogAs(c.id)}>
                       Log as
@@ -156,6 +151,29 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                     Remove
                   </button>
                 </div>
+                {study.researchExport && (
+                  <div className="role-pick" role="radiogroup" aria-label={`Role for ${c.initials}`}>
+                    <span className="role-pick-label" aria-hidden>
+                      Role
+                    </span>
+                    {ROLES.map(([value, label]) => (
+                      <label key={value}>
+                        <input
+                          type="radio"
+                          name={`role-${c.id}`}
+                          value={value}
+                          checked={(pickedRole[c.id] ?? c.role ?? "caregiver") === value}
+                          onChange={async () => {
+                            setPickedRole((picked) => ({ ...picked, [c.id]: value }));
+                            await setCaregiverRole(c.id, value);
+                            onChange();
+                          }}
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

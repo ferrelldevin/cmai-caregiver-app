@@ -46,6 +46,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Fixed
 
+- Lab build: a caregiver's role is now three choices on their own line (Caregiver, Staff, Researcher) instead of a dropdown that covered the caregiver's code and pushed "Remove" off the card at phone width (F-58, design note 023).
 - Restore leaves out a review or "Nothing to log today" check-in whose key names a different patient, window or day than its own fields. Before, such an entry was stored under the key and could stand in for another patient's review.
 
 ## [0.3.0] - 2026-11-12
