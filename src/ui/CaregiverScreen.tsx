@@ -136,7 +136,7 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
           <ul className="patient-list">
             {caregivers.map((c) => (
               <li key={c.id} className={c.id === loggingAs ? "current" : ""}>
-                <span className="cg-badge" aria-hidden>
+                <span className={c.initials.length > 2 ? "cg-badge long" : "cg-badge"} aria-hidden>
                   {c.initials}
                 </span>
                 <div className="patient-main">
@@ -284,7 +284,7 @@ export function WhoSheet({
         {caregivers.map((c) => (
           <li key={c.id}>
             <button className="sheet-row" aria-current={c.id === loggingAs} onClick={() => onPick(c.id)}>
-              <span className="cg-badge" aria-hidden>
+              <span className={c.initials.length > 2 ? "cg-badge long" : "cg-badge"} aria-hidden>
                 {c.initials}
               </span>
               <span className="sheet-text">
@@ -296,14 +296,16 @@ export function WhoSheet({
           </li>
         ))}
       </ul>
-      <button className="ghost sheet-manage" onClick={onManage}>
-        <Icon name="user" size={18} /> Manage caregivers
-      </button>
-      {onSignOut && loggingAs && (
-        <button className="ghost sheet-manage" onClick={onSignOut}>
-          <Icon name="lock" size={18} /> Sign out
+      <div className="sheet-actions">
+        <button className="ghost" onClick={onManage}>
+          <Icon name="user" size={18} /> Manage caregivers
         </button>
-      )}
+        {onSignOut && loggingAs && (
+          <button className="ghost" onClick={onSignOut}>
+            <Icon name="lock" size={18} /> Sign out
+          </button>
+        )}
+      </div>
     </Sheet>
   );
 }

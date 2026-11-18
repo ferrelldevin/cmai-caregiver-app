@@ -500,14 +500,19 @@ input[type="checkbox"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--text-muted);
   font-weight: 700;
   font-size: var(--fs-sm);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   flex: none;
+}
+/* Three letters (the most a caregiver can have) still fit inside the circle. */
+.cg-badge.long {
+  font-size: var(--fs-xs);
+  letter-spacing: 0;
 }
 .sheet-group {
   margin: var(--s3) 0 var(--s1);
@@ -735,29 +740,36 @@ input[type="checkbox"] {
   color: var(--accent-text);
 }
 
-/* After switching patient: a short confirmation pinned under the banner. */
+/* After switching patient or caregiver: a short confirmation in the same place as the "Logged"
+   message, just above the tab bar, so it never sits on a page title or a Back button (design note 028). */
 .switch-notice {
-  position: absolute;
+  position: fixed;
   left: 50%;
-  top: calc(100% + 6px);
+  bottom: calc(96px + env(safe-area-inset-bottom));
   transform: translate(-50%, 4px);
-  z-index: 4;
+  z-index: 5;
   margin: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  max-width: calc(100% - 24px);
+  padding: var(--s2) var(--s4);
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-text);
   font-size: var(--fs-sm);
   font-weight: 700;
   white-space: nowrap;
+  box-shadow: var(--shadow-2);
   opacity: 0;
   pointer-events: none;
   transition:
     opacity 0.2s,
     transform 0.2s;
+}
+/* A "Logged" message already there keeps its place; this one sits above it. */
+body:has(.snackbar) .switch-notice {
+  bottom: calc(168px + env(safe-area-inset-bottom));
 }
 .switch-notice.on {
   opacity: 1;
@@ -903,6 +915,12 @@ input[type="checkbox"] {
 }
 .sheet-manage {
   align-self: flex-start;
+}
+.sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-top: var(--s1);
 }
 @media (min-width: 700px) {
   .sheet {

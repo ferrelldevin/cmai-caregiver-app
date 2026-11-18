@@ -200,7 +200,7 @@ export function SignInScreen({ caregivers, start, onCancel, onSignedIn }: Props)
             {caregivers.map((c) => (
               <li key={c.id}>
                 <button className="sheet-row" onClick={() => open(c.id)}>
-                  <span className="cg-badge" aria-hidden>
+                  <span className={c.initials.length > 2 ? "cg-badge long" : "cg-badge"} aria-hidden>
                     {c.initials}
                   </span>
                   <span className="sheet-text">

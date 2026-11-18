@@ -1,6 +1,6 @@
-# 023. Role is three choices in view, not a dropdown
+# 027. Role is three choices in view, not a dropdown
 
-2026-11-18 · Register: F-58 (the role part) · Status: built on assumed approval (Devin), sign-off pending (Dr. Gupta) · Switch: `researchExport`, lab build only · No storage change · No scoring change
+2026-11-18 · Register: F-58 (the role part) · Status: built on assumed approval (Devin), sign-off pending (Dr. Gupta) · Switch: `researchExport`, lab build only · No storage change · No scoring change · Renumbered from 023 on 2026-11-18 (023 is the self-hosted sync note)
 
 ## Problem
 
