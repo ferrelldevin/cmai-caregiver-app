@@ -42,6 +42,8 @@ interface Props {
   onChange: () => void;
   /** Caregiver profiles (R2), when switched on: the page's content and the hub row's status. */
   caregivers?: { page: React.ReactNode; status: string };
+  /** A backup is due (F-36): the Backup row says so in words, next to the dot on the Settings tab (F-65). */
+  backupDue?: boolean;
 }
 
 type Msg = { at: "patients" | "demo" | "export" | "safe"; text: string; tone?: "error" };
@@ -89,6 +91,7 @@ export function DataScreen({
   onPatient,
   onChange,
   caregivers,
+  backupDue,
 }: Props) {
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<Msg | null>(null);
@@ -596,7 +599,7 @@ export function DataScreen({
       page: "backup",
       icon: "download",
       title: "Backup and export",
-      status: lastExport ? `Last export ${ago(lastExport)}` : "Never exported",
+      status: `${backupDue ? "Backup due. " : ""}${lastExport ? `Last export ${ago(lastExport)}` : "Never exported"}`,
     },
     {
       page: "display",

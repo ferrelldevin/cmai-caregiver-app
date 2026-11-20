@@ -11,6 +11,10 @@ import { BEHAVIOR_ICONS } from "./behavior-icons";
 import { SHORT_NAMES } from "./behavior-names";
 import { Sheet } from "./Sheet";
 
+/** The one instruction for logging. On Log until a resident has a first log; always at the top of this sheet. */
+export const HOW_TO_LOG =
+  "Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is one stretch of it.";
+
 const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"];
 
 interface Props {
@@ -38,6 +42,7 @@ export function DefinitionsSheet({ open, onClose }: Props) {
       subtitle="Short descriptions in our own words. The manual page has the full definition."
       onClose={onClose}
     >
+      <p className="defs-howto">{HOW_TO_LOG}</p>
       {GROUP_ORDER.map((g) => (
         <section key={g} className="defs-group" aria-labelledby={`defs-${g}`}>
           <h3 id={`defs-${g}`} className="group-title">

@@ -32,8 +32,12 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await tab("Log");
   ok(!(await p.getByRole("heading", { name: "Recent logs" }).count()), "Log no longer has Recent logs");
   for (const n of ["Hitting", "Spitting", "Hitting"]) { await p.getByRole("tabpanel").getByRole("button", { name: new RegExp("^" + n) }).click(); await p.waitForTimeout(700); }
-  await p.locator(".today-count").click();
-  ok(p.url().endsWith("#/today"), "'3 logged today' on Log opens Today");
+  ok((await p.locator(".tab-badge").textContent()) === "3" && (await p.getByRole("button", { name: "Today 3 so far", exact: true }).count()) === 1, "the Today tab shows 3, and says '3 so far'");
+  const firstTile = (await p.locator(".tile-btn").first().boundingBox()).y + (await p.evaluate(() => scrollY));
+  ok(firstTile <= 110, `the first tile starts ${Math.round(firstTile)} px from the top (110 or less; it was 234 or more)`);
+  ok(!(await p.locator(".log-howto").count()) && !(await p.locator(".log").innerText()).includes("Log a behavior"), "Log starts with tiles: no title and no how-to line once there is a log");
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
+  ok(p.url().endsWith("#/today"), "the Today tab opens Today");
   ok((await stat("Logs today")) === "3" && (await stat("Behaviors")) === "2", "3 logs, 2 behaviors");
   const hours = await p.locator(".hours").getAttribute("aria-label");
   ok(/: 3\b/.test(hours) && hours.startsWith("Logs by hour today"), "logs by hour has a text alternative with the counts: " + hours);

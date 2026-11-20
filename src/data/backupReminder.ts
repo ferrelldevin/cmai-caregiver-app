@@ -1,4 +1,4 @@
-// The quiet "back up" line on the Log screen (F-36). Shown only for a real patient who has logs,
+// When a backup is due (F-36): shown as a dot on the Settings tab (F-65; it was a line on Log). Only for a real patient who has logs,
 // when the last export is more than a week old or there is none. Reads the same
 // "cmai-last-export" value the Data screen writes; stores nothing of its own.
 
