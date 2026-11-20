@@ -28,8 +28,12 @@ async function axe(p, name) {
     await p.getByRole("button", { name: "Load demo data" }).click();
     await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor();
 
+    // The mode asked for is the mode drawn, or the axe runs below would all test the same screen.
+    const drawn = await p.evaluate(() => [document.documentElement.dataset.theme, document.documentElement.dataset.contrast ?? "normal"].join(", "));
+    ok(drawn === `${colorScheme}, ${high ? "high" : "normal"}`, `the app is drawn in ${name} (${drawn})`);
+
     await p.locator("nav.tabs button", { hasText: "Today" }).click();
-    const r4 = p.locator(".open-label", { hasText: "Open: R4" });
+    const r4 = p.locator(".open-label", { hasText: /^Open: R4 / });
     await r4.waitFor();
     if (name === "light") {
       ok((await r4.locator("a").count()) === 0, "R4 is a requirement, not a register row, so it is not a link");
@@ -44,6 +48,9 @@ async function axe(p, name) {
         const a = p.locator(".open-label", { hasText: `Open: ${id}` }).locator("a");
         ok((await a.count()) === 1 && (await a.getAttribute("href")) === REGISTER && (await a.textContent()) === id, `${id} links to the review register`);
       }
+      const d18 = await p.locator(".open-label", { hasText: "Open: D-18" }).innerText();
+      ok(/Abedi 2025/.test(d18) && /Bankole 2020/.test(d18), "the D-18 note still names its evidence");
+      ok((await p.getByRole("link", { name: "D-17 in the review register (opens in a new tab)" }).count()) === 1, "a link says where it goes and that it opens a new tab");
       await p.locator(".open-label", { hasText: "Open: D-18" }).scrollIntoViewIfNeeded();
       await p.screenshot({ path: `${OUT}/lab-labels-twoweeks.png` });
     }

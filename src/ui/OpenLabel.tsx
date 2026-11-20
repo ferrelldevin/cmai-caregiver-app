@@ -15,7 +15,12 @@ export function OpenLabel({ id, children }: { id: string; children: ReactNode })
       <b>
         Open:{" "}
         {/^[DFPV]-\d+$/.test(id) ? (
-          <a href={REGISTER} target="_blank" rel="noreferrer">
+          <a
+            href={REGISTER}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${id} in the review register (opens in a new tab)`}
+          >
             {id}
           </a>
         ) : (

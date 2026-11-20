@@ -47,9 +47,13 @@ CMAI item wording, locked ratings and the delete rule do not change in any step.
 ## Acceptance criteria, step 1
 
 1. The words "Open:" are written in one place, `src/ui/OpenLabel.tsx`; screens only pass an ID and a sentence.
-2. Caregiver build: Today and Two weeks contain no "Open:" text (`e2e/today.cjs`, `e2e/twoweeks.cjs`).
-3. Lab build: the three labels show; D-17 and D-18 link to the review register; R4 is a requirement, not a register row, so it is plain text (`e2e/lab-labels.cjs`).
-4. axe WCAG 2.2 AA, 0 violations with the labels showing, in four display modes (`e2e/lab-labels.cjs`).
+2. The component renders nothing with `labView` off, for every kind of ID (`tests/openLabel.test.ts`), and the caregiver build's Today and Two weeks contain no "Open:" text (`e2e/today.cjs`, `e2e/twoweeks.cjs`).
+3. Lab build: the three notes show with their own words; D-, F-, P- and V- IDs link to the review register, and the link says where it goes and that it opens a new tab; R4 is a requirement, not a register row, so it is plain text (`tests/openLabel.test.ts`, `e2e/lab-labels.cjs`).
+4. axe WCAG 2.2 AA, 0 violations with the notes showing, in four display modes, each confirmed as the mode drawn (`e2e/lab-labels.cjs`).
+
+### Review, step 1
+
+Codex (Devin-Desktop, 2026-11-20) read the code diff and found five things, all checked against the code and fixed: the register link did not say where it goes or that it opens a new tab; the check that the D-18 note names its evidence had been dropped; the four display modes were asked for but never confirmed as drawn; only D- links were tested; and nothing tested the component itself with the switch off. Sent to Codex: the code diff only, no CMAI item wording, made-up data only.
 
 Criteria for steps 2 to 8 are added to this note by the pull request that builds each one.
 
