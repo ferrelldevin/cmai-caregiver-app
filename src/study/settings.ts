@@ -66,6 +66,12 @@ export const modeFrom = (value: string | undefined): StudyMode => (value === "la
 // The PIN is switched off, not removed. A lab build made with VITE_STUDY_PIN=on has it, so its
 // check (e2e/sign-in.cjs) keeps running and the code is known to work if Dr. Gupta asks for it back.
 // Only the exact word "on" counts, and only in a lab build: a caregiver build can never have the PIN.
+/**
+ * The lab's tools (research export, lab spreadsheets, roles, clock check) sit on one Settings page,
+ * "Lab and research", which only a build with labView has (design note 030 step 7). A build that
+ * turns one of them on without labView would have nowhere to show it: tests/settings.test.ts holds that.
+ */
+export const LAB_TOOLS = ["researchExport", "exportV2"] as const;
 export const settingsFor = (mode: StudyMode, pin = false): StudySettings =>
   mode === "lab" ? { ...LAB, pin } : CAREGIVER;
 export const STUDY_MODE: StudyMode = modeFrom(import.meta.env.VITE_STUDY_MODE);

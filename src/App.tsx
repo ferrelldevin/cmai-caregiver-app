@@ -24,6 +24,7 @@ import { study } from "./study/settings";
 // still caches each chunk, so they work offline after the first visit to the installed app.
 const DataScreen = lazy(() => import("./ui/DataScreen").then((m) => ({ default: m.DataScreen })));
 const CaregiverPage = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.CaregiverPage })));
+const RoleList = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.RoleList })));
 const WhoSheet = lazy(() => import("./ui/CaregiverScreen").then((m) => ({ default: m.WhoSheet })));
 const SignInScreen = lazy(() => import("./ui/SignInScreen").then((m) => ({ default: m.SignInScreen })));
 const RatingScreen = lazy(() => import("./ui/RatingScreen").then((m) => ({ default: m.RatingScreen })));
@@ -46,6 +47,7 @@ const PAGE_TITLES: Record<DataPage, string> = {
   about: "How ratings are worked out",
   caregivers: "Caregivers",
   clock: "Clock check",
+  lab: "Lab and research",
 };
 
 export default function App() {
@@ -492,6 +494,11 @@ export default function App() {
                       status: caregivers.length
                         ? `${caregivers.length} on this phone${me ? ` · ${me.initials} logging` : ""}`
                         : "Add the first caregiver",
+                      roles: study.researchExport ? (
+                        <Suspense fallback={null}>
+                          <RoleList caregivers={caregivers} onChange={() => setCaregiversVersion((v) => v + 1)} />
+                        </Suspense>
+                      ) : undefined,
                       page: (
                         <Suspense fallback={null}>
                           <CaregiverPage

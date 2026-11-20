@@ -20,6 +20,54 @@ const ROLES: [Role, string][] = [
   ["researcher", "Researcher"],
 ];
 
+/**
+ * F-58: each caregiver's role for research exports. It is the lab's to set, so it sits on the
+ * "Lab and research" page, not on the page where a caregiver is added (design note 030 step 7).
+ */
+export function RoleList({ caregivers, onChange }: { caregivers: Caregiver[]; onChange: () => void }) {
+  // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
+  const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
+  if (caregivers.length === 0) return <p className="muted">No caregivers on this phone yet.</p>;
+  return (
+    <ul className="patient-list cg-list role-list">
+      {caregivers.map((c) => (
+        <li key={c.id}>
+          <span className={c.initials.length > 2 ? "cg-badge long" : "cg-badge"} aria-hidden>
+            {c.initials}
+          </span>
+          <div className="patient-main">
+            <b>{c.initials}</b>
+            <span className="muted">
+              <span className="cg-code">{c.id}</span>
+            </span>
+          </div>
+          <div className="role-pick" role="radiogroup" aria-label={`Role for ${c.initials}`}>
+            <span className="role-pick-label" aria-hidden>
+              Role
+            </span>
+            {ROLES.map(([value, label]) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name={`role-${c.id}`}
+                  value={value}
+                  checked={(pickedRole[c.id] ?? c.role ?? "caregiver") === value}
+                  onChange={async () => {
+                    setPickedRole((picked) => ({ ...picked, [c.id]: value }));
+                    await setCaregiverRole(c.id, value);
+                    onChange();
+                  }}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 interface PageProps {
   caregivers: Caregiver[];
   loggingAs: string | null;
@@ -33,8 +81,6 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
   const [mine, setMine] = useState<string[]>([]);
   const me = caregivers.find((c) => c.id === loggingAs);
-  // The role just tapped, shown at once. The saved profile arrives a moment later, after the write and a reload.
-  const [pickedRole, setPickedRole] = useState<Record<string, Role>>({});
   // Removing asks first, in the same sheet a patient gets (design note 026).
   // Held by code and looked up in the current list, so the sheet never shows or removes a profile that has changed.
   const [removing, setRemoving] = useState<{ id: string; viaKeyboard: boolean } | null>(null);
@@ -163,29 +209,6 @@ export function CaregiverPage({ caregivers, loggingAs, patients, onLogAs, onChan
                     Remove
                   </button>
                 </div>
-                {study.researchExport && (
-                  <div className="role-pick" role="radiogroup" aria-label={`Role for ${c.initials}`}>
-                    <span className="role-pick-label" aria-hidden>
-                      Role
-                    </span>
-                    {ROLES.map(([value, label]) => (
-                      <label key={value}>
-                        <input
-                          type="radio"
-                          name={`role-${c.id}`}
-                          value={value}
-                          checked={(pickedRole[c.id] ?? c.role ?? "caregiver") === value}
-                          onChange={async () => {
-                            setPickedRole((picked) => ({ ...picked, [c.id]: value }));
-                            await setCaregiverRole(c.id, value);
-                            onChange();
-                          }}
-                        />
-                        <span>{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
               </li>
             ))}
           </ul>

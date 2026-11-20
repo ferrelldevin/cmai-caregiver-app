@@ -73,30 +73,69 @@ const saveChange = async (sheet) => {
   await field.fill("ab"); await p.keyboard.press("Enter");
   await p.getByText("Added AB as C-02.").waitFor(); ok(true, "AB is C-02");
   ok((await chip.textContent()).includes("JM"), "the first caregiver added is the one logging");
+  // The caregivers page is for adding and removing: the role (F-58) is the lab's to set and sits on "Lab and research" (design note 030 step 7).
+  ok((await p.getByRole("radiogroup").count()) === 0, "the caregivers page asks for no role");
+  const rowsFit = await p.evaluate(() => {
+    const card = document.querySelector(".patient-list").getBoundingClientRect();
+    return [...document.querySelectorAll(".patient-list li")].every((li) => {
+      const text = li.querySelector(".patient-main").getBoundingClientRect();
+      const actions = li.querySelector(".row").getBoundingClientRect();
+      return text.right <= actions.left && actions.right <= card.right + 1;
+    });
+  });
+  ok(rowsFit, "at phone width each caregiver's text and actions fit the card without overlapping");
+  await p.screenshot({ path: `${OUT}/caregivers-page.png` });
+
+  // Settings has one row for the lab: research export, lab files, roles, clock check and demo data are behind it.
+  await p.locator("nav.tabs button", { hasText: "Settings" }).click();
+  const more = p.getByRole("navigation", { name: "More" });
+  await more.getByRole("link", { name: /^Lab and research/ }).waitFor();
+  const titles = await more.locator(".menu-title").allTextContents();
+  ok(titles.join("|") === "Backup and export|Display|Keep data safe|Caregivers|Lab and research|How ratings are worked out", `Settings lists six rows, one of them Lab and research (${titles.join(", ")})`);
+  await more.getByRole("link", { name: /^Lab and research/ }).click();
+  await p.getByRole("heading", { name: "Lab and research", level: 1 }).waitFor();
+  for (const h of ["Export for research", "Lab files", "Roles", "Clock check"]) ok(await p.getByRole("heading", { name: h, exact: true }).isVisible(), `the page has ${h}`);
+  ok(await p.getByRole("region", { name: "Demo data" }).getByRole("button", { name: "Load demo data" }).isVisible(), "the page has Demo data");
+  await axe(p, "Lab and research page");
   // F-58: a role for research exports, stored once on the profile. Caregiver unless changed.
   const role = p.getByRole("radiogroup", { name: "Role for JM" });
   ok(await role.getByRole("radio", { name: "Caregiver" }).isChecked(), "the role starts as Caregiver");
   await role.getByRole("radio", { name: "Researcher" }).check();
   await p.waitForFunction(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("caregivers").objectStore("caregivers").getAll(); g.onsuccess = () => { r.result.close(); res(g.result.some((c) => c.initials === "JM" && c.role === "researcher")); }; }; }));
   ok(await role.getByRole("radio", { name: "Researcher" }).isChecked(), "the role is saved on the profile and shown");
-  // The role sits on its own line: nothing in a caregiver's row overlaps or runs past the card.
+  // The role sits on its own line under the caregiver: nothing overlaps or runs past the card.
   const fit = await p.evaluate(() => {
-    const card = document.querySelector(".patient-list").getBoundingClientRect();
-    return [...document.querySelectorAll(".patient-list li")].every((li) => {
+    const card = document.querySelector(".role-list").closest(".card").getBoundingClientRect();
+    return [...document.querySelectorAll(".role-list li")].every((li) => {
       const text = li.querySelector(".patient-main").getBoundingClientRect();
-      const actions = li.querySelector(".row").getBoundingClientRect();
       const pick = li.querySelector(".role-pick").getBoundingClientRect();
       const choices = [...li.querySelectorAll(".role-pick label")];
-      return text.right <= actions.left && actions.right <= card.right + 1 && pick.right <= card.right + 1 &&
-        pick.top >= Math.max(text.bottom, actions.bottom) &&
+      return pick.right <= card.right + 1 && pick.top >= text.bottom &&
         choices.every((l) => {
           const word = l.querySelector("span"), hit = l.querySelector("input").getBoundingClientRect();
           return word.scrollWidth <= word.clientWidth && hit.height >= 44 && hit.left >= pick.left && hit.right <= pick.right + 1;
         });
     });
   });
-  ok(fit, "at phone width each row's text, actions and role fit the card without overlapping, and every role target is 44 px tall");
-  await p.screenshot({ path: `${OUT}/caregivers-page.png` });
+  ok(fit, "at phone width each role sits under its caregiver inside the card, and every role target is 44 px tall");
+  await p.screenshot({ path: `${OUT}/lab-page.png`, fullPage: true });
+  // The old addresses of the clock check and demo data open the same page; Back returns to Settings.
+  for (const old of ["clock", "demo"]) {
+    await p.goto(URL.replace(/\/?$/, "/") + "#/data/" + old);
+    await p.getByRole("heading", { name: "Lab and research", level: 1 }).waitFor();
+  }
+  ok(true, "#/data/clock and #/data/demo open Lab and research");
+  // The role is read back from the profile, not only shown as tapped: it is still there after the app is opened again.
+  await p.reload();
+  await p.getByRole("heading", { name: "Lab and research", level: 1 }).waitFor();
+  ok(await p.getByRole("radiogroup", { name: "Role for JM" }).getByRole("radio", { name: "Researcher" }).isChecked() && await p.getByRole("radiogroup", { name: "Role for AB" }).getByRole("radio", { name: "Caregiver" }).isChecked(), "after a reload JM is still Researcher and AB still Caregiver");
+  await p.locator(".back-btn").click();
+  await more.waitFor(); ok(true, "Back returns to Settings");
+  // Backup and export is the caregiver's page again: no research export and no lab files on it.
+  await more.getByRole("link", { name: /^Backup and export/ }).click();
+  await p.getByRole("heading", { name: "Backup and export", level: 1 }).waitFor();
+  ok((await p.getByRole("heading", { name: "Export for research" }).count()) === 0 && (await p.getByRole("button", { name: /CSV$/ }).filter({ hasText: /Labels|Caregiver ratings|Watches/ }).count()) === 0, "Backup and export has no research export and no lab files");
+
 
   // A log carries who made it; switching is one tap from the chip and never asked for.
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
