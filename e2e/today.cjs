@@ -44,6 +44,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const head = p.locator(".acc-head", { hasText: "Hitting" });
   await head.click();
   ok((await head.getAttribute("aria-expanded")) === "true" && (await p.locator(".acc-body li").count()) === 2, "Hitting opens to its 2 logs");
+  ok((await p.locator(".open-label").count()) === 0 && !/Open:/.test(await p.locator("main").innerText()), "no lab note (Open: ...) on Today in the caregiver build (plan 4.8)");
   await p.screenshot({ path: `${OUT}/today-open.png` });
   await p.locator(".acc-body li").first().getByRole("button", { name: /^Edit/ }).click();
   const sheet = p.getByRole("dialog", { name: /^Hitting/ });
