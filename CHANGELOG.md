@@ -6,6 +6,10 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ## [Unreleased]
 
+### Fixed
+
+- Notes from the lab to itself ("Open: R4", "Open: D-17", "Open: D-18") no longer show on a caregiver's Today and Two weeks screens; they show in the lab build only, where a register ID links to the register (F-65, design note 030, build plan 4.8). First step of the simplicity plan.
+
 ### Added
 
 - Correct a wrong behavior, lab build only (F-64, design note 025): "Change" beside the behavior on the log details sheet. The same log is corrected and its history keeps the first pick with the reason Wrong behavior; nothing is deleted, no second log is made, and it is counted once. No database version, no export format change, no scoring change.

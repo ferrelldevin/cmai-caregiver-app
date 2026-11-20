@@ -45,6 +45,7 @@ const LAB_CHECKS = [
   { name: "lab: research export", file: "e2e/research-export.cjs" },
   { name: "lab: change reasons", file: "e2e/change-reasons.cjs" },
   { name: "lab: correct behavior", file: "e2e/correct-behavior.cjs" },
+  { name: "lab: lab notes", file: "e2e/lab-labels.cjs" },
 ];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");
