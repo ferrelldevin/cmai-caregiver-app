@@ -11,23 +11,25 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
+  ok((await p.locator(".log-howto").textContent()).startsWith("Tap a behavior the moment you see it"), "before a first log, Log shows the one how-to line (F-65)");
   await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
-  await p.locator(".today-count").filter({ hasText: "1 logged today" }).waitFor();
+  await p.locator(".log-howto").waitFor({ state: "detached" }); ok(true, "and it leaves with the first log");
+  await p.locator(".tab-badge").filter({ hasText: "1" }).waitFor();
   ok(true, "a log made at 23:59:30 counts as today");
   // The app stays open past midnight: the timer must refresh it without any tap.
   // First let the confirmation close, so nothing else is about to redraw the screen.
   await p.clock.fastForward(9_000);
   await p.locator(".snackbar").waitFor({ state: "detached", timeout: 5000 });
-  ok((await p.locator(".today-count").textContent()).includes("1 logged today"), "still 23:59:40: still today");
+  ok((await p.locator(".tab-badge").textContent()) === "1", "still 23:59:40: still today");
   await p.clock.fastForward(24_000);
-  await p.getByText("Nothing logged yet today").waitFor({ timeout: 5000 });
-  ok(true, "after midnight the count starts again at nothing logged yet today");
+  await p.locator(".tab-badge").waitFor({ state: "detached", timeout: 5000 });
+  ok(true, "after midnight the count starts again: no badge on Today");
   // The phone sleeps through midnight: coming back to the app refreshes it.
   await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
-  await p.locator(".today-count").filter({ hasText: "1 logged today" }).waitFor();
+  await p.locator(".tab-badge").filter({ hasText: "1" }).waitFor();
   await p.clock.fastForward(24 * 60 * 60 * 1000 - 5_000); // to just before the next midnight... then past it while hidden
   await p.evaluate(() => { Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true }); document.dispatchEvent(new Event("visibilitychange")); });
-  await p.getByText("Nothing logged yet today").waitFor({ timeout: 5000 });
+  await p.locator(".tab-badge").waitFor({ state: "detached", timeout: 5000 });
   ok(true, "returning to the app on a new day refreshes today");
   ok(errs.length === 0, "no console errors " + JSON.stringify(errs));
   await b.close();

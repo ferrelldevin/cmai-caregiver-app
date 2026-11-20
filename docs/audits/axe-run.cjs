@@ -52,7 +52,7 @@ async function scan(page, name, results) {
     await del.getByRole("button", { name: "Tapped by mistake" }).click();
     await del.getByRole("button", { name: "Delete log" }).click();
     await del.waitFor({ state: "hidden" });
-    await page.getByRole("button", { name: "Today", exact: true }).click();
+    await page.locator("nav.tabs button", { hasText: "Today" }).click();
     await page.getByRole("heading", { name: "Nothing logged today" }).waitFor();
     await scan(page, "Today (nothing logged yet)", results);
     await page.getByRole("button", { name: "Nothing to log today" }).click();
@@ -60,7 +60,7 @@ async function scan(page, name, results) {
     await scan(page, "Today (checked in: nothing to log today)", results);
     await page.getByRole("button", { name: "Log a behavior", exact: true }).click();
     await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); // a log to fix on Today
-    await page.getByRole("button", { name: "Today", exact: true }).click();
+    await page.locator("nav.tabs button", { hasText: "Today" }).click();
     await page.locator(".acc-head").first().click();
     await scan(page, "Today (a behavior opened)", results);
     await page.getByRole("button", { name: /^Edit / }).first().click();
@@ -72,7 +72,7 @@ async function scan(page, name, results) {
     await scan(page, "Patient switcher (sheet open)", results);
     await page.keyboard.press("Escape");
     // Two weeks (F-28): a finished period, then the one in progress.
-    await page.getByRole("button", { name: "Two weeks", exact: true }).click();
+    await page.locator("nav.tabs button", { hasText: "Two weeks" }).click();
     await page.getByRole("heading", { name: "This period", exact: true }).waitFor();
     await scan(page, "Two weeks (finished period)", results);
     await page.getByRole("button", { name: "Later period" }).click();
@@ -83,7 +83,7 @@ async function scan(page, name, results) {
     await page.locator("#tw-history table").first().waitFor();
     await scan(page, "Two weeks (all 29 behaviors, History open)", results);
     // The Day-14 review screen was removed when ratings were locked (D-14, PR #17).
-    await page.getByRole("button", { name: "Settings" }).click();
+    await page.locator("nav.tabs button", { hasText: "Settings" }).click();
     await scan(page, "Patients & data (with patients)", results);
     await page.getByRole("button", { name: "Delete P-DEMO-B" }).click();
     await page.getByRole("dialog", { name: "Delete P-DEMO-B?" }).waitFor();
@@ -92,7 +92,7 @@ async function scan(page, name, results) {
     for (const row of ["Backup and export", "Display", "Keep data safe", "Demo data", "How ratings are worked out"]) {
       await page.getByRole("link", { name: new RegExp(`^${row}`) }).click();
       await scan(page, `Data: ${row}`, results);
-      await page.getByRole("button", { name: "Settings", exact: true }).click();
+      await page.locator("nav.tabs button", { hasText: "Settings" }).click();
     }
     all.schemes[scheme] = results;
     await ctx.close();

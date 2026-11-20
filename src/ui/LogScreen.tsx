@@ -5,7 +5,9 @@
 // grid or by holding a tile, so a whole group fits on one screen (F-37). A short
 // confirmation offers Edit and Undo for 8 seconds; the timer stops while the caregiver is
 // using it (WCAG 2.2.1). Edit opens the log details sheet (design note 003). Earlier logs
-// are fixed on the Today tab, which "N logged today" opens (F-27). Every edit, delete and
+// are fixed on the Today tab, whose badge in the tab bar carries today's count (F-27, F-65).
+// The screen starts with tiles: the how-to line shows only until this resident has a first
+// log, and stays in the "what counts" sheet (design note 030 step 2). Every edit, delete and
 // undo goes through data/logs.ts so it lands in the change history (design note 007).
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
@@ -16,7 +18,6 @@ import { utcOffsetMin, zoneName } from "../data/ids";
 import { endWatch, openWatch, startWatch } from "../data/watches";
 import { study } from "../study/settings";
 import type { Watch } from "../data/db";
-import { backupReminder } from "../data/backupReminder";
 import {
   deleteLog,
   correctItem,
@@ -33,7 +34,7 @@ import { timeOfDay } from "./format";
 import { record } from "./diagnostics";
 import { Icon } from "./Icon";
 import { LogSheet } from "./LogSheet";
-import { DefinitionsSheet } from "./DefinitionsSheet";
+import { DefinitionsSheet, HOW_TO_LOG } from "./DefinitionsSheet";
 
 const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"];
 const tabLabel = (g: FactorGroup) => GROUP_LABELS[g].split(/[ ,]/)[0];
@@ -47,26 +48,13 @@ export const SAVE_FAILED = "That did not save. Check the phone has free space, t
 interface Props {
   patientId: string;
   observations: StoredObservation[];
-  demo: boolean; // the patient is made-up demo data
   onChange: () => void;
   /** Periods whose two-week rating the caregiver logging now still has to give (F-47). Never a blocker. */
   ratingsDue?: number[];
   onRate?: (period: number) => void;
-  /** Opens the Today tab, where today's logs are listed and fixed. */
-  onToday: () => void;
-  onBackUp: () => void; // opens the Data screen's backup page
 }
 
-export function LogScreen({
-  patientId,
-  observations,
-  demo,
-  onChange,
-  onToday,
-  onBackUp,
-  ratingsDue = [],
-  onRate,
-}: Props) {
+export function LogScreen({ patientId, observations, onChange, ratingsDue = [], onRate }: Props) {
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
   const [group, setGroup] = useState<FactorGroup>("aggressive");
   const [toast, setToast] = useState<Toast | null>(null);
@@ -79,16 +67,8 @@ export function LogScreen({
 
   const now = Date.now();
   const todayStart = localMidnight(now);
-  let lastExport: number | null = null;
-  try {
-    lastExport = Number(localStorage.getItem("cmai-last-export")) || null;
-  } catch {
-    /* private mode: treated as never */
-  }
-  const reminder = backupReminder(now, lastExport, demo, observations.length);
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
-  const loggedToday = [...todayCounts.values()].reduce((a, b) => a + b, 0);
   const frequent = mostLogged(observations, now);
 
   // The confirmation closes on its own only while nobody is using it.
@@ -322,22 +302,6 @@ export function LogScreen({
           {SAVE_FAILED}
         </p>
       )}
-      <div className="log-head">
-        <p className="screen-title" aria-hidden>
-          Log a behavior
-        </p>
-        {/* the screen heading is the h1 in App */}
-        <button className="today-count" onClick={onToday}>
-          {loggedToday ? (
-            <>
-              <b>{loggedToday}</b> logged today
-            </>
-          ) : (
-            "Nothing logged yet today"
-          )}
-          <Icon name="chevron" size={16} className="today-count-chev" />
-        </button>
-      </div>
       {onRate && ratingsDue.length > 0 && (
         <div className="due-line">
           <p>
@@ -365,18 +329,7 @@ export function LogScreen({
           </button>
         </div>
       )}
-      <p className="hint">
-        Tap a behavior the moment you see it. One tap is one event. For pacing, restlessness and mannerisms, one tap is
-        one stretch of it.
-      </p>
-      {reminder && (
-        <p className="backup-reminder muted">
-          {reminder}{" "}
-          <button className="ghost small" onClick={onBackUp}>
-            Back up
-          </button>
-        </p>
-      )}
+      {observations.length === 0 && <p className="hint log-howto">{HOW_TO_LOG}</p>}
       {frequent.length > 0 && (
         <section className="log-frequent" aria-labelledby="frequent-h">
           <h2 className="group-title" id="frequent-h">

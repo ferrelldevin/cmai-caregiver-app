@@ -122,7 +122,7 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   await hit.click(); await p.locator(".snackbar").waitFor();
   // Today lists the log with who made it (F-27 moved recent logs there).
-  await p.locator(".today-count").click();
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
   await p.locator(".acc-head", { hasText: "Hitting" }).click();
   ok((await p.locator(".acc-body").textContent()).includes("by JM"), "Today says the log was by JM");
   await p.locator("nav.tabs button", { hasText: "Log" }).click();

@@ -4,7 +4,7 @@
 
 ## What this is
 
-A register proposal Devin brought from the Gupta Lab Research project on 2026-11-20 for the lab home sensor study. This note files it and checks it against the code, the scoring spec, the export draft and the simplicity rule (note 030, on open PR 116) before anyone builds it. Nothing here is decided.
+A register proposal Devin brought from the Gupta Lab Research project on 2026-11-20 for the lab home sensor study. This note files it and checks it against the code, the scoring spec, the export draft and the simplicity rule (F-65, note 030) before anyone builds it. Nothing here is decided.
 
 ## The proposal, in short
 
@@ -32,11 +32,11 @@ No change to ratings, scoring rules or item wording. Sync server out of scope.
 | Item wording                                | Behavior numbers only, no free text.                                                                                                                                                                                                                                                                                                                                       | Fine                              |
 | Sync server "question 31"                   | No question 31 was found in `docs/lab/review-packet.md` or the Library copy; the sync server is on open PR 109.                                                                                                                                                                                                                                                            | Not verified                      |
 
-## Against the simplicity rule (note 030, open PR 116)
+## Against the simplicity rule (F-65, note 030)
 
 The rule: nothing is asked before the tap; everything else comes after the tap and is optional, or lives in Settings.
 
-- **"Episode now" on the home screen** puts a second large target above or beside the tiles. Simplicity steps 2 and 3 exist to make Log start with tiles and put all 29 on one page. A caregiver then chooses between two ways to log before tapping, and an episode tap with no behavior needs a second visit to be useful. That is two steps where the tile is one.
+- **"Episode now" on the home screen** puts a second large target above or beside the tiles. Simplicity step 2 (merged in PR 117) made Log start with tiles, and step 3 puts all 29 on one page. A caregiver then chooses between two ways to log before tapping, and an episode tap with no behavior needs a second visit to be useful. That is two steps where the tile is one.
 - **The daily check** is a question the app asks on its own, every day, whether or not anything happened. That is new caregiver burden, and if it shows on opening the app it breaks "nothing asked before the tap". Step 6 removes the "I'm here" strip for the same reason.
 - **Details later** is consistent with the rule only if every detail stays optional and the app never nags for it.
 
@@ -58,7 +58,7 @@ The proposal's own acceptance criteria (tap written within 1 second, details kee
 
 ## Independent review
 
-Codex was asked first (Devin-Laptop, by Remote Control); the request was not allowed within 30 minutes, so per the review gate a different Claude model reviewed it: Claude Sonnet 5.5, a separate session in the cloud container, reading the repo files. It confirmed the code claims and found five things, all checked against the code: the CSV exports already carry `time_approximate` (only the research JSON lacks it), tapped versus entered is only approximate from `at` and `loggedAt`, the lab database schema would change too, and two references to rows on open PRs (fixed by naming the PRs, not the IDs). Nothing left the cloud session.
+Codex was asked first (Devin-Laptop, by Remote Control); the request was not allowed within 30 minutes, so per the review gate a different Claude model reviewed it: Claude Sonnet 5.5, a separate session in the cloud container, reading the repo files. It confirmed the code claims and found five things, all checked against the code: the CSV exports already carry `time_approximate` (only the research JSON lacks it), tapped versus entered is only approximate from `at` and `loggedAt`, the lab database schema would change too, and two references to register rows that were then only on open PRs (fixed; F-65 has since merged). Nothing left the cloud session.
 
 ## Open for Dr. Gupta and Devin
 
@@ -70,4 +70,4 @@ Codex was asked first (Devin-Laptop, by Remote Control); the request was not all
 
 - Proposal text: Devin, 2026-11-20, from the Gupta Lab Research project.
 - Scoring spec section 4, `docs/scoring-spec.md`.
-- Notes 015 (watching hours), 019 (change reasons), 021 (v1.1.0 draft), 030 (open, tap, done; on PR 116).
+- Notes 015 (watching hours), 019 (change reasons), 021 (v1.1.0 draft), 030 (open, tap, done; F-65).

@@ -583,6 +583,34 @@ input[type="checkbox"] {
 .tabs button.on .tab-icon {
   background: var(--accent-soft);
 }
+/* What used to sit above the tiles on Log: today's count on the Today tab, a dot on Settings when a backup is due (F-65). */
+.tab-badge {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  margin-left: 8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tab-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--attn);
+}
 
 /* Shared blocks */
 .card {
@@ -1048,15 +1076,6 @@ body:has(.snackbar) .switch-notice {
   font-weight: 700;
   margin: 0;
 }
-.today-count {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--fs-sm);
-}
-.today-count b {
-  color: var(--accent-ink);
-  font-size: var(--fs-md);
-}
 .group-title {
   font-size: var(--fs-xs);
   text-transform: uppercase;
@@ -1227,23 +1246,6 @@ body:has(.snackbar) .switch-notice {
   100% {
     background: var(--surface);
   }
-}
-
-/* Log: today's count opens the Today tab (F-27). */
-button.today-count {
-  background: transparent;
-  border: 0;
-  padding: 0 0 0 var(--s2);
-  min-height: 44px;
-  gap: 4px;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-button.today-count:active {
-  transform: none;
-}
-.today-count-chev {
-  transform: rotate(-90deg);
 }
 
 /* Today tab (F-27, build plan v5 4.2), from the round 3 mockup's "Report, today". */
@@ -2975,4 +2977,14 @@ table.cmp td {
 .log-history li span {
   color: var(--text-muted);
   font-size: var(--fs-sm);
+}
+
+/* The one how-to line: on Log until a first log, always at the top of the "what counts" sheet (F-65). */
+.defs-howto {
+  margin: 0 0 var(--s3);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.log-howto {
+  margin-top: var(--s3);
 }

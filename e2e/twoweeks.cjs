@@ -49,10 +49,8 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(/: \d+ logs$/.test(await p.locator(".tod [role=cell]").first().getAttribute("aria-label")), "each cell says its count");
   ok((await p.locator(".key-item").count()) === 4, "the grid has a 4-step legend");
 
-  // Open labels for what the lab has not set.
-  ok((await p.locator(".open-label", { hasText: "Open: D-17" }).count()) === 1, "group average is labeled Open: D-17");
-  const d18 = p.locator(".open-label", { hasText: "Open: D-18" });
-  ok((await d18.count()) === 1 && /Abedi 2025/.test(await d18.innerText()) && /Bankole 2020/.test(await d18.innerText()), "patterns are labeled Open: D-18 with the evidence");
+  // Notes from the lab to itself ("Open: D-17") never show in the caregiver build (plan 4.8); e2e/lab-labels.cjs checks the lab build.
+  ok((await p.locator(".open-label").count()) === 0 && !/Open:/.test(await p.locator("main").innerText()), "no lab note (Open: ...) on Two weeks in the caregiver build");
   ok(!/\bbecause\b/i.test(await p.locator("section", { has: h2("Patterns to look into") }).innerText()), "patterns never say 'because'");
   await p.screenshot({ path: `${OUT}/twoweeks-finished.png`, fullPage: true });
 

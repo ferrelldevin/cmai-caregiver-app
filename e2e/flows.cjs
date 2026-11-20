@@ -72,9 +72,10 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok((await sheet.locator('input[type="time"]').inputValue()) === timeBefore, "the old time stays");
   await sheet.getByRole("button", { name: "Done" }).click();
   ok(!(await sheet.isVisible()), "Done closes the sheet");
-  // Today (F-27): "N logged today" opens it; each behavior opens to its logs, which are fixed here.
-  await p.locator(".today-count").click();
-  ok(p.url().endsWith("#/today"), "'logged today' opens the Today tab");
+  // Today (F-27): its tab carries today's count (F-65); each behavior opens to its logs, which are fixed here.
+  ok((await p.getByRole("button", { name: /^Today \d+ so far$/ }).count()) === 1 && (await p.locator(".tab-badge").count()) === 1, "the Today tab carries today's count, in words too");
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
+  ok(p.url().endsWith("#/today"), "the Today tab opens Today");
   await p.locator(".acc-head", { hasText: "Hitting" }).click();
   const recent = p.locator(".acc-body li").first();
   ok((await recent.textContent()).includes("(about)") && (await recent.textContent()).includes("Mealtime"), "today's log shows approx and before");
@@ -115,13 +116,15 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.keyboard.press("Escape");
   ok(!(await sheet.isVisible()), "Esc closes the sheet");
   await p.mouse.click(10, 300);
-  await p.locator("nav.tabs button", { hasText: "Log" }).click(); // the reminder is on the Log screen
-  // A real patient with logs and no export gets the quiet backup line, and it opens the backup page (F-36)
-  const reminder = p.locator(".backup-reminder");
-  await reminder.waitFor();
-  ok((await reminder.textContent()).includes("Last backup: never."), "real patient with logs and no export: backup line shows");
-  await reminder.getByRole("button", { name: "Back up" }).click();
-  await p.getByRole("button", { name: "Download backup" }).waitFor(); ok(true, "the backup line opens the backup page");
+  await p.locator("nav.tabs button", { hasText: "Log" }).click();
+  // A real patient with logs and no export: Log stays clear, and the Settings tab carries a dot that says so in words (F-36, F-65)
+  const settingsTab = p.locator("nav.tabs button", { hasText: "Settings" });
+  await settingsTab.locator(".tab-dot").waitFor();
+  ok((await p.getByRole("button", { name: "Settings backup due", exact: true }).count()) === 1 && !(await p.locator(".log").innerText()).includes("Last backup"), "backup due: a dot on Settings, nothing on Log");
+  await settingsTab.click();
+  ok(/Backup due\. Never exported/.test(await p.getByRole("link", { name: /Backup and export/ }).innerText()), "Settings says in words that a backup is due and was never made");
+  await p.getByRole("link", { name: /Backup and export/ }).click();
+  await p.getByRole("button", { name: "Download backup" }).waitFor(); ok(true, "and the row opens the backup page");
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // data: demo, export, restore, delete patient
   await p.locator("nav.tabs button", { hasText: "Settings" }).click();
@@ -137,7 +140,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByText(/Last export: today/).waitFor(); ok(true, "last export shown");
   const dl2 = p.waitForEvent("download"); await p.getByRole("button", { name: "Logs CSV" }).click(); ok((await dl2).suggestedFilename().endsWith(".csv"), "logs CSV downloads");
   const before = JSON.parse(fs.readFileSync(path, "utf8")).observations.length;
-  await p.getByRole("button", { name: "Settings", exact: true }).click();
+  await p.locator("nav.tabs button", { hasText: "Settings" }).click();
   await p.getByRole("link", { name: /Last export today/ }).waitFor(); ok(true, "hub row shows last export");
   const rows = await p.locator(".patient-list li").count();
   await p.getByRole("button", { name: "Delete P-07" }).click();
