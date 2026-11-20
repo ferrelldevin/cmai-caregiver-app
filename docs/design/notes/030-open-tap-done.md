@@ -177,7 +177,21 @@ The caregiver build has no lab tools, so it has no such row and keeps its Demo d
 6. axe WCAG 2.2 AA, 0 violations on Lab and research (`e2e/caregivers.cjs`).
 7. The caregiver build is unchanged: its Settings rows, its Demo data page and `#/data/demo` (`e2e/navigation.cjs`, `e2e/flows.cjs`, `e2e/screenshots.cjs`, `docs/audits/axe-run.cjs`).
 
-Criteria for step 8 are added to this note by the pull request that builds it.
+## Acceptance criteria, step 8
+
+Both builds. The app is one page that stays loaded: a caregiver who last looked at Today, Two weeks or a Settings page found that screen, not Log, the next time the phone came out, and had to find the Log tab before logging. A fresh start was already Log (the installed app starts at its start address, which is Log).
+
+Rule: brought back to the front after 5 minutes or more out of sight, the app shows Log. Five minutes separates "looked at something else for a moment" from "opened the app again"; it is one constant (`AWAY_MS`, `src/ui/route.ts`).
+
+It never takes work away. The app stays where it is when a rating is open, a sheet is open, or a field is being typed in. An address still opens the screen it names, so links, a reload and the back gesture work as before.
+
+1. Left on Today, Two weeks or a Settings page and brought back after 5 minutes or more: Log (`e2e/rollover.cjs`, `tests/route.test.ts`).
+2. Brought back sooner: the same screen (`e2e/rollover.cjs`).
+3. With a sheet open, a field being typed in, or a rating open: the same screen, nothing lost (`e2e/rollover.cjs`, `tests/route.test.ts`).
+4. After the move to Log, the back gesture does not return to the Settings page that was left (`e2e/rollover.cjs`).
+5. Already on Log: nothing moves, the scroll position is kept (`e2e/rollover.cjs`).
+6. A fresh start with no address is Log; an address opens what it names; a reload keeps the screen (`e2e/navigation.cjs`, `tests/route.test.ts`).
+7. Nothing is stored, and no new screen or text is added, so the accessibility audit is unchanged.
 
 ## Sources
 

@@ -1,4 +1,4 @@
-// "Today" stays right when the app is left open past midnight, and when the phone wakes the next day. usage: node e2e/rollover.cjs URL OUTDIR
+// "Today" stays right when the app is left open past midnight, and when the phone wakes the next day; coming back after a real absence shows Log. usage: node e2e/rollover.cjs URL OUTDIR
 const { engine } = require("./browser.cjs");
 const [URL] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
@@ -31,6 +31,43 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.evaluate(() => { Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true }); document.dispatchEvent(new Event("visibilitychange")); });
   await p.locator(".tab-badge").waitFor({ state: "detached", timeout: 5000 });
   ok(true, "returning to the app on a new day refreshes today");
+  // Opening the app means Log (design note 030 step 8). Left on another screen and brought back
+  // after a real absence, it shows Log; after a short look away, or with something in progress, it stays.
+  const see = (state) => p.evaluate((v) => { Object.defineProperty(document, "visibilityState", { value: v, configurable: true }); document.dispatchEvent(new Event("visibilitychange")); }, state);
+  const away = async (ms) => { await see("hidden"); await p.clock.fastForward(ms); await see("visible"); await p.waitForTimeout(300); };
+  const tab = (t) => p.locator("nav.tabs button", { hasText: t }).click();
+  const onLog = async () => p.url().endsWith("#/log") && (await p.getByRole("group", { name: "All behaviors" }).isVisible());
+  await tab("Today"); await p.waitForFunction(() => location.hash === "#/today");
+  await away(4 * 60_000);
+  ok(p.url().endsWith("#/today"), "left on Today and back within 4 minutes: still Today");
+  await away(6 * 60_000);
+  ok(await onLog(), "left on Today and back after 6 minutes: Log");
+  await tab("Two weeks"); await p.waitForFunction(() => location.hash.startsWith("#/twoweeks"));
+  await away(60 * 60_000);
+  ok(await onLog(), "left on Two weeks for an hour: Log");
+  await tab("Settings");
+  await p.getByRole("navigation", { name: "More" }).getByRole("link", { name: /^Display/ }).click();
+  await p.getByRole("heading", { name: "Display", level: 1 }).waitFor();
+  await away(6 * 60_000);
+  ok(await onLog(), "left on a Settings page: Log");
+  await p.goBack(); await p.waitForTimeout(300);
+  ok(!p.url().includes("#/data/display"), "and the back gesture does not return to that page");
+  // Something in progress is never taken away: an open sheet, or a field being typed in.
+  await p.goto(URL.replace(/\/?$/, "/") + "#/today"); await p.waitForFunction(() => location.hash === "#/today");
+  await p.getByRole("button", { name: /Choose patient$/ }).click();
+  await p.locator("dialog[open]").waitFor();
+  await away(6 * 60_000);
+  ok(p.url().endsWith("#/today") && (await p.locator("dialog[open]").count()) === 1, "a sheet left open on Today is still there after 6 minutes");
+  await p.keyboard.press("Escape"); await p.locator("dialog[open]").waitFor({ state: "detached" });
+  await tab("Settings");
+  await p.getByLabel("New patient code").fill("P-0");
+  await away(6 * 60_000);
+  ok(p.url().endsWith("#/data") && (await p.getByLabel("New patient code").inputValue()) === "P-0", "a code half typed in Settings is still there after 6 minutes");
+  // Already on Log: nothing moves, the page stays where it was scrolled.
+  await tab("Log"); await p.getByRole("navigation", { name: "Jump to a behavior group" }).getByRole("button", { name: "Other", exact: true }).click(); await p.waitForTimeout(900);
+  const y = await p.evaluate(() => scrollY);
+  await away(6 * 60_000);
+  ok(y > 0 && (await p.evaluate(() => scrollY)) === y, "left on Log: Log stays where it was scrolled");
   ok(errs.length === 0, "no console errors " + JSON.stringify(errs));
   await b.close();
 })().catch((e) => { console.error(e.message); process.exit(1); });
