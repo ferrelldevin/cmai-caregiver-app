@@ -1,6 +1,6 @@
-// Watching hours (F-38, D-25, plan 5.6) on the LAB build: the strip on Log, a log starts a watch,
-// I've left and I'm here, switching resident ends it, the band on Today, the 4-hour timeout
-// question; axe in four display modes.
+// Watching hours (F-38, D-25, plan 5.6) on the LAB build: nothing about watching on Log (design
+// note 030 step 6), a log starts a watch, the strip on Today with I've left and I'm here, switching
+// resident ends it, the band on Today, the 4-hour timeout question; axe in four display modes.
 // usage: node e2e/watching.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
 const { engine } = require("./browser.cjs");
 const fs = require("fs");
@@ -19,8 +19,9 @@ async function start(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  await p.locator(".watch-strip").waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).waitFor();
 }
+const tab = (p, name) => p.locator("nav.tabs button", { hasText: name }).click();
 
 (async () => {
   const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
@@ -29,16 +30,28 @@ async function start(p) {
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
   await start(p);
   const strip = p.locator(".watch-strip");
-  ok((await strip.textContent()).includes("Not marked as with P-01"), "the strip says nobody is marked as with P-01");
+  // Log: nothing about watching stands before the tiles, before or after a log.
+  ok((await strip.count()) === 0 && (await p.getByRole("button", { name: "I'm here" }).count()) === 0, "Log has no watching strip and no I'm here button");
+  await axe(p, "Log, no strip");
+  await tab(p, "Today");
+  await strip.waitFor();
+  ok((await strip.textContent()).includes("Not marked as with P-01"), "Today's strip says nobody is marked as with P-01");
   ok((await strip.boundingBox()).height <= 60, `the strip is one line (${Math.round((await strip.boundingBox()).height)} px)`);
-  await axe(p, "Log with the strip");
+  await axe(p, "Today with the strip, nothing logged");
 
+  await tab(p, "Log");
   await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
-  await strip.filter({ hasText: "With P-01 since" }).waitFor(); ok(true, "a log with no watch open starts one");
+  await p.waitForFunction(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("watches").objectStore("watches").getAll(); g.onsuccess = () => { r.result.close(); res(g.result.length === 1); }; }; }));
   let ws = await watches(p);
-  ok(ws.length === 1 && ws[0].startSource === "log" && ws[0].end === undefined, "stored: one open watch, started by a log");
+  ok(ws.length === 1 && ws[0].startSource === "log" && ws[0].end === undefined, "a log with no watch open starts one: stored, one open watch, started by a log");
+  ok((await strip.count()) === 0, "Log still shows no strip once a watch is open");
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
+  await p.waitForTimeout(700);
+  ok((await watches(p)).length === 1, "a second log does not start a second watch");
   await p.screenshot({ path: `${OUT}/watching-log.png` });
 
+  await tab(p, "Today");
+  await strip.filter({ hasText: "With P-01 since" }).waitFor(); ok(true, "Today's strip says With P-01 since the log");
   await strip.getByRole("button", { name: "I've left" }).click();
   await strip.filter({ hasText: "Not marked" }).waitFor();
   ws = await watches(p);
@@ -48,7 +61,6 @@ async function start(p) {
   ok((await watches(p)).some((w) => w.startSource === "tap" && w.end === undefined), "I'm here starts one with one tap");
 
   // Today: the band and its sentence.
-  await p.locator("nav.tabs button", { hasText: "Today" }).click();
   await p.locator(".watch-band").waitFor();
   ok((await p.locator(".watch-note").textContent()).includes("A gap with no bar means nobody was watching, not that it was calm."), "Today says a gap is not calm");
   ok((await p.locator(".watch-band span").count()) === 24, "the band has the same 24 hours as the bars");
@@ -63,7 +75,7 @@ async function start(p) {
   ok(ws.every((w) => w.end !== undefined) && ws.some((w) => w.endSource === "switch"), "switching resident ends the watch as a switch");
 
   // 4 hours with no tap: it ended at the last tap, and the app asks once.
-  await p.locator("nav.tabs button", { hasText: "Log" }).click();
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
   await p.locator(".watch-strip").getByRole("button", { name: "I'm here" }).click();
   await p.locator(".watch-strip", { hasText: "With P-02 since" }).waitFor();
   await p.evaluate(() => new Promise((res) => {
@@ -95,9 +107,9 @@ async function start(p) {
     const q = await c.newPage();
     await start(q);
     await q.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
-    await q.locator(".watch-strip", { hasText: "since" }).waitFor();
-    await axe(q, `Log with a watch, ${name}`);
+    await q.locator(".snackbar").waitFor();
     await q.locator("nav.tabs button", { hasText: "Today" }).click();
+    await q.locator(".watch-strip", { hasText: "since" }).waitFor();
     await q.locator(".watch-band").waitFor();
     await axe(q, `Today with the band, ${name}`);
     await c.close();
