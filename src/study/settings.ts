@@ -5,7 +5,7 @@
 export interface StudySettings {
   labView: boolean; // show "Open: <ID>" labels and register links
   caregiverProfiles: boolean; // R2, F-45 (plan 5.2)
-  pin: boolean; // R1 option A, F-46 (plan 5.3)
+  pin: boolean; // R1 option A, F-46 (plan 5.3). Off in both builds since design note 030 step 5; see LAB_PIN below
   blindCmai: boolean; // day-14 caregiver rating, F-47 (plan 5.4)
   ratingsVisibleToCaregivers: boolean; // D-24
   watchingHours: boolean; // F-38 (plan 5.6)
@@ -43,7 +43,7 @@ const CAREGIVER: StudySettings = {
 const LAB: StudySettings = {
   labView: true,
   caregiverProfiles: true,
-  pin: true,
+  pin: false, // who is logging is remembered; the phone's own lock is the login (design note 030 step 5)
   blindCmai: true,
   ratingsVisibleToCaregivers: false,
   watchingHours: true,
@@ -63,6 +63,11 @@ export type StudyMode = "caregiver" | "lab";
 
 // Only the exact word "lab" turns lab mode on. Anything else, including a typo, is a caregiver build.
 export const modeFrom = (value: string | undefined): StudyMode => (value === "lab" ? "lab" : "caregiver");
-export const settingsFor = (mode: StudyMode): StudySettings => (mode === "lab" ? LAB : CAREGIVER);
+// The PIN is switched off, not removed. A lab build made with VITE_STUDY_PIN=on has it, so its
+// check (e2e/sign-in.cjs) keeps running and the code is known to work if Dr. Gupta asks for it back.
+// Only the exact word "on" counts, and only in a lab build: a caregiver build can never have the PIN.
+export const settingsFor = (mode: StudyMode, pin = false): StudySettings =>
+  mode === "lab" ? { ...LAB, pin } : CAREGIVER;
 export const STUDY_MODE: StudyMode = modeFrom(import.meta.env.VITE_STUDY_MODE);
-export const study: StudySettings = settingsFor(STUDY_MODE);
+export const LAB_PIN: boolean = import.meta.env.VITE_STUDY_PIN === "on";
+export const study: StudySettings = settingsFor(STUDY_MODE, LAB_PIN);

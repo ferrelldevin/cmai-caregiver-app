@@ -44,6 +44,8 @@ Each row: what they could do, what stops them today, and what is still missing. 
 
 ### Assumed design: R1 option A, a PIN on the phone
 
+**Switched off since 2026-11-20 (register F-67, design note 030 step 5).** Who is logging is remembered on the phone and nothing asks for a PIN, so T3 and the casual part of T1 are not covered by the app: a log's "by" code is whoever the phone says. The design below is built and kept working behind `VITE_STUDY_PIN=on`, and comes back if Dr. Gupta picks it (review packet row A8).
+
 **Assumed, sign-off pending** (R1, F-46 _proposed_; plan v5 step 5.3). Recommended because it keeps data on the phone, so it needs no server and no new IRB question about where data goes. Option B (lab accounts or REDCap) waits for P-03 and P-04.
 
 **What the PIN is, and is not.** It says who is logging, and it stops a passer-by opening the app. It does not protect the data from someone who has the unlocked phone and a computer: a 4-digit secret has 10,000 values and anything protected with it can be opened by trying them all. The phone's own passcode and its built-in storage encryption are the real guard. The PIN is not encryption, and no document or screen should describe it as encryption.

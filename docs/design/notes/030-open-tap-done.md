@@ -132,7 +132,25 @@ This changes one sentence of F-59 and design note 019: an edit records why, it n
 7. The caregiver build is unchanged: edits save as they are made (`e2e/flows.cjs`, `e2e/today.cjs`).
 8. axe WCAG 2.2 AA, 0 violations in four modes for the held change, the delete step and the history view.
 
-Criteria for steps 5 to 8 are added to this note by the pull request that builds each one.
+## Acceptance criteria, step 5
+
+Lab build only. The PIN (F-46) stood between opening the app and a tile once per shift: a keypad, 4 digits, and a 6-digit setup PIN before the first caregiver could be added. Devin chose by card on 2026-11-20 to take it out of the daily path: who is logging is remembered on the phone, and the phone's own lock is the login. The switch `pin` is now off in both builds.
+
+What this gives up, said plainly: with the PIN, a log's "by" code was backed by a secret (threat model T3, another caregiver on a shared phone). Without it, "by" is whoever the chip says, and anyone holding the unlocked phone can switch it in one tap. The data was never protected by the PIN; that is the phone's passcode (T2), unchanged. This changes the assumed answer for R1 and is Dr. Gupta's to confirm (register F-67, review packet row A8).
+
+The PIN is switched off, not removed. A lab build made with `VITE_STUDY_PIN=on` has it; `npm run checks` builds that too and runs `e2e/sign-in.cjs` against it, so the code is known to work if it is asked for back. A caregiver build can never have the PIN.
+
+1. Adding the first caregiver asks for initials and nothing else; no setup PIN, no PIN to choose (`e2e/caregivers.cjs`).
+2. Closing and opening the app shows the tiles with the same caregiver logging; no sign-in screen. The first tap logs and carries that caregiver's code (`e2e/caregivers.cjs`).
+3. Switching who is logging is one tap in "Who is logging?"; the sheet has no Sign out (`e2e/caregivers.cjs`).
+4. The day-14 rating, watching hours and every other lab check pass with no PIN step (`e2e/blind-rating.cjs` and the rest of the lab checks).
+5. `pin` is off in both builds, and only a lab build asked for by name has it (`tests/settings.test.ts`).
+6. The PIN's own check passes against the PIN build: once per shift, wrong tries, the setup PIN, Sign out, axe in four modes (`e2e/sign-in.cjs`).
+7. The caregiver build is unchanged.
+
+Open for Dr. Gupta, both in the review packet: is the phone's own lock enough as the login (F-67, row A8), and does a change to "what happened before" need its own reason code instead of `other` (F-68, row E8)?
+
+Criteria for steps 6 to 8 are added to this note by the pull request that builds each one.
 
 ## Sources
 

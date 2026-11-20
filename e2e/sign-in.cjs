@@ -1,7 +1,8 @@
 // On-phone PIN (R1 option A, plan 5.3) on the LAB build: asked once per shift, never between
 // opening the app and a tile; wrong PINs said in words; a wait from the 5th; the setup PIN gives
 // a new PIN; keys of 64 px or more; axe on the sign-in screen in four display modes.
-// usage: node e2e/sign-in.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
+// The PIN is switched off in both builds (design note 030 step 5); this check keeps its code working.
+// usage: node e2e/sign-in.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab VITE_STUDY_PIN=on)
 const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
@@ -121,6 +122,9 @@ async function setUp(p) {
   await p.getByRole("button", { name: "Cancel" }).click();
   await p.locator(".cg-chip", { hasText: "JM" }).waitFor(); ok(true, "Cancel on a switch keeps JM signed in");
   await p.locator(".cg-chip").click();
+  // The sheet's two buttons sit side by side with space between them, never touching.
+  const acts = await p.getByRole("dialog", { name: "Who is logging?" }).locator(".sheet-actions button").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; }));
+  ok(acts.length === 2 && acts[0].t < acts[1].b && acts[1].t < acts[0].b && acts[1].l - acts[0].r >= 8, "Manage caregivers and Sign out share a row with space between them");
   await p.getByRole("dialog", { name: "Who is logging?" }).getByRole("button", { name: "Sign out" }).click();
   await heading(p, "Who is logging?");
   ok(await p.locator(".signin").count() === 1, "Sign out shows the sign-in screen");

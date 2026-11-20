@@ -1,7 +1,7 @@
 // Caregiver profiles (R2, plan 5.2) on the LAB build: codes and initials, who is logging,
 // "by" on every new record, My residents first in the switcher, and axe on each new screen in
 // four display modes. The caregiver build never shows any of it (checked by every other e2e script).
-// The lab build has the PIN on too (plan 5.3): this script sets PINs with pinIn(); e2e/sign-in.cjs checks the PIN itself.
+// The PIN is switched off (design note 030 step 5): nothing here asks for one. e2e/sign-in.cjs checks the PIN on its own build.
 // usage: node e2e/caregivers.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
 const { engine } = require("./browser.cjs");
 const fs = require("fs");
@@ -10,24 +10,6 @@ const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-// Types a PIN on the keypad and waits for the next screen (the keypad listens to the keyboard).
-async function pinIn(p, pin, next) {
-  await p.keyboard.type(pin);
-  if (next) await p.getByRole("heading", { name: next }).waitFor();
-}
-// Sets the setup PIN, then (after the first caregiver is added) that caregiver's PIN.
-async function setupPin(p) {
-  await p.getByRole("heading", { name: "Choose a setup PIN" }).waitFor();
-  await pinIn(p, "246810", "Enter the setup PIN again");
-  await pinIn(p, "246810", "Add the first caregiver");
-}
-async function newPin(p, initials, pin) {
-  await p.getByRole("heading", { name: "Setup PIN" }).waitFor();
-  await pinIn(p, "246810", `Choose a PIN for ${initials}`);
-  await pinIn(p, pin, "Enter it again");
-  await pinIn(p, pin);
-  await p.locator(".cg-chip", { hasText: initials }).waitFor();
-}
 
 async function axe(p, name) {
   await p.waitForTimeout(350);
@@ -76,8 +58,8 @@ const saveChange = async (sheet) => {
   const chip = p.locator(".cg-chip");
   ok((await chip.textContent()).includes("Who?"), "the chip asks Who? when nobody is logging");
   await chip.click();
-  await setupPin(p);
-  ok(true, "the chip opens the setup PIN, then Add the first caregiver");
+  await p.getByRole("heading", { name: "Add the first caregiver" }).waitFor();
+  ok((await p.getByText(/PIN/).count()) === 0, "the chip opens Add the first caregiver, and nothing asks for a PIN");
   await axe(p, "caregivers page, empty");
 
   // Initials only.
@@ -87,8 +69,7 @@ const saveChange = async (sheet) => {
   await field.fill("J"); await p.keyboard.press("Enter");
   await p.getByRole("alert").filter({ hasText: "Initials only" }).waitFor(); ok(true, "one letter is refused");
   await field.fill("jm"); await p.keyboard.press("Enter");
-  await newPin(p, "JM", "2580");
-  await p.getByText("C-01 · logging now").waitFor(); ok(true, "JM is C-01, sets a PIN, and is logging");
+  await p.getByText("C-01 · logging now").waitFor(); ok(true, "JM is C-01 and is logging, with no PIN to choose");
   await field.fill("ab"); await p.keyboard.press("Enter");
   await p.getByText("Added AB as C-02.").waitFor(); ok(true, "AB is C-02");
   ok((await chip.textContent()).includes("JM"), "the first caregiver added is the one logging");
@@ -129,12 +110,24 @@ const saveChange = async (sheet) => {
   const who = p.getByRole("dialog", { name: "Who is logging?" });
   await who.waitFor(); ok(true, "the chip opens Who is logging?");
   await axe(p, "Who is logging? sheet");
-  // The sheet's two buttons sit side by side with space between them, never touching.
-  const acts = await who.locator(".sheet-actions button").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; }));
-  ok(acts.length === 2 && acts[0].t < acts[1].b && acts[1].t < acts[0].b && acts[1].l - acts[0].r >= 8, "Manage caregivers and Sign out share a row with space between them");
+  // With the PIN off there is no shift to end: Manage caregivers is the sheet's one action (Sign out is checked with the PIN, e2e/sign-in.cjs).
+  ok((await who.locator(".sheet-actions button").count()) === 1 && (await who.getByRole("button", { name: "Sign out" }).count()) === 0, "the sheet offers Manage caregivers and no Sign out");
   await who.getByRole("button", { name: /^AB/ }).click();
-  await newPin(p, "AB", "3691");
-  await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching (through AB's new PIN) says who is logging now");
+  await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching is that one tap, and says who is logging now");
+  // Who is logging is remembered on this phone: closing and opening the app asks nothing (design note 030 step 5).
+  await p.reload();
+  await hit.waitFor();
+  ok((await p.locator(".signin").count()) === 0 && (await p.getByText(/PIN/).count()) === 0 && (await chip.textContent()).includes("AB"), "after a reload the app opens on the tiles with AB still logging, and no sign-in screen");
+  const nBefore = (await stored(p)).observations.length;
+  await hit.click(); await p.locator(".snackbar").waitFor();
+  const made = (await stored(p)).observations;
+  ok(made.length === nBefore + 1 && made[made.length - 1].by === "C-02", "the first tap after opening logs, and the log carries AB's code");
+  await chip.click();
+  await who.getByRole("button", { name: /^JM/ }).click();
+  await p.locator(".switch-notice", { hasText: "JM is logging" }).waitFor();
+  await chip.click();
+  await who.getByRole("button", { name: /^AB/ }).click();
+  await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching back and forth is one tap each way");
   // The message sits just above the tab bar: clear of the banner, any page title and any Back button.
   await p.waitForTimeout(300);
   const spot = await p.evaluate(() => {
@@ -246,9 +239,7 @@ const saveChange = async (sheet) => {
     await q.getByRole("button", { name: "Add a patient" }).click();
     await q.getByLabel("New patient code").fill("P-01"); await q.keyboard.press("Enter");
     await q.locator(".cg-chip").click();
-    await setupPin(q);
     await q.getByLabel("Caregiver initials").fill("JM"); await q.keyboard.press("Enter");
-    await newPin(q, "JM", "2580");
     await q.getByText("C-01 · logging now").waitFor();
     // Three wide letters, the most a caregiver can have, stay inside the round badge.
     await q.getByLabel("Caregiver initials").fill("WWW"); await q.keyboard.press("Enter");
