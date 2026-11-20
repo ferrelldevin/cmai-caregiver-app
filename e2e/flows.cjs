@@ -122,7 +122,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await settingsTab.locator(".tab-dot").waitFor();
   ok((await p.getByRole("button", { name: "Settings backup due", exact: true }).count()) === 1 && !(await p.locator(".log").innerText()).includes("Last backup"), "backup due: a dot on Settings, nothing on Log");
   await settingsTab.click();
-  ok((await p.getByRole("link", { name: /Backup and export/ }).innerText()).includes("Never exported"), "Settings says the backup was never made");
+  ok(/Backup due\. Never exported/.test(await p.getByRole("link", { name: /Backup and export/ }).innerText()), "Settings says in words that a backup is due and was never made");
   await p.getByRole("link", { name: /Backup and export/ }).click();
   await p.getByRole("button", { name: "Download backup" }).waitFor(); ok(true, "and the row opens the backup page");
   await p.locator("nav.tabs button", { hasText: "Log" }).click();

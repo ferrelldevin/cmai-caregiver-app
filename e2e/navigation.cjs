@@ -33,13 +33,15 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok((await defs.locator(".defs-howto").textContent()).includes("one tap is one stretch"), "the sheet opens with the how-to line that left Log (F-65)");
   ok((await defs.getByRole("heading", { level: 3 }).allTextContents()).length === 4, "under the four group headings");
   await defs.getByRole("button", { name: "Close" }).click(); await defs.waitFor({ state: "hidden" });
-  const before = await p.locator(".tab-badge").count();
+  // The count on the Today tab, none shown meaning zero: a hold must leave the number itself unchanged.
+  const badge = async () => ((await p.locator(".tab-badge").count()) ? Number(await p.locator(".tab-badge").textContent()) : 0);
+  const before = await badge();
   const kick = await p.getByRole("tabpanel").getByRole("button", { name: /^Kicking/ }).boundingBox();
   await p.mouse.move(kick.x + kick.width / 2, kick.y + kick.height / 2); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
   await defs.waitFor();
   ok(await defs.locator(".def.on").textContent().then((t) => t.startsWith("Kicking")), "holding Kicking opens the sheet at Kicking");
   await defs.getByRole("button", { name: "Close" }).click(); await defs.waitFor({ state: "hidden" }); await p.waitForTimeout(300);
-  ok((await p.locator(".tab-badge").count()) === before && !(await p.locator(".snackbar").count()), "a hold does not log");
+  ok((await badge()) === before && !(await p.locator(".snackbar").count()), "a hold does not log");
   await p.mouse.wheel(0, 1200); await p.waitForTimeout(400);
   await shot("03-log-scrolled");
   // Tap the active tab: back to top

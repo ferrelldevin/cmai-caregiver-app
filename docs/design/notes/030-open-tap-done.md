@@ -59,20 +59,27 @@ Codex (Devin-Desktop, 2026-11-20) read the code diff and found five things, all 
 
 What sat above the tiles on Log, and where it went:
 
-| It was                                   | It is now                                                                                               |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| The title "Log a behavior"               | Gone from the screen. The page heading stays for screen readers, and the Log tab is lit                 |
-| "N logged today", a link to Today        | A count on the Today tab, spoken as "Today N so far". The tab opens Today, as the link did              |
-| Three lines on how to log                | Shown on Log only until a resident has a first log. Always the first lines of the "what counts" sheet   |
-| "Last backup: never" with a Back up link | A dot on the Settings tab, spoken as "Settings backup due". Settings already says when the last one was |
+| It was                                   | It is now                                                                                                  |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| The title "Log a behavior"               | Gone from the screen. The page heading stays for screen readers, and the Log tab is lit                    |
+| "N logged today", a link to Today        | A count on the Today tab, spoken as "Today N so far". The tab opens Today, as the link did                 |
+| Three lines on how to log                | Shown on Log only until a resident has a first log. Always the first lines of the "what counts" sheet      |
+| "Last backup: never" with a Back up link | A dot on the Settings tab, spoken as "Settings backup due". The Backup row in Settings reads "Backup due." |
 
 The plan said the count would move into the top bar. It went on the Today tab instead: at 320 px the top bar's second line already wraps, and a count on the tab that opens Today needs no explaining.
 
 1. With a resident who has logs, the first tile starts within 110 px of the top at 390 x 844 (it was 234 to 278 px), and Log shows no title, how-to line or backup line (`e2e/today.cjs`, `e2e/flows.cjs`).
 2. A resident with no logs sees the how-to line, and it leaves with the first log (`e2e/rollover.cjs`). The "what counts" sheet opens with it (`e2e/navigation.cjs`).
 3. The Today tab shows today's count and says it in words; it clears at midnight and when the app comes back on a new day (`e2e/today.cjs`, `e2e/rollover.cjs`).
-4. A real resident with logs and no backup in a week puts a dot on Settings, said in words; nothing about backup is on Log (`e2e/flows.cjs`, `tests/backupReminder.test.ts` for the rule, unchanged).
+4. A real resident with logs and no backup in a week puts a dot on Settings, said in words, and the Backup row in Settings reads "Backup due." ahead of when the last one was; nothing about backup is on Log (`e2e/flows.cjs`, `tests/backupReminder.test.ts` for the rule, unchanged).
 5. Every tab's spoken name starts with the words shown on it (WCAG 2.5.3); axe WCAG 2.2 AA, 0 violations in four modes (`docs/audits/axe-run.cjs`).
+
+### Review, step 2
+
+Codex on Devin-Desktop, 2026-11-20, on the code diff. Two findings, both checked against the code and fixed:
+
+1. The dot said "backup due" only to screen readers; a sighted caregiver saw a dot and, in Settings, only "Never exported". The Backup row now reads "Backup due." in words.
+2. The check that a hold does not log counted whether the Today badge existed, so a hold that logged a second event would have passed. It now compares the number.
 
 Criteria for steps 3 to 8 are added to this note by the pull request that builds each one.
 

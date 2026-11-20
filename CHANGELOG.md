@@ -8,7 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 
-- Log starts with tiles (F-65, design note 030 step 2). The title, the how-to lines and the backup line no longer sit above the behaviors. Today's count is on the Today tab, a due backup is a dot on the Settings tab, and the how-to line shows until a resident's first log and stays in the "what counts" sheet.
+- Log starts with tiles (F-65, design note 030 step 2). The title, the how-to lines and the backup line no longer sit above the behaviors. Today's count is on the Today tab, a due backup is a dot on the Settings tab and "Backup due." on the Backup row in Settings, and the how-to line shows until a resident's first log and stays in the "what counts" sheet.
 
 ### Fixed
 

@@ -482,6 +482,7 @@ export default function App() {
                 setTab("log");
               }}
               onChange={refresh}
+              backupDue={backupDue}
               caregivers={
                 study.caregiverProfiles
                   ? {
