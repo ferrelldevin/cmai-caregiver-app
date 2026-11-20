@@ -109,9 +109,43 @@ Codex on Devin-Desktop, 2026-11-20, on the code diff. Five findings, each checke
 4. The audit of the "It stopped" confirmation had moved to the top of the page, dropping the scrolled state. Both states are audited now, as above.
 5. The check that Tab reaches a group's first tile only proved focus was inside the group. It now names the tile.
 
-Criteria for steps 4 to 8 are added to this note by the pull request that builds each one.
+## Acceptance criteria, step 4
+
+Lab build only (`changeReasons`). Changing a log used to ask why from six reasons, every time. Moving a log 5 minutes took 6 taps there and 3 in the caregiver build. Now Save change saves, fills in the reason from what was changed, and closes the sheet: 3 taps in both builds.
+
+| What was changed                                    | Reason recorded  |
+| --------------------------------------------------- | ---------------- |
+| The time, "time is approximate", or when it stopped | `wrong_time`     |
+| What happened just before, alone                    | `other`          |
+| A time and what happened before, in one save        | `wrong_time`     |
+| The behavior (its own path, F-64, unchanged)        | `wrong_item`     |
+| A delete                                            | Still asks, D-14 |
+
+This changes one sentence of F-59 and design note 019: an edit records why, it no longer asks why. The six codes, the append-only history, the history view and the export are unchanged. Adding what happened before is not an error, and the six codes have no better word for it than `other`; a seventh code would change the draft export contract (F-60), so that is left as a question for Dr. Gupta's review packet with step 5.
+
+1. Save change asks nothing and closes the sheet; the entry carries the code in the table (`e2e/change-reasons.cjs`, `tests/reasonFor.test.ts`).
+2. Before saving, the sheet says which reason will be recorded (`e2e/change-reasons.cjs`).
+3. A chip tapped on and off again is no change: the sheet shows Done, and nothing is recorded (`e2e/change-reasons.cjs`).
+4. A refused save (an end before its start) keeps the sheet open with the message and the draft (`e2e/it-stopped.cjs`).
+5. A delete still asks why from the six reasons, with no free text, and waits for one (`e2e/change-reasons.cjs`).
+6. History stays append-only; the history view lists each change with its reason (`e2e/change-reasons.cjs`).
+7. The caregiver build is unchanged: edits save as they are made (`e2e/flows.cjs`, `e2e/today.cjs`).
+8. axe WCAG 2.2 AA, 0 violations in four modes for the held change, the delete step and the history view.
+
+Criteria for steps 5 to 8 are added to this note by the pull request that builds each one.
 
 ## Sources
 
 - Review page with before and after screens: project Library, `audits/simplicity-2026-11-18/`.
 - WCAG 2.2 SC 2.5.8 (target size) and SC 2.2.1 (timing) apply to steps 2 and 3 and are checked there.
+
+## Review, step 4
+
+Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20, on the diff of `src`, `tests` and `e2e`. Four findings, each checked against the code:
+
+| #   | Finding                                                                                                           | Checked                                                                                     | Outcome                                                                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | A field could still be changed while a save is on its way, and that change would be dropped when the sheet closes | True in principle; the save takes a few milliseconds                                        | Fixed: the sheet takes no new change while a save is pending                                                                                             |
+| 2   | If the save handler threw, Save change would stay stuck                                                           | Both callers (Log and Today) already catch and return false, so it cannot happen today      | Hardened anyway: a thrown save is treated as refused and the button works again                                                                          |
+| 3   | No check proved a refused save keeps the sheet and the draft                                                      | `e2e/it-stopped.cjs` covered the message and that nothing invalid was stored, not the draft | Fixed: it now also checks the stored log and revision are unchanged, the sheet is open, the entered time is still there and Save change is still offered |
+| 4   | History check did not prove old values are kept                                                                   | True                                                                                        | Fixed: `e2e/change-reasons.cjs` checks the old and new value in the first two entries                                                                    |

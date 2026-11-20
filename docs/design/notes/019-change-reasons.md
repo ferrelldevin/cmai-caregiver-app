@@ -20,7 +20,7 @@ Extend the existing pieces behind one switch, `changeReasons` (off in the caregi
 With the switch on:
 
 1. **Reasons.** Codes `wrong_time`, `wrong_item`, `duplicate`, `wrong_participant`, `entered_by_mistake`, `other`. Displayed as Wrong time, Wrong behavior, Logged twice, Wrong patient, Tapped by mistake, Other. The delete list already used these words, so old deletes map to a code. The Undo toast maps to `entered_by_mistake`. The code is stored on the history entry (`reason`).
-2. **Edits are held until Save change,** which asks why. Closing the sheet any other way discards the draft. This is the one behavior change for caregivers and is why the switch exists.
+2. **Edits are held until Save change,** which asks why. (Changed 2026-11-20, design note 030 step 4: Save change now fills in the reason from what was changed and asks nothing; a delete still asks.) Closing the sheet any other way discards the draft. This is the one behavior change for caregivers and is why the switch exists.
 3. **Append-only.** No entry is ever merged or rewritten. One Save change is one entry.
 4. **"It stopped" and restore carry no reason.** They are not corrections: the first records an end time that was never set, the second takes back a delete (itself reasoned). Both still make a history entry.
 5. **History view:** a "Change history" list on the log details sheet: each version, when, by whom (caregiver code), the reason and what changed. Rebuilt from the history by `logVersions`.

@@ -25,10 +25,9 @@ async function start(p) {
 }
 const tile = (p, name) => p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: new RegExp("^" + name) });
 
-// G11: with change reasons on, edits are held until "Save change", which asks why.
-const saveChange = async (sheet, reason = "Wrong time") => {
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByRole("button", { name: reason }).click();
+// G11: with change reasons on, edits are held until "Save change". It saves them with a reason worked
+// out from what changed and closes the sheet (design note 030 step 4); a refused save keeps it open.
+const saveChange = async (sheet) => {
   await sheet.getByRole("button", { name: "Save change" }).click();
 };
 
@@ -101,7 +100,10 @@ const saveChange = async (sheet, reason = "Wrong time") => {
     const alert = p.locator(".log-sheet .msg.error");
     await alert.waitFor();
     ok((await alert.textContent()).includes("can't stop before it started"), "an end before the start is refused, and says why");
+    const after = (await logs(p)).find((o) => o.id === target.id);
     ok((await logs(p)).every((o) => o.endedAt === undefined || o.endedAt >= o.at), "nothing invalid was stored");
+    ok(after.endedAt === target.endedAt && after.rev === target.rev, "the refused save left the stored log and its revision as they were");
+    ok((await p.locator(".log-sheet").isVisible()) && (await ended.inputValue()) === hhmm(before) && (await p.locator(".log-sheet").getByRole("button", { name: "Save change" }).count()) === 1, "the sheet stays open with the entered time still in it, and Save change can be pressed again");
     await p.waitForTimeout(400);
     await p.screenshot({ path: `${OUT}/it-stopped-sheet.png` });
     await axe(p, "sheet with the refusal");
