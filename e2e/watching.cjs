@@ -46,8 +46,10 @@ const tab = (p, name) => p.locator("nav.tabs button", { hasText: name }).click()
   ok(ws.length === 1 && ws[0].startSource === "log" && ws[0].end === undefined, "a log with no watch open starts one: stored, one open watch, started by a log");
   ok((await strip.count()) === 0, "Log still shows no strip once a watch is open");
   await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
-  await p.waitForTimeout(700);
-  ok((await watches(p)).length === 1, "a second log does not start a second watch");
+  await p.waitForFunction(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("observations").objectStore("observations").count(); g.onsuccess = () => { r.result.close(); res(g.result === 2); }; }; }));
+  await p.waitForTimeout(500); // the watch step follows the save
+  const after = await watches(p);
+  ok(after.length === 1 && after[0].uid === ws[0].uid && after[0].start === ws[0].start && after[0].end === undefined, "a second log is saved and starts no second watch: the first is still open, unchanged");
   await p.screenshot({ path: `${OUT}/watching-log.png` });
 
   await tab(p, "Today");
@@ -95,8 +97,16 @@ const tab = (p, name) => p.locator("nav.tabs button", { hasText: name }).click()
   ok((await watches(p)).some((w) => w.endSource === "timeout"), "the watch ended at the last tap, as a timeout");
   await p.screenshot({ path: `${OUT}/watching-still.png` });
   await axe(p, "Still with? question");
+  // The strip follows a change it did not make, with no tap on Today: ended by the timeout, carried on by the answer.
+  await tab(p, "Today");
+  // The app reopened on P-01. Its strip never borrows P-02's watch.
+  await p.locator(".watch-strip", { hasText: "Not marked as with P-01" }).waitFor(); ok(true, "P-01's strip says not marked, whatever P-02's watch did");
+  await p.getByRole("button", { name: /Choose patient$/ }).click();
+  await p.getByRole("dialog", { name: "Choose patient" }).locator(".sheet-row", { hasText: "P-02" }).click();
+  await p.locator(".watch-strip", { hasText: "Not marked as with P-02" }).waitFor(); ok(true, "Today's strip shows the timeout ended the watch");
   await still.getByRole("button", { name: "Yes, still here" }).click();
   await still.waitFor({ state: "detached" });
+  await p.locator(".watch-strip", { hasText: "With P-02 since" }).waitFor(); ok(true, "and shows it carried on after Yes, still here, without leaving Today");
   ok((await watches(p)).some((w) => w.patientId === "P-02" && w.end === undefined), "Yes, still here carries the watch on");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();

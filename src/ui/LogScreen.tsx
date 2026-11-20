@@ -85,6 +85,12 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
     setDefs(null);
   }, [patientId]);
 
+  // The resident on screen now, read after an await to see whether it is still the one a log was for.
+  const shown = useRef(patientId);
+  useEffect(() => {
+    shown.current = patientId;
+  }, [patientId]);
+
   async function log(itemId: number) {
     const t = Date.now();
     // A double tap on the same card within 0.6 s is almost always one event.
@@ -111,7 +117,8 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
     }
     // A log with no watch open starts one (D-25): logging never requires a watch. With one open for
     // this resident, startWatch changes nothing. The strip that shows it is on Today (design note 030 step 6).
-    if (study.watchingHours) await startWatch(patientId, "log", t).catch(record);
+    // A resident switched away from while the save was on its way gets no watch: the switch ended it.
+    if (study.watchingHours && shown.current === patientId) await startWatch(patientId, "log", t).catch(record);
     navigator.vibrate?.(15);
     setFlash(itemId);
     window.setTimeout(() => setFlash((f) => (f === itemId ? null : f)), 900);

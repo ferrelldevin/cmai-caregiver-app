@@ -13,6 +13,15 @@ const LAST_TAP = "cmai-last-tap";
 
 type EndSource = NonNullable<Watch["endSource"]>;
 
+// Screens that show the open watch ask to be told when it may have changed, whoever changed it: a
+// log, a tap on the strip, a switch of resident or caregiver, the 4-hour timeout.
+const listeners = new Set<() => void>();
+export function onWatchChange(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => void listeners.delete(fn);
+}
+const changed = () => listeners.forEach((fn) => fn());
+
 /** The open watch of whoever is logging on this phone now, if any. */
 export async function openWatch(): Promise<(Watch & { uid: string }) | undefined> {
   // The phone's ID is read when the database opens; on app start that may not have happened yet.
@@ -37,14 +46,16 @@ export async function startWatch(patientId: string, source: Watch["startSource"]
   };
   await db.watches.add(w);
   touch(now);
+  changed();
   return w;
 }
 
 /** Ends the open watch, if any. */
 export async function endWatch(source: EndSource, now = Date.now(), at = now) {
   const open = await openWatch();
-  if (!open) return;
-  await db.watches.update(open.uid, { end: Math.max(open.start, at), endSource: source });
+  // Told even with nothing to end: who is logging may have changed, and with it whose watch counts.
+  if (open) await db.watches.update(open.uid, { end: Math.max(open.start, at), endSource: source });
+  changed();
 }
 
 /** Records a tap in the app: the clock for the 4-hour timeout. */
@@ -75,6 +86,7 @@ export async function closeIfTimedOut(now = Date.now()): Promise<Watch | null> {
   const last = Math.max(lastTap() ?? open.start, open.start);
   if (now - last < TIMEOUT_MS) return null;
   await db.watches.update(open.uid, { end: last, endSource: "timeout" });
+  changed();
   return { ...open, end: last, endSource: "timeout" };
 }
 
@@ -82,6 +94,7 @@ export async function closeIfTimedOut(now = Date.now()): Promise<Watch | null> {
 export async function resumeWatch(uid: string, now = Date.now()) {
   await db.watches.update(uid, { end: undefined, endSource: undefined });
   touch(now);
+  changed();
 }
 
 /** Today's watches for one resident (any caregiver, any phone), for the band on Today. */
