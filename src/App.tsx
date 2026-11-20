@@ -7,6 +7,7 @@ import { PatientAvatar, residentColor } from "./ui/PatientAvatar";
 import { PatientSheet } from "./ui/PatientSheet";
 import { patientPosition } from "./data/patients";
 import { addDays, localMidnight } from "./scoring/engine";
+import { backupReminder } from "./data/backupReminder";
 import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
 import { useRoute, type DataPage, type Tab } from "./ui/route";
@@ -298,6 +299,21 @@ export default function App() {
   const pos = current ? patientPosition(current.anchor, Date.now()) : null;
   const periodLine = pos ? `Period ${pos.period} · day ${pos.day} of 14` : "";
 
+  // The tab bar carries what used to sit above the tiles on Log (design note 030 step 2): today's
+  // count as a badge on Today, and a dot on Settings when a backup is due (F-36).
+  const todayStart = localMidnight(Date.now());
+  const loggedToday = hasPatient ? observations.filter((o) => o.at >= todayStart).length : 0;
+  let lastExport: number | null = null;
+  try {
+    lastExport = Number(localStorage.getItem("cmai-last-export")) || null;
+  } catch {
+    /* private mode: treated as never */
+  }
+  const backupDue = hasPatient && !!backupReminder(Date.now(), lastExport, !!current?.demo, observations.length);
+  // Said in words inside the button, so the name a screen reader gives still starts with what is shown (WCAG 2.5.3).
+  const tabNote = (id: Tab) =>
+    id === "today" && loggedToday ? `${loggedToday} so far` : id === "data" && backupDue ? "backup due" : "";
+
   // Wait for the starting patient so the app never opens on the wrong one for a moment.
   if (!restored)
     return (
@@ -510,10 +526,7 @@ export default function App() {
           <LogScreen
             patientId={patientId!}
             observations={observations}
-            demo={!!current?.demo}
             onChange={refresh}
-            onToday={() => setTab("today")}
-            onBackUp={() => go({ tab: "data", page: "backup" })}
             ratingsDue={due}
             onRate={
               RATING_ON
@@ -601,14 +614,19 @@ export default function App() {
               key={id}
               className={shown === id ? "on" : ""}
               aria-current={shown === id ? "page" : undefined}
-              aria-label={title}
+              aria-label={title === label ? undefined : title}
               onClick={() => onTab(id)}
               disabled={id !== "data" && !hasPatient}
             >
               <span className="tab-icon" aria-hidden>
                 <Icon name={icon} size={22} />
+                {id === "today" && loggedToday > 0 && <span className="tab-badge">{loggedToday}</span>}
+                {id === "data" && backupDue && <span className="tab-dot" />}
               </span>
-              <span>{label}</span>
+              <span>
+                {label}
+                {tabNote(id) && <span className="sr">{tabNote(id)}</span>}
+              </span>
             </button>
           ))}
         </div>

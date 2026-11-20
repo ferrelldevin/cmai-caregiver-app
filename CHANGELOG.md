@@ -6,6 +6,10 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ## [Unreleased]
 
+### Changed
+
+- Log starts with tiles (F-65, design note 030 step 2). The title, the how-to lines and the backup line no longer sit above the behaviors. Today's count is on the Today tab, a due backup is a dot on the Settings tab, and the how-to line shows until a resident's first log and stays in the "what counts" sheet.
+
 ### Fixed
 
 - Notes from the lab to itself ("Open: R4", "Open: D-17", "Open: D-18") no longer show on a caregiver's Today and Two weeks screens; they show in the lab build only, where a register ID links to the register (F-65, design note 030, build plan 4.8). First step of the simplicity plan.

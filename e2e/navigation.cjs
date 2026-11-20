@@ -30,15 +30,16 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const defs = p.getByRole("dialog", { name: "What counts as each behavior" });
   await defs.waitFor();
   ok((await defs.locator(".def").count()) === 29, "the sheet lists all 29 behaviors");
+  ok((await defs.locator(".defs-howto").textContent()).includes("one tap is one stretch"), "the sheet opens with the how-to line that left Log (F-65)");
   ok((await defs.getByRole("heading", { level: 3 }).allTextContents()).length === 4, "under the four group headings");
   await defs.getByRole("button", { name: "Close" }).click(); await defs.waitFor({ state: "hidden" });
-  const before = await p.locator(".today-count").textContent();
+  const before = await p.locator(".tab-badge").count();
   const kick = await p.getByRole("tabpanel").getByRole("button", { name: /^Kicking/ }).boundingBox();
   await p.mouse.move(kick.x + kick.width / 2, kick.y + kick.height / 2); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
   await defs.waitFor();
   ok(await defs.locator(".def.on").textContent().then((t) => t.startsWith("Kicking")), "holding Kicking opens the sheet at Kicking");
   await defs.getByRole("button", { name: "Close" }).click(); await defs.waitFor({ state: "hidden" }); await p.waitForTimeout(300);
-  ok((await p.locator(".today-count").textContent()) === before && !(await p.locator(".snackbar").count()), "a hold does not log");
+  ok((await p.locator(".tab-badge").count()) === before && !(await p.locator(".snackbar").count()), "a hold does not log");
   await p.mouse.wheel(0, 1200); await p.waitForTimeout(400);
   await shot("03-log-scrolled");
   // Tap the active tab: back to top
@@ -68,7 +69,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(p.url().endsWith("#/data") && await p.getByRole("link", { name: /Backup and export/ }).isVisible(), "back gesture returns to the hub");
   await p.getByRole("link", { name: /Backup and export/ }).click(); await p.waitForTimeout(300);
   await shot("10-data-backup");
-  await p.getByRole("button", { name: "Settings", exact: true }).click(); await p.waitForTimeout(400);
+  await p.locator("nav.tabs button", { hasText: "Settings" }).click(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data"), "on-page Back button returns to the hub");
   await p.getByRole("link", { name: /How ratings/ }).click(); await p.waitForTimeout(300);
   ok(/Data on this phone: (kept|may be cleared)/.test(await p.locator("main").textContent()), "About says whether the phone keeps the data (F-53)");
