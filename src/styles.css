@@ -2886,7 +2886,7 @@ table.cmp td {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* Watching hours (F-38, plan 5.6): the strip on Log and the band on Today. */
+/* Watching hours (F-38, plan 5.6): the strip and the band, both on Today (design note 030 step 6). */
 .watch-strip {
   display: flex;
   align-items: center;

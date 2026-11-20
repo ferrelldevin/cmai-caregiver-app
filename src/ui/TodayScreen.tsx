@@ -10,7 +10,8 @@ import { checkInKey, db, localMidnight, madeHere, type CheckIn, type StoredObser
 import { deleteLog, correctItem, editLog, LOG_GONE, LogTimeError, restoreLog, stopLog } from "../data/logs";
 import { dayLogs, logsByHour } from "../scoring/day";
 import { watchedMinutesByHour } from "../scoring/coverage";
-import { watchesFor } from "../data/watches";
+import { onWatchChange, watchesFor } from "../data/watches";
+import { WatchStrip } from "./WatchStrip";
 import { study } from "../study/settings";
 import { ITEMS } from "../scoring/items";
 import { BEHAVIOR_ICONS } from "./behavior-icons";
@@ -61,6 +62,7 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
 
   // Watching hours (F-38, plan 5.6): a band on the same 24-hour scale as the bars.
   const [watched, setWatched] = useState<number[] | null>(null);
+  const [watchTaps, setWatchTaps] = useState(0); // counts changes to watches, so the band redraws
   useEffect(() => {
     if (!study.watchingHours) return;
     let live = true;
@@ -68,7 +70,9 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
     return () => {
       live = false;
     };
-  }, [patientId, today, observations]);
+  }, [patientId, today, observations, watchTaps]);
+  // The band follows every change to a watch, wherever it was made (a tap on the strip, the timeout).
+  useEffect(() => (study.watchingHours ? onWatchChange(() => setWatchTaps((n) => n + 1)) : undefined), []);
   const watchedLabel = watched
     ? watched
         .map((m, h) => (m ? `${hourLabel(h)}: ${m} min` : ""))
@@ -215,6 +219,7 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
         </div>
       </dl>
 
+      {study.watchingHours && <WatchStrip patientId={patientId} onChange={onChange} />}
       {total === 0 ? (
         <section className="card today-empty" aria-labelledby="today-empty-h">
           <h2 id="today-empty-h">Nothing logged today</h2>

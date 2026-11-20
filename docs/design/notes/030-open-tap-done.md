@@ -150,7 +150,20 @@ The PIN is switched off, not removed. A lab build made with `VITE_STUDY_PIN=on` 
 
 Open for Dr. Gupta, both in the review packet: is the phone's own lock enough as the login (F-67, row A8), and does a change to "what happened before" need its own reason code instead of `other` (F-68, row E8)?
 
-Criteria for steps 6 to 8 are added to this note by the pull request that builds each one.
+## Acceptance criteria, step 6
+
+Lab build only (`watchingHours`). Log carried a strip above the tiles: "Not marked as with P-01" and an "I'm here" button. It read as something to do before logging, and it was not: a log starts a watch by itself (D-25). The strip leaves Log.
+
+It moves to Today instead of being deleted, directly above the band it feeds. Reason: a watch with no logs in it is the only record of "watched and calm", and a watch started only by a log can never be one. Keeping "I'm here" and "I've left" one tab away keeps that data possible and keeps D-25 as written; nothing is asked on Log. In the lab build the first tile now starts 179 px from the top at 390 x 844 (340 px when this plan began).
+
+1. Log shows no strip and no "I'm here", before or after a log (`e2e/watching.cjs`).
+2. A log with no watch open starts one, marked as started by a log; a second log starts no second watch (`e2e/watching.cjs`).
+3. Today shows the strip in one line, with nothing logged and with logs: "Not marked as with P-01" / "With P-01 since", and "I'm here" / "I've left" each work in one tap (`e2e/watching.cjs`).
+4. The band, a switch of resident ending the watch, and the 4-hour question are unchanged (`e2e/watching.cjs`).
+5. axe WCAG 2.2 AA, 0 violations: Log, Today with the strip (empty and with logs), four display modes.
+6. The caregiver build is unchanged (`e2e/today.cjs`, `e2e/flows.cjs`, `e2e/screenshots.cjs`).
+
+Criteria for steps 7 and 8 are added to this note by the pull request that builds each one.
 
 ## Sources
 
@@ -180,3 +193,16 @@ Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20,
 | 4   | Nothing covered a session left over from when the PIN was on                                              | True                                                                                                                    | Fixed: the check plants a 13-hour-old PIN session for another caregiver and shows it changes nothing |
 
 The runner change (items 1 and 2) is proven by the CI run of `npm run checks` on the pull request; the full run in the cloud was made before those two lines changed.
+
+## Review, step 6
+
+Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20, on the diff of `src` and `e2e`. Four findings, each checked against the code:
+
+| #   | Finding                                                                                                                         | Checked                                                                                          | Outcome                                                                                                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | A resident switched away from while a log was being saved could get a watch reopened                                            | True, in a window of a few milliseconds; the old code had the same window when no watch was open | Fixed: Log checks the resident on screen is still the one the log was for before it starts a watch                                |
+| 2   | After a switch of resident the strip could show the last resident's watch for a moment, and "I've left" could end the wrong one | True                                                                                             | Fixed: the strip keeps whose watch it read and shows or ends it only for the resident on screen; taps wait until it has been read |
+| 3   | The strip refreshed only when the logs changed, so a caregiver switch or the 4-hour timeout could leave it stale                | True; the old strip on Log had the same gap                                                      | Fixed: the watch data tells its screens about every change (`onWatchChange`); the strip and the band follow                       |
+| 4   | The second-log check counted watches after a fixed wait and could pass if the second log never saved                            | True                                                                                             | Fixed: it waits for the second log, then checks the first watch is the same one and still open                                    |
+
+`e2e/watching.cjs` also checks that P-01's strip ignores P-02's watch, and that the strip follows the timeout and "Yes, still here" with no tap on Today.
