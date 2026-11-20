@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 
+- All 29 behaviors on one page (F-65, design note 030 step 3). Log shows every behavior under its four group headings. The group names are a bar that stays in reach while the page scrolls and jumps to a group; no behavior sits behind a tab. Log also opens at its first tile when the first patient is added on a small phone.
 - Log starts with tiles (F-65, design note 030 step 2). The title, the how-to lines and the backup line no longer sit above the behaviors. Today's count is on the Today tab, a due backup is a dot on the Settings tab and "Backup due." on the Backup row in Settings, and the how-to line shows until a resident's first log and stays in the "what counts" sheet.
 
 ### Fixed

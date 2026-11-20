@@ -1207,20 +1207,30 @@ body:has(.snackbar) .switch-notice {
 .def dd p {
   margin: 0 0 var(--s1);
 }
-/* Tabs are at least 4.6em wide, so with large text they wrap two by two instead of
-   running off the edge. */
+/* Each name takes the width of its word, so the four fit one row on a 320 px phone; with
+   large text they wrap instead of running off the edge. */
+/* The bar of group names (design note 030 step 3): it stays under the resident bar while the
+   page scrolls, so any group is one tap away from anywhere on the page. */
+.group-jump {
+  position: sticky;
+  top: var(--pin-h, 0px);
+  z-index: 2;
+  margin: var(--s2) calc(-1 * var(--s4)) 0;
+  padding: var(--s2) var(--s4);
+  background: var(--bg);
+}
 .group-tabs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(4.6em, 1fr));
-  margin-top: var(--s4);
+  display: flex;
+  flex-wrap: wrap;
   background: var(--surface-2);
   border-radius: 25px;
   padding: 3px;
 }
 .group-tabs button {
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 44px;
-  padding: 0 4px;
+  padding: 0 var(--s2);
   border: 0;
   background: transparent;
   border-radius: 999px;
@@ -1228,7 +1238,7 @@ body:has(.snackbar) .switch-notice {
   font-size: var(--fs-sm);
   color: var(--text-muted);
 }
-.group-tabs button[aria-selected="true"] {
+.group-tabs button[aria-current="true"] {
   background: var(--surface);
   color: var(--accent-ink);
   box-shadow: var(--shadow-1);

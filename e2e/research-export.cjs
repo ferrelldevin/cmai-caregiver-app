@@ -20,7 +20,7 @@ async function openCard(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-07"); await p.keyboard.press("Enter");
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
   await p.goto(URL.replace(/\/?$/, "/") + "#/data/backup");
   await p.getByRole("heading", { name: "Export for research" }).waitFor();
   // F-58: a new log carries the phone's zone name, not only its offset.

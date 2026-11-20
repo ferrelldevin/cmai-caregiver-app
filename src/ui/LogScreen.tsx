@@ -1,8 +1,9 @@
-// Screen 1: one tap logs a behavior. Behaviors are tiles, 3 across, one group at a time
-// (round 3 mockup, design note 008 phase 2, F-26). Each tile has an icon to find it by, a
+// Screen 1: one tap logs a behavior. Behaviors are tiles, 3 across, all 29 on one page under
+// their four group headings; the bar of group names jumps to a group and stays in reach while
+// the page scrolls (design note 030 step 3; it was one group at a time, F-26). Each tile has an icon to find it by, a
 // short name and today's count. What counts, what does not and the manual page (p.12-13)
 // used to sit on every button; they are now in one sheet, opened from the button under the
-// grid or by holding a tile, so a whole group fits on one screen (F-37). A short
+// grid or by holding a tile (F-37). A short
 // confirmation offers Edit and Undo for 8 seconds; the timer stops while the caregiver is
 // using it (WCAG 2.2.1). Edit opens the log details sheet (design note 003). Earlier logs
 // are fixed on the Today tab, whose badge in the tab bar carries today's count (F-27, F-65).
@@ -10,7 +11,7 @@
 // log, and stays in the "what counts" sheet (design note 030 step 2). Every edit, delete and
 // undo goes through data/logs.ts so it lands in the change history (design note 007).
 
-import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { GROUP_LABELS, ITEMS, type CmaiItem, type FactorGroup } from "../scoring/items";
 import { mostLogged } from "./mostLogged";
 import { db, localMidnight, madeHere, type StoredObservation } from "../data/db";
@@ -56,7 +57,7 @@ interface Props {
 
 export function LogScreen({ patientId, observations, onChange, ratingsDue = [], onRate }: Props) {
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
-  const [group, setGroup] = useState<FactorGroup>("aggressive");
+  const [group, setGroup] = useState<FactorGroup>("aggressive"); // the group at the top of the page now
   const [toast, setToast] = useState<Toast | null>(null);
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
@@ -225,23 +226,73 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
     onChange();
   }
 
-  // Arrow keys move between group tabs, Home and End jump to the ends (WAI-ARIA tabs pattern).
-  function tabKeys(e: KeyboardEvent<HTMLButtonElement>) {
-    const i = GROUP_ORDER.indexOf(group);
-    const next =
-      e.key === "ArrowRight"
-        ? (i + 1) % GROUP_ORDER.length
-        : e.key === "ArrowLeft"
-          ? (i + GROUP_ORDER.length - 1) % GROUP_ORDER.length
-          : e.key === "Home"
-            ? 0
-            : e.key === "End"
-              ? GROUP_ORDER.length - 1
-              : -1;
-    if (next < 0) return;
-    e.preventDefault();
-    setGroup(GROUP_ORDER[next]);
-    document.getElementById(`tab-${GROUP_ORDER[next]}`)?.focus();
+  // The bar of group names follows the page: it marks the group whose tiles are at the top now,
+  // which is the one whose heading last passed under the bar. One exception, kept narrow: a
+  // short last group cannot reach the top, so a group that was asked for by name stays marked
+  // while the page is at its end and that group is in view. A scroll by hand drops the exception.
+  const picked = useRef<FactorGroup | null>(null);
+  const markRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    let frame = 0;
+    const mark = () => {
+      frame = 0;
+      const bar = document.querySelector(".group-jump")?.getBoundingClientRect();
+      if (!bar) return;
+      const line = bar.bottom + 24;
+      let at: FactorGroup = GROUP_ORDER[0];
+      for (const g of GROUP_ORDER) {
+        const top = document.getElementById(`group-${g}`)?.getBoundingClientRect().top;
+        if (top !== undefined && top <= line) at = g;
+      }
+      const want = picked.current;
+      const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      const wantTop = want ? document.getElementById(`group-${want}`)?.getBoundingClientRect().top : undefined;
+      const inView = wantTop !== undefined && wantTop >= bar.bottom - 4 && wantTop < window.innerHeight;
+      setGroup(want && atEnd && inView ? want : at);
+    };
+    const soon = () => {
+      if (!frame) frame = window.requestAnimationFrame(mark);
+    };
+    const byHand = () => {
+      picked.current = null;
+    };
+    markRef.current = soon;
+    window.addEventListener("scroll", soon, { passive: true });
+    window.addEventListener("resize", soon);
+    window.addEventListener("wheel", byHand, { passive: true });
+    window.addEventListener("touchmove", byHand, { passive: true });
+    window.addEventListener("keydown", byHand);
+    soon(); // a reload can restore the page part-way down
+    return () => {
+      window.removeEventListener("scroll", soon);
+      window.removeEventListener("resize", soon);
+      window.removeEventListener("wheel", byHand);
+      window.removeEventListener("touchmove", byHand);
+      window.removeEventListener("keydown", byHand);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+  // What sits above the groups changes height without a scroll (the how-to line leaves, "most
+  // logged" arrives, another resident), so the mark is worked out again then.
+  const above = `${patientId} ${observations.length === 0} ${frequent.length}`;
+  useEffect(() => markRef.current(), [above]);
+
+  // A group name brings that group's heading to just under both pinned bars, whatever their
+  // height is now (the bar of names wraps with large text). Focus goes to the heading, so a
+  // keyboard or a screen reader carries on from there; nothing is hidden, so nothing is selected.
+  function jump(g: FactorGroup) {
+    const section = document.getElementById(`group-${g}`);
+    const bar = document.querySelector<HTMLElement>(".group-jump");
+    if (!section || !bar) return;
+    const pinned = (document.querySelector<HTMLElement>(".pin")?.offsetHeight ?? 0) + bar.offsetHeight;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    picked.current = g;
+    window.scrollTo({
+      top: Math.max(0, section.getBoundingClientRect().top + window.scrollY - pinned),
+      behavior: calm ? "auto" : "smooth",
+    });
+    document.getElementById(`group-h-${g}`)?.focus({ preventScroll: true });
+    markRef.current();
   }
 
   // Holding a tile opens what counts for it, as a shortcut (the button under the grid is
@@ -338,26 +389,25 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
           <ul className="tile-grid">{frequent.map((id) => tile(ITEMS[id - 1], "frequent"))}</ul>
         </section>
       )}
-      <div className="group-tabs" role="tablist" aria-label="Behavior groups">
+      <nav className="group-jump" aria-label="Jump to a behavior group">
+        <div className="group-tabs">
+          {GROUP_ORDER.map((g) => (
+            <button key={g} aria-current={g === group ? "true" : undefined} onClick={() => jump(g)}>
+              {tabLabel(g)}
+            </button>
+          ))}
+        </div>
+      </nav>
+      <div className="all-groups" role="group" aria-label="All behaviors">
         {GROUP_ORDER.map((g) => (
-          <button
-            key={g}
-            id={`tab-${g}`}
-            role="tab"
-            aria-selected={g === group}
-            aria-controls="group-panel"
-            tabIndex={g === group ? 0 : -1}
-            onClick={() => setGroup(g)}
-            onKeyDown={tabKeys}
-          >
-            {tabLabel(g)}
-          </button>
+          <section key={g} id={`group-${g}`} className="group" aria-labelledby={`group-h-${g}`}>
+            <h2 className="group-title" id={`group-h-${g}`} tabIndex={-1}>
+              {GROUP_LABELS[g]}
+            </h2>
+            <ul className="tile-grid">{ITEMS.filter((i) => i.group === g).map((item) => tile(item, "group"))}</ul>
+          </section>
         ))}
       </div>
-      <section id="group-panel" className="group" role="tabpanel" aria-labelledby={`tab-${group}`}>
-        <h2 className="group-title">{GROUP_LABELS[group]}</h2>
-        <ul className="tile-grid">{ITEMS.filter((i) => i.group === group).map((item) => tile(item, "group"))}</ul>
-      </section>
       <button className="ghost defs-btn" onClick={(e) => setDefs({ itemId: null, viaKeyboard: e.detail === 0 })}>
         <Icon name="info" size={20} /> What counts as each behavior?
       </button>

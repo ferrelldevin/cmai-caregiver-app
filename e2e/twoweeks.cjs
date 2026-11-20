@@ -15,7 +15,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
 
   await p.goto(URL);
   await p.getByRole("button", { name: "Try demo data" }).click();
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).waitFor();
 
   // Opens on the latest finished period, with its own address.
   await tab("Two weeks");
@@ -73,7 +73,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
 
   // A new log shows up so far.
   await tab("Log");
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.waitForTimeout(700);
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); await p.waitForTimeout(700);
   await tab("Two weeks"); await h2("So far this period").waitFor();
   ok(p.url() === url, "coming back keeps the chosen period");
   ok(/Most logged: Hitting \(1\)/.test(await p.locator(".summary").innerText()), "a log from today is counted so far");

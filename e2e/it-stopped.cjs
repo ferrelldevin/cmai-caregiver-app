@@ -9,10 +9,11 @@ const axeSource = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8"
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
-async function axe(p, name) {
+// `off` names rules left out of one audit; each use says why beside it.
+async function axe(p, name, off = []) {
   await p.waitForTimeout(350);
   await p.evaluate(axeSource);
-  const v = await p.evaluate((tags) => window.axe.run(document, { runOnly: { type: "tag", values: tags } }).then((r) => r.violations.map((x) => `${x.id} x${x.nodes.length}`)), TAGS);
+  const v = await p.evaluate(([tags, off]) => window.axe.run(document, { runOnly: { type: "tag", values: tags }, rules: Object.fromEntries(off.map((r) => [r, { enabled: false }])) }).then((r) => r.violations.map((x) => `${x.id} x${x.nodes.length}`)), [TAGS, off]);
   ok(v.length === 0, `axe, ${name}: ${v.join(", ") || "0 violations"}`);
 }
 const logs = (p) => p.evaluate(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("observations").objectStore("observations").getAll(); g.onsuccess = () => { r.result.close(); res(g.result); }; }; }));
@@ -21,9 +22,8 @@ async function start(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  await p.getByRole("tab", { name: /Physical/ }).click();
 }
-const tile = (p, name) => p.getByRole("tabpanel").getByRole("button", { name: new RegExp("^" + name) });
+const tile = (p, name) => p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: new RegExp("^" + name) });
 
 // G11: with change reasons on, edits are held until "Save change", which asks why.
 const saveChange = async (sheet, reason = "Wrong time") => {
@@ -52,6 +52,13 @@ const saveChange = async (sheet, reason = "Wrong time") => {
     ok(bb.height >= 24 && bb.width >= 24, `"${await btn.textContent()}" is at least 24 by 24 px`);
   }
   await p.screenshot({ path: `${OUT}/it-stopped-confirm.png` });
+  // The page is longer than the screen now (design note 030 step 3), and the click above scrolled
+  // it so a row of tiles sits half under the pinned bars. axe counts a tile that is part-way
+  // scrolled out as too small a target; any scrolled list under a pinned bar does that, and
+  // scrolling shows the whole tile. So the page is audited twice: as the click left it, for
+  // every rule but that one, and at the top, where every tile is whole, for every rule.
+  await axe(p, "confirmation with It stopped, page as scrolled", ["target-size"]);
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(200);
   await axe(p, "confirmation with It stopped");
   await stop.click();
   await bar.filter({ hasText: " to " }).waitFor();
@@ -61,13 +68,11 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   ok((await bar.getByRole("button", { name: "It stopped" }).count()) === 0, "the button goes once it is stored");
 
   // A behavior that is one event gets none.
-  await p.getByRole("tab", { name: /Aggressive/ }).click();
   await tile(p, "Hitting").click();
   await bar.filter({ hasText: "Hitting" }).waitFor();
   ok((await bar.getByRole("button", { name: "It stopped" }).count()) === 0, "hitting gets no It stopped");
 
   // Today: an open stretch offers it on its row; a stored one shows both times.
-  await p.getByRole("tab", { name: /Physical/ }).click();
   await tile(p, "Pacing").click();
   await p.waitForTimeout(700);
   await p.locator("nav.tabs button", { hasText: "Today" }).click();
