@@ -35,7 +35,6 @@ const CHECKS = [
 ];
 const LAB_CHECKS = [
   { name: "lab: caregivers", file: "e2e/caregivers.cjs" },
-  { name: "lab: sign-in", file: "e2e/sign-in.cjs" },
   { name: "lab: blind rating", file: "e2e/blind-rating.cjs" },
   { name: "lab: clock", file: "e2e/clock.cjs" },
   { name: "lab: before chips", file: "e2e/before-chips.cjs" },
@@ -47,6 +46,10 @@ const LAB_CHECKS = [
   { name: "lab: correct behavior", file: "e2e/correct-behavior.cjs" },
   { name: "lab: lab notes", file: "e2e/lab-labels.cjs" },
 ];
+// The PIN is switched off in both builds (design note 030 step 5). Its check runs against a lab build
+// made with the PIN asked for, served on the lab port once the lab checks are done.
+const PIN_DIR = "dist-lab-pin";
+const PIN_CHECKS = [{ name: "lab with PIN: sign-in", file: "e2e/sign-in.cjs" }];
 const REPORT_BRANCH = "checks-report";
 const push = process.argv.includes("--push");
 const webkit = process.argv.includes("--browser=webkit") || process.env.BROWSER === "webkit";
@@ -66,8 +69,15 @@ function setup() {
   const steps = [
     ["Install dependencies", "npm", ["ci"]],
     ["Install " + BROWSER, "npx", ["playwright", "install", BROWSER]],
-    ["Build", "npm", ["run", "build"]],
-    ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab" }],
+    // The PIN is named off for these two, so a variable left in the shell cannot switch it on.
+    ["Build", "npm", ["run", "build"], { VITE_STUDY_PIN: "off" }],
+    ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab", VITE_STUDY_PIN: "off" }],
+    [
+      "Build (lab with PIN)",
+      "npx",
+      ["vite", "build", "--outDir", PIN_DIR],
+      { VITE_STUDY_MODE: "lab", VITE_STUDY_PIN: "on" },
+    ],
   ].filter(([name]) => !(name === "Install chromium" && process.env.CHROME)); // CHROME points at a Chromium already on the machine
   for (const [name, cmd, args, env] of steps) {
     say(name);
@@ -175,17 +185,24 @@ function pushReport(file) {
 const results = [];
 let setupError = setup();
 if (!setupError) {
-  let server, labServer;
+  let server, labServer, pinServer;
+  const stopped = (s) => new Promise((r) => (s.exitCode !== null || s.signalCode !== null ? r() : s.once("exit", r)));
   try {
     server = await startServer();
     for (const check of CHECKS) if (!(webkit && CHROMIUM_ONLY.has(check.name))) results.push(runCheck(check));
     labServer = await startServer(LAB_PORT, LAB_DIR);
     for (const check of LAB_CHECKS) results.push(runCheck(check, LAB_URL));
+    // Same port, so the lab preview has to be gone before the PIN one starts.
+    labServer.kill();
+    await stopped(labServer);
+    pinServer = await startServer(LAB_PORT, PIN_DIR);
+    for (const check of PIN_CHECKS) results.push(runCheck(check, LAB_URL));
   } catch (e) {
     setupError = e.message;
   } finally {
     server?.kill();
     labServer?.kill();
+    pinServer?.kill();
   }
 }
 

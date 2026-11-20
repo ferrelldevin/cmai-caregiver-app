@@ -132,7 +132,25 @@ This changes one sentence of F-59 and design note 019: an edit records why, it n
 7. The caregiver build is unchanged: edits save as they are made (`e2e/flows.cjs`, `e2e/today.cjs`).
 8. axe WCAG 2.2 AA, 0 violations in four modes for the held change, the delete step and the history view.
 
-Criteria for steps 5 to 8 are added to this note by the pull request that builds each one.
+## Acceptance criteria, step 5
+
+Lab build only. The PIN (F-46) stood between opening the app and a tile once per shift: a keypad, 4 digits, and a 6-digit setup PIN before the first caregiver could be added. Devin chose by card on 2026-11-20 to take it out of the daily path: who is logging is remembered on the phone, and the phone's own lock is the login. The switch `pin` is now off in both builds.
+
+What this gives up, said plainly: with the PIN, a log's "by" code was backed by a secret (threat model T3, another caregiver on a shared phone). Without it, "by" is whoever the chip says, and anyone holding the unlocked phone can switch it in one tap. The data was never protected by the PIN; that is the phone's passcode (T2), unchanged. This changes the assumed answer for R1 and is Dr. Gupta's to confirm (register F-67, review packet row A8).
+
+The PIN is switched off, not removed. A lab build made with `VITE_STUDY_PIN=on` has it; `npm run checks` builds that too and runs `e2e/sign-in.cjs` against it, so the code is known to work if it is asked for back. A caregiver build can never have the PIN.
+
+1. Adding the first caregiver asks for initials and nothing else; no setup PIN, no PIN to choose (`e2e/caregivers.cjs`).
+2. Closing and opening the app shows the tiles with the same caregiver logging; no sign-in screen. The first tap logs and carries that caregiver's code (`e2e/caregivers.cjs`).
+3. Switching who is logging is one tap in "Who is logging?"; the sheet has no Sign out (`e2e/caregivers.cjs`).
+4. The day-14 rating, watching hours and every other lab check pass with no PIN step (`e2e/blind-rating.cjs` and the rest of the lab checks).
+5. `pin` is off in both builds, and only a lab build asked for by name has it (`tests/settings.test.ts`).
+6. The PIN's own check passes against the PIN build: once per shift, wrong tries, the setup PIN, Sign out, axe in four modes (`e2e/sign-in.cjs`).
+7. The caregiver build is unchanged.
+
+Open for Dr. Gupta, both in the review packet: is the phone's own lock enough as the login (F-67, row A8), and does a change to "what happened before" need its own reason code instead of `other` (F-68, row E8)?
+
+Criteria for steps 6 to 8 are added to this note by the pull request that builds each one.
 
 ## Sources
 
@@ -149,3 +167,16 @@ Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20,
 | 2   | If the save handler threw, Save change would stay stuck                                                           | Both callers (Log and Today) already catch and return false, so it cannot happen today      | Hardened anyway: a thrown save is treated as refused and the button works again                                                                          |
 | 3   | No check proved a refused save keeps the sheet and the draft                                                      | `e2e/it-stopped.cjs` covered the message and that nothing invalid was stored, not the draft | Fixed: it now also checks the stored log and revision are unchanged, the sheet is open, the entered time is still there and Save change is still offered |
 | 4   | History check did not prove old values are kept                                                                   | True                                                                                        | Fixed: `e2e/change-reasons.cjs` checks the old and new value in the first two entries                                                                    |
+
+## Review, step 5
+
+Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20, on the diff of `src`, `tests`, `e2e` and `scripts`. Four findings, each checked against the code:
+
+| #   | Finding                                                                                                   | Checked                                                                                                                 | Outcome                                                                                              |
+| --- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1   | The normal lab build did not name the PIN off, so a `VITE_STUDY_PIN` left in the shell could switch it on | True for the lab build in `npm run checks`; a caregiver build ignores it either way                                     | Fixed: the runner sets `VITE_STUDY_PIN=off` for the caregiver and lab builds                         |
+| 2   | The runner's wait for the lab preview to stop could hang if the process had already ended from a signal   | True in principle                                                                                                       | Fixed: it also reads `signalCode`                                                                    |
+| 3   | A reload keeps a tab's session storage, so the check might pass while a real reopen loses the caregiver   | The choice is kept in the phone's database, not session storage, so it could not; a new tab is still the stronger check | Check strengthened: a new tab opens with the same caregiver logging                                  |
+| 4   | Nothing covered a session left over from when the PIN was on                                              | True                                                                                                                    | Fixed: the check plants a 13-hour-old PIN session for another caregiver and shows it changes nothing |
+
+The runner change (items 1 and 2) is proven by the CI run of `npm run checks` on the pull request; the full run in the cloud was made before those two lines changed.

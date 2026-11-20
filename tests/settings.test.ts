@@ -39,11 +39,19 @@ describe("study settings", () => {
 
   it("lab mode turns on every feature awaiting sign-off", () => {
     const lab = settingsFor("lab");
-    expect(lab.labView && lab.caregiverProfiles && lab.pin && lab.blindCmai).toBe(true);
+    expect(lab.labView && lab.caregiverProfiles && lab.blindCmai).toBe(true);
     expect(lab.watchingHours && lab.stoppedTap && lab.extraBeforeChips && lab.exportV2 && lab.protectBackup).toBe(true);
     expect(lab.archivePatients && lab.researchExport && lab.changeReasons && lab.correctBehavior).toBe(true);
     expect(lab.realExports).toBe(false); // real data waits on Dr. Gupta in writing, not on a build mode
     expect(lab.ratingsVisibleToCaregivers).toBe(false);
+  });
+
+  it("the PIN is off in both builds, and only a lab build made with it asked for has it", () => {
+    expect(settingsFor("lab").pin).toBe(false);
+    expect(settingsFor("caregiver").pin).toBe(false);
+    expect(settingsFor("lab", true).pin).toBe(true);
+    expect(settingsFor("caregiver", true).pin).toBe(false);
+    expect(settingsFor("lab", true)).toEqual({ ...settingsFor("lab"), pin: true });
   });
 
   it("the test run uses the caregiver build", () => {

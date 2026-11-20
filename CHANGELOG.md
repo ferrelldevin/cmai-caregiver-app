@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 
+- Lab build: no PIN (F-65, F-67, design note 030 step 5). Who is logging is remembered on the phone; adding a caregiver asks for initials only; switching is one tap; no sign-in screen. The PIN code is kept, switched off, and its check still runs against its own build (`VITE_STUDY_PIN=on`). A log's "by" code is no longer backed by a secret. The caregiver build is unchanged.
 - Lab build: changing a log no longer asks why (F-65, design note 030 step 4). Save change fills in the reason from what was changed (a time is "Wrong time", what happened before is "Other") and closes the sheet: 3 taps to move a log 5 minutes, was 6. A delete still asks. The caregiver build is unchanged.
 - All 29 behaviors on one page (F-65, design note 030 step 3). Log shows every behavior under its four group headings. The group names are a bar that stays in reach while the page scrolls and jumps to a group; no behavior sits behind a tab. Log also opens at its first tile when the first patient is added on a small phone.
 - Log starts with tiles (F-65, design note 030 step 2). The title, the how-to lines and the backup line no longer sit above the behaviors. Today's count is on the Today tab, a due backup is a dot on the Settings tab and "Backup due." on the Backup row in Settings, and the how-to line shows until a resident's first log and stays in the "what counts" sheet.
