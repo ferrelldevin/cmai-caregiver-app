@@ -100,7 +100,10 @@ const saveChange = async (sheet) => {
     const alert = p.locator(".log-sheet .msg.error");
     await alert.waitFor();
     ok((await alert.textContent()).includes("can't stop before it started"), "an end before the start is refused, and says why");
+    const after = (await logs(p)).find((o) => o.id === target.id);
     ok((await logs(p)).every((o) => o.endedAt === undefined || o.endedAt >= o.at), "nothing invalid was stored");
+    ok(after.endedAt === target.endedAt && after.rev === target.rev, "the refused save left the stored log and its revision as they were");
+    ok((await p.locator(".log-sheet").isVisible()) && (await ended.inputValue()) === hhmm(before) && (await p.locator(".log-sheet").getByRole("button", { name: "Save change" }).count()) === 1, "the sheet stays open with the entered time still in it, and Save change can be pressed again");
     await p.waitForTimeout(400);
     await p.screenshot({ path: `${OUT}/it-stopped-sheet.png` });
     await axe(p, "sheet with the refusal");

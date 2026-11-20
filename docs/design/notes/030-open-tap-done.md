@@ -138,3 +138,15 @@ Criteria for steps 5 to 8 are added to this note by the pull request that builds
 
 - Review page with before and after screens: project Library, `audits/simplicity-2026-11-18/`.
 - WCAG 2.2 SC 2.5.8 (target size) and SC 2.2.1 (timing) apply to steps 2 and 3 and are checked there.
+
+## Review, step 4
+
+Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20, on the diff of `src`, `tests` and `e2e`. Four findings, each checked against the code:
+
+| # | Finding | Checked | Outcome |
+| - | ------- | ------- | ------- |
+| 1 | A field could still be changed while a save is on its way, and that change would be dropped when the sheet closes | True in principle; the save takes a few milliseconds | Fixed: the sheet takes no new change while a save is pending |
+| 2 | If the save handler threw, Save change would stay stuck | Both callers (Log and Today) already catch and return false, so it cannot happen today | Hardened anyway: a thrown save is treated as refused and the button works again |
+| 3 | No check proved a refused save keeps the sheet and the draft | `e2e/it-stopped.cjs` covered the message and that nothing invalid was stored, not the draft | Fixed: it now also checks the stored log and revision are unchanged, the sheet is open, the entered time is still there and Save change is still offered |
+| 4 | History check did not prove old values are kept | True | Fixed: `e2e/change-reasons.cjs` checks the old and new value in the first two entries |
+

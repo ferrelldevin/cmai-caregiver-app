@@ -125,8 +125,12 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
     ? Object.fromEntries(Object.entries(draft).filter(([k, v]) => saved[k as keyof StoredObservation] !== v))
     : {};
   const dirty = Object.keys(changed).length > 0;
-  const patch = (change: Partial<StoredObservation>) =>
-    staged ? setDraft((d) => ({ ...d, ...change })) : onPatch(change);
+  // While a save is on its way the sheet takes no new change: it would be dropped when the sheet closes.
+  const saving = useRef(false);
+  const patch = (change: Partial<StoredObservation>) => {
+    if (saving.current) return;
+    return staged ? setDraft((d) => ({ ...d, ...change })) : onPatch(change);
+  };
   useEffect(() => {
     setDraft({});
   }, [saved?.id]);
@@ -172,11 +176,11 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
   }, [deleting, picking]);
   const canDelete = reason !== null && (staged || reason !== "Other" || reasonNote.trim() !== "");
   // One tap saves and closes. A refused save (an end before its start) keeps the sheet and the draft.
-  const saving = useRef(false);
+  // A save that fails any other way also leaves the sheet open and the button usable again.
   async function saveChange() {
     if (!dirty || saving.current) return;
     saving.current = true;
-    const ok = await onPatch(changed, reasonFor(changed));
+    const ok = await Promise.resolve(onPatch(changed, reasonFor(changed))).catch(() => false as const);
     saving.current = false;
     setSaves((n) => n + 1);
     if (ok === false) return;

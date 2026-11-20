@@ -68,6 +68,7 @@ async function openSheet(p) {
   let d = await stored(p);
   ok(d.logs[0].before === "Mealtime" && d.logs[0].rev === 2, "the change is saved, revision 2");
   ok(d.changes.length === 1 && d.changes[0].reason === "other" && d.changes[0].action === "edit", "the entry carries the reason code other");
+  ok(d.changes[0].from && !("before" in d.changes[0].from && d.changes[0].from.before !== undefined) && d.changes[0].to.before === "Mealtime", "the entry keeps the old value (no chip) next to the new one");
 
   // A time: one tap on "5 min", one on Save change, recorded as wrong_time. Nothing else is asked.
   let again = await reopen(p, "Hitting");
@@ -79,6 +80,7 @@ async function openSheet(p) {
   d = await stored(p);
   ok(d.changes.length === 2 && d.changes[1].reason === "wrong_time" && d.logs[0].loggedAt - d.logs[0].at === 5 * 60_000 && d.logs[0].rev === 3, "the time moved 5 minutes, reason code wrong_time, revision 3");
   ok(JSON.stringify(d.changes[0]) === first, "history is append-only: two entries, the first unchanged");
+  ok(d.changes[1].from.at === d.logs[0].loggedAt && d.changes[1].to.at === d.logs[0].at, "the second entry keeps the old time next to the new one");
 
   // A time and a chip in one save are one entry, recorded as wrong_time.
   again = await reopen(p, "Hitting");
