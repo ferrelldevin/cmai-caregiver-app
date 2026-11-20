@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { study } from "../study/settings";
 
 export type Tab = "log" | "today" | "twoweeks" | "data";
-export type DataPage = "backup" | "display" | "safe" | "demo" | "about" | "caregivers" | "clock";
+export type DataPage = "backup" | "display" | "safe" | "demo" | "about" | "caregivers" | "clock" | "lab";
 /** `period` is 1-based, as people read it ("Period 3"); absent means the default period. */
 export interface Route {
   tab: Tab;
@@ -31,12 +31,15 @@ const PAGES: readonly DataPage[] = [
   "backup",
   "display",
   "safe",
-  "demo",
   "about",
   ...(study.caregiverProfiles ? (["caregivers"] as const) : []),
-  // The clock check is for the lab only (F-40, plan 5.8).
-  ...(study.labView ? (["clock"] as const) : []),
+  // The lab build keeps everything for the lab and the research team on one page (design note 030
+  // step 7); the caregiver build has no such page and keeps Demo data as its own.
+  ...(study.labView ? (["lab"] as const) : (["demo"] as const)),
 ];
+// In the lab build the clock check (F-40) and demo data are sections of that page, so their old
+// addresses open it.
+const MOVED: Partial<Record<string, DataPage>> = study.labView ? { clock: "lab", demo: "lab" } : {};
 
 export function parseRoute(hash: string): Route | null {
   const [name, page, extra] = hash.replace(/^#\/?/, "").split("/");
@@ -51,7 +54,8 @@ export function parseRoute(hash: string): Route | null {
     const n = /^p([1-9]\d{0,3})$/.exec(page ?? "");
     return n ? { tab, page: null, period: Number(n[1]) } : { tab, page: null };
   }
-  return { tab: tab as Tab, page: tab === "data" && PAGES.includes(page as DataPage) ? (page as DataPage) : null };
+  const at = (MOVED[page ?? ""] ?? page) as DataPage;
+  return { tab: tab as Tab, page: tab === "data" && PAGES.includes(at) ? at : null };
 }
 
 export const routeHash = (r: Route) =>

@@ -163,7 +163,21 @@ It moves to Today instead of being deleted, directly above the band it feeds. Re
 5. axe WCAG 2.2 AA, 0 violations: Log, Today with the strip (empty and with logs), four display modes.
 6. The caregiver build is unchanged (`e2e/today.cjs`, `e2e/flows.cjs`, `e2e/screenshots.cjs`).
 
-Criteria for steps 7 and 8 are added to this note by the pull request that builds each one.
+## Acceptance criteria, step 7
+
+Lab build only (`labView`). Settings carried the lab's tools in four places: the research export and three lab spreadsheets on Backup and export, a role picker on every row of Caregivers, and two rows of their own, Clock check and Demo data. A caregiver handed a lab phone met all of it on the way to a backup. Now one row, "Lab and research", holds them: Export for research, Lab files, Roles, Clock check, Demo data. Nothing is removed and nothing about what each one does or stores changes.
+
+The caregiver build has no lab tools, so it has no such row and keeps its Demo data row (F-54).
+
+1. Settings in the lab build lists six rows: Backup and export, Display, Keep data safe, Caregivers, Lab and research, How ratings are worked out. No Clock check row and no Demo data row (`e2e/caregivers.cjs`).
+2. Lab and research shows Export for research, Lab files, Roles, Clock check and Demo data, and each works as before (`e2e/caregivers.cjs`, `e2e/research-export.cjs`, `e2e/clock.cjs`).
+3. Backup and export has no research export and no lab spreadsheets; the backup, its protection and the caregiver's exports are unchanged (`e2e/caregivers.cjs`, `e2e/protect-backup.cjs`).
+4. Caregivers asks for no role. A role is set on Lab and research, saved on the profile and stamped on the research export as before (F-58); every role target is 44 px tall and fits a 390 px phone (`e2e/caregivers.cjs`, `e2e/research-export.cjs`).
+5. The old addresses `#/data/clock` and `#/data/demo` open Lab and research; Back returns to Settings (`e2e/caregivers.cjs`, `e2e/clock.cjs`).
+6. axe WCAG 2.2 AA, 0 violations on Lab and research (`e2e/caregivers.cjs`).
+7. The caregiver build is unchanged: its Settings rows, its Demo data page and `#/data/demo` (`e2e/navigation.cjs`, `e2e/flows.cjs`, `e2e/screenshots.cjs`, `docs/audits/axe-run.cjs`).
+
+Criteria for step 8 are added to this note by the pull request that builds it.
 
 ## Sources
 

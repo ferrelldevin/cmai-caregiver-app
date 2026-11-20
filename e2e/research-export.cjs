@@ -21,7 +21,7 @@ async function openCard(p) {
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-07"); await p.keyboard.press("Enter");
   await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
-  await p.goto(URL.replace(/\/?$/, "/") + "#/data/backup");
+  await p.goto(URL.replace(/\/?$/, "/") + "#/data/lab");
   await p.getByRole("heading", { name: "Export for research" }).waitFor();
   // F-58: a new log carries the phone's zone name, not only its offset.
   const zone = await p.evaluate(() => new Promise((res) => { const r = indexedDB.open("cmai-tracker"); r.onsuccess = () => { const g = r.result.transaction("observations").objectStore("observations").getAll(); g.onsuccess = () => { r.result.close(); res(g.result[0] && g.result[0].tzName); }; }; }));
@@ -32,7 +32,7 @@ async function withDemo(p) {
   await p.goto(URL.replace(/\/?$/, "/") + "#/data/demo");
   await p.getByRole("button", { name: "Load demo data" }).click();
   await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor(); // loading demo data opens the Log tab
-  await p.goto(URL.replace(/\/?$/, "/") + "#/data/backup");
+  await p.goto(URL.replace(/\/?$/, "/") + "#/data/lab");
   await p.getByLabel("Resident").selectOption("P-DEMO-A");
 }
 
@@ -60,7 +60,7 @@ async function withDemo(p) {
   await p.goto(URL.replace(/\/?$/, "/") + "#/data/demo");
   await p.getByRole("button", { name: "Load demo data" }).click();
   await p.getByRole("heading", { name: /^Log a behavior/ }).waitFor(); // loading demo data opens the Log tab
-  await p.goto(URL.replace(/\/?$/, "/") + "#/data/backup");
+  await p.goto(URL.replace(/\/?$/, "/") + "#/data/lab");
   await p.getByLabel("Resident").selectOption("P-DEMO-A");
   await p.getByRole("button", { name: "Check range" }).click();
   await p.getByText("Found").waitFor();

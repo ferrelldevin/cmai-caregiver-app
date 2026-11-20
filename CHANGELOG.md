@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 
+- Lab build: one "Lab and research" row in Settings (F-65, design note 030 step 7). It holds the research export, the lab spreadsheets, each caregiver's role, the clock check and demo data. Backup and export and Caregivers carry no lab tools; the Clock check and Demo data rows are gone and their old addresses open the new page. The caregiver build is unchanged.
 - Lab build: the watching strip leaves Log (F-65, design note 030 step 6). "I'm here" and "I've left" now sit on Today, above the band they feed; a log still starts a watch by itself. Nothing about watching stands before the tiles. The caregiver build is unchanged.
 - Lab build: no PIN (F-65, F-67, design note 030 step 5). Who is logging is remembered on the phone; adding a caregiver asks for initials only; switching is one tap; no sign-in screen. The PIN code is kept, switched off, and its check still runs against its own build (`VITE_STUDY_PIN=on`). A log's "by" code is no longer backed by a secret. The caregiver build is unchanged.
 - Lab build: changing a log no longer asks why (F-65, design note 030 step 4). Save change fills in the reason from what was changed (a time is "Wrong time", what happened before is "Other") and closes the sheet: 3 taps to move a log 5 minutes, was 6. A delete still asks. The caregiver build is unchanged.

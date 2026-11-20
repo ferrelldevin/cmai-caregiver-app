@@ -41,7 +41,7 @@ interface Props {
   onPatient: (id: string) => void;
   onChange: () => void;
   /** Caregiver profiles (R2), when switched on: the page's content and the hub row's status. */
-  caregivers?: { page: React.ReactNode; status: string };
+  caregivers?: { page: React.ReactNode; status: string; roles?: React.ReactNode };
   /** A backup is due (F-36): the Backup row says so in words, next to the dot on the Settings tab (F-65). */
   backupDue?: boolean;
 }
@@ -351,7 +351,6 @@ export function DataScreen({
           {/* the screen heading is the h1 in App */}
         </div>
         {page === "caregivers" && caregivers?.page}
-        {page === "clock" && study.labView && <ClockScreen />}
         {page === "backup" && (
           <section className="card backup" aria-label="Backup and export">
             <h3 className="form-label">Backup</h3>
@@ -442,25 +441,54 @@ export function DataScreen({
                 protected backup above already holds them.
               </p>
             )}
-            {/* Export format 2 (D-23, plan 5.10), lab build only. */}
-            {study.exportV2 && (
-              <div className="row wrap">
-                <button className="ghost" onClick={() => exportFile("labels")} disabled={firstRun}>
-                  Labels CSV
-                </button>
-                <button className="ghost" onClick={() => exportFile("ratings")} disabled={firstRun}>
-                  Caregiver ratings CSV
-                </button>
-                <button className="ghost" onClick={() => exportFile("watches")} disabled={firstRun}>
-                  Watches CSV
-                </button>
-              </div>
-            )}
             {msgFor("export")}
           </section>
         )}
-        {page === "backup" && study.researchExport && (
-          <ResearchExportCard patients={patients.filter(isActive)} current={current} />
+        {page === "lab" && study.labView && (
+          <>
+            {study.researchExport && <ResearchExportCard patients={patients.filter(isActive)} current={current} />}
+            {/* Export format 2 (D-23, plan 5.10). */}
+            {study.exportV2 && (
+              <section className="card" aria-labelledby="lab-files-h">
+                <h2 className="card-h" id="lab-files-h">
+                  Lab files
+                </h2>
+                <p className="muted">Spreadsheets for the sensor work and the caregiver ratings.</p>
+                <div className="row wrap">
+                  <button className="ghost" onClick={() => exportFile("labels")} disabled={firstRun}>
+                    Labels CSV
+                  </button>
+                  <button className="ghost" onClick={() => exportFile("ratings")} disabled={firstRun}>
+                    Caregiver ratings CSV
+                  </button>
+                  <button className="ghost" onClick={() => exportFile("watches")} disabled={firstRun}>
+                    Watches CSV
+                  </button>
+                </div>
+                {study.protectBackup && (
+                  <p className="msg error">
+                    <Icon name="alert" size={18} /> These CSVs are not protected. Make them only on a lab machine.
+                  </p>
+                )}
+                {msgFor("export")}
+              </section>
+            )}
+            {caregivers?.roles && (
+              <section className="card" aria-labelledby="lab-roles-h">
+                <h2 className="card-h" id="lab-roles-h">
+                  Roles
+                </h2>
+                <p className="muted">Stamped on research exports. Caregiver unless changed.</p>
+                {caregivers.roles}
+              </section>
+            )}
+            <section aria-labelledby="lab-clock-h">
+              <h2 className="group-title" id="lab-clock-h">
+                Clock check
+              </h2>
+              <ClockScreen />
+            </section>
+          </>
         )}
         {page === "display" && <DisplaySettings />}
         {page === "safe" && (
@@ -489,8 +517,9 @@ export function DataScreen({
             {msgFor("safe")}
           </section>
         )}
-        {page === "demo" && (
+        {(page === "demo" || (page === "lab" && study.labView)) && (
           <section className="card" aria-label="Demo data">
+            {page === "lab" && <h2 className="card-h">Demo data</h2>}
             <p className="muted">
               Two made-up patients with six weeks of logs, so every chart has something to show. Loading again resets
               them.
@@ -616,17 +645,25 @@ export function DataScreen({
     ...(caregivers
       ? [{ page: "caregivers" as const, icon: "user" as const, title: "Caregivers", status: caregivers.status }]
       : []),
+    // The caregiver build has no lab features; Demo data stays a row of its own there.
     ...(study.labView
       ? [
           {
-            page: "clock" as const,
-            icon: "clock" as const,
-            title: "Clock check",
-            status: "Lab: pair logs with a wristband",
+            page: "lab" as const,
+            icon: "chart" as const,
+            title: "Lab and research",
+            status: "Research export, roles, clock check, demo data",
           },
         ]
-      : []),
-    { page: "demo", icon: "chart", title: "Demo data", status: hasDemo ? "Loaded" : "Not loaded", hide: firstRun },
+      : [
+          {
+            page: "demo" as const,
+            icon: "chart" as const,
+            title: "Demo data",
+            status: hasDemo ? "Loaded" : "Not loaded",
+            hide: firstRun,
+          },
+        ]),
     { page: "about", icon: "info", title: "How ratings are worked out", status: `Rule ${RULE_VERSION}` },
   ];
 
