@@ -42,7 +42,24 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
     ok((await marked()).join() === name, `${name}: the bar marks it, and only it (${await marked()})`);
   }
   await p.keyboard.press("Tab");
-  ok(await p.evaluate(() => document.activeElement?.closest(".all-groups section")?.id) === "group-aggressive", "from the heading, Tab goes to that group's first tile");
+  ok(await p.evaluate(() => document.activeElement === document.querySelector("#group-aggressive .tile-btn")), "from the heading, Tab goes to that group's first tile");
+  // The mark means "the group at the top". At the end of the page by hand it is still the group
+  // at the top, not the last one; only a group asked for by name keeps the mark there.
+  await p.mouse.move(195, 500); await p.mouse.wheel(0, 5000); await p.waitForTimeout(500);
+  const end = await p.evaluate(() => {
+    const line = document.querySelector(".group-jump").getBoundingClientRect().bottom + 24;
+    const names = ["Aggressive", "Physical", "Verbal", "Other"];
+    let at = names[0];
+    document.querySelectorAll(".all-groups section").forEach((s, i) => { if (s.getBoundingClientRect().top <= line) at = names[i]; });
+    return { at, atEnd: innerHeight + scrollY >= document.documentElement.scrollHeight - 2 };
+  });
+  ok(end.atEnd && (await marked()).join() === end.at, `scrolled to the end by hand, the bar marks the group at the top (${end.at}), marked ${await marked()}`);
+  // A reload part-way down the page marks the right group without a scroll.
+  await p.evaluate(() => window.scrollTo(0, 700)); await p.waitForTimeout(300);
+  const mid = (await marked()).join();
+  await p.reload(); await all.getByRole("button", { name: /^Hitting/ }).waitFor(); await p.waitForTimeout(500);
+  const after = await p.evaluate(() => scrollY);
+  ok(after === 0 ? (await marked()).join() === "Aggressive" : (await marked()).join() === mid, `after a reload the bar marks the group at the top (scroll ${after}, marked ${await marked()})`);
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(300);
   // What counts (F-37): one button under the grid, and holding a tile opens it at that behavior without logging.
   await p.getByRole("button", { name: "What counts as each behavior?" }).click();
@@ -122,5 +139,17 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(small.y === 0, "small phone: Log opens at the top after the first patient arrives (scrolled " + small.y + ")");
   ok(small.oneRow && small.over <= 0 && small.target >= 44, "small phone: the four group names fit one row, 44 px tall, no sideways scroll " + JSON.stringify(small));
   await s.screenshot({ path: `${OUT}/12-small-phone-log.png` });
+  // Large text on the small phone: the names wrap to more rows, and a jump still lands the
+  // heading under the taller bar, not behind it.
+  await s.evaluate(() => document.querySelectorAll(".group-tabs button").forEach((x) => { x.style.fontSize = "28px"; })); await s.waitForTimeout(300);
+  await s.getByRole("navigation", { name: "Jump to a behavior group" }).getByRole("button", { name: "Physical", exact: true }).click(); await s.waitForTimeout(900);
+  const big = await s.evaluate(() => {
+    const bar = document.querySelector(".group-jump").getBoundingClientRect();
+    const tops = new Set([...document.querySelectorAll(".group-tabs button")].map((x) => Math.round(x.getBoundingClientRect().top)));
+    const h = document.querySelector("#group-h-physical").getBoundingClientRect();
+    return { rows: tops.size, barBottom: Math.round(bar.bottom), hTop: Math.round(h.top), over: document.documentElement.scrollWidth - innerWidth };
+  });
+  ok(big.rows > 1 && big.hTop >= big.barBottom && big.hTop <= big.barBottom + 60 && big.over <= 0, "small phone, large text: the names wrap and the heading lands under the taller bar " + JSON.stringify(big));
+  await s.screenshot({ path: `${OUT}/13-small-phone-large-text.png` });
   await b.close();
 })().catch((e) => { console.error(e.message); process.exit(1); });

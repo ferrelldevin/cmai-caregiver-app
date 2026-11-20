@@ -226,39 +226,73 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
     onChange();
   }
 
-  // The bar of group names follows the page: it marks the group whose tiles are at the top now.
-  // The last group is marked at the end of the page, where a short group never reaches the top.
+  // The bar of group names follows the page: it marks the group whose tiles are at the top now,
+  // which is the one whose heading last passed under the bar. One exception, kept narrow: a
+  // short last group cannot reach the top, so a group that was asked for by name stays marked
+  // while the page is at its end and that group is in view. A scroll by hand drops the exception.
+  const picked = useRef<FactorGroup | null>(null);
+  const markRef = useRef<() => void>(() => {});
   useEffect(() => {
     let frame = 0;
     const mark = () => {
       frame = 0;
-      const line = (document.querySelector(".group-jump")?.getBoundingClientRect().bottom ?? 0) + 24;
-      const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      const bar = document.querySelector(".group-jump")?.getBoundingClientRect();
+      if (!bar) return;
+      const line = bar.bottom + 24;
       let at: FactorGroup = GROUP_ORDER[0];
       for (const g of GROUP_ORDER) {
         const top = document.getElementById(`group-${g}`)?.getBoundingClientRect().top;
         if (top !== undefined && top <= line) at = g;
       }
-      setGroup(atEnd && window.scrollY > 0 ? GROUP_ORDER[GROUP_ORDER.length - 1] : at);
+      const want = picked.current;
+      const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      const wantTop = want ? document.getElementById(`group-${want}`)?.getBoundingClientRect().top : undefined;
+      const inView = wantTop !== undefined && wantTop >= bar.bottom - 4 && wantTop < window.innerHeight;
+      setGroup(want && atEnd && inView ? want : at);
     };
-    const onScroll = () => {
+    const soon = () => {
       if (!frame) frame = window.requestAnimationFrame(mark);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const byHand = () => {
+      picked.current = null;
+    };
+    markRef.current = soon;
+    window.addEventListener("scroll", soon, { passive: true });
+    window.addEventListener("resize", soon);
+    window.addEventListener("wheel", byHand, { passive: true });
+    window.addEventListener("touchmove", byHand, { passive: true });
+    window.addEventListener("keydown", byHand);
+    soon(); // a reload can restore the page part-way down
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", soon);
+      window.removeEventListener("resize", soon);
+      window.removeEventListener("wheel", byHand);
+      window.removeEventListener("touchmove", byHand);
+      window.removeEventListener("keydown", byHand);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
+  // What sits above the groups changes height without a scroll (the how-to line leaves, "most
+  // logged" arrives, another resident), so the mark is worked out again then.
+  const above = `${patientId} ${observations.length === 0} ${frequent.length}`;
+  useEffect(() => markRef.current(), [above]);
 
-  // A group name brings that group's tiles under the bar. Focus goes to its heading, so a
+  // A group name brings that group's heading to just under both pinned bars, whatever their
+  // height is now (the bar of names wraps with large text). Focus goes to the heading, so a
   // keyboard or a screen reader carries on from there; nothing is hidden, so nothing is selected.
   function jump(g: FactorGroup) {
+    const section = document.getElementById(`group-${g}`);
+    const bar = document.querySelector<HTMLElement>(".group-jump");
+    if (!section || !bar) return;
+    const pinned = (document.querySelector<HTMLElement>(".pin")?.offsetHeight ?? 0) + bar.offsetHeight;
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById(`group-${g}`)?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+    picked.current = g;
+    window.scrollTo({
+      top: Math.max(0, section.getBoundingClientRect().top + window.scrollY - pinned),
+      behavior: calm ? "auto" : "smooth",
+    });
     document.getElementById(`group-h-${g}`)?.focus({ preventScroll: true });
+    markRef.current();
   }
 
   // Holding a tile opens what counts for it, as a shortcut (the button under the grid is

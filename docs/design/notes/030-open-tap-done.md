@@ -95,7 +95,19 @@ Measured at 390 x 844 on demo data: 15 of 29 behaviors are one tap from opening 
 6. Logging, holding a tile, "It stopped", edit and undo work as before from any group, in both builds (every check in `e2e/`).
 7. axe WCAG 2.2 AA, 0 violations in four modes (`docs/audits/axe-run.cjs`).
 
-Known limit: axe counts a tile that is scrolled part-way under a pinned bar as too small a target. Any scrolled list does this, and scrolling shows the whole tile. `e2e/it-stopped.cjs` runs its audit of the confirmation with the page at the top for that reason.
+Known limit: axe counts a tile that is scrolled part-way under a pinned bar as too small a target. Any scrolled list under a pinned bar does this, and scrolling shows the whole tile. `e2e/it-stopped.cjs` audits the confirmation twice for that reason: with the page as the tap left it, for every rule but target size, and with the page at the top, for every rule.
+
+The mark on the bar means "the group at the top of the page". One exception: a short last group cannot reach the top, so a group asked for by name keeps the mark while the page is at its end and the group is in view. A scroll by hand drops the exception (`e2e/navigation.cjs`).
+
+### Review, step 3
+
+Codex on Devin-Desktop, 2026-11-20, on the code diff. Five findings, each checked against the code:
+
+1. A jump could land the heading behind the bars. Not so at normal text size (the page already kept 64 px clear), but true once large text wraps the bar to two rows. The jump now measures both pinned bars; checked with a wrapped bar on a 320 px phone.
+2. At the end of the page the bar always marked the last group, even with another group at the top. Now it marks the group at the top, with the one exception above; checked by scrolling to the end by hand.
+3. The mark was not worked out when the screen opened or when what sits above the groups changed height. It is now.
+4. The audit of the "It stopped" confirmation had moved to the top of the page, dropping the scrolled state. Both states are audited now, as above.
+5. The check that Tab reaches a group's first tile only proved focus was inside the group. It now names the tile.
 
 Criteria for steps 4 to 8 are added to this note by the pull request that builds each one.
 
