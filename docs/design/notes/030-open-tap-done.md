@@ -220,3 +220,14 @@ Built by Claude (cloud session). Reviewed by Codex on Devin-Desktop, 2026-11-20,
 | 4   | The second-log check counted watches after a fixed wait and could pass if the second log never saved                            | True                                                                                             | Fixed: it waits for the second log, then checks the first watch is the same one and still open                                    |
 
 `e2e/watching.cjs` also checks that P-01's strip ignores P-02's watch, and that the strip follows the timeout and "Yes, still here" with no tap on Today.
+
+## Review, step 7
+
+Built by Claude (cloud session). Reviewed by Codex on the diff, 2026-11-20. Each finding was checked against the code.
+
+| Finding                                                                                                     | Checked                                                                                                                | Result                                                                        |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| The research export and lab spreadsheets now need `labView`; a build with one on and `labView` off loses it | True in principle. No build is set that way: both are on only in the lab build                                         | Held by a unit test (`tests/settings.test.ts`) and a note beside the switches |
+| The role picker shows only with `researchExport`                                                            | Intended: a role is only ever stamped on the research export (F-58). The Roles card is left out, not empty, without it | No change                                                                     |
+| Backup and Lab files share one message slot, so a message could show on the wrong page                      | Not so: the message is cleared whenever the page changes (`DataScreen.tsx`, the `page` effect)                         | No change                                                                     |
+| The role check never reloads, so it would pass if saved roles were not read back                            | True                                                                                                                   | `e2e/caregivers.cjs` reloads and checks both caregivers' roles                |

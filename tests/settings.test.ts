@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modeFrom, settingsFor, STUDY_MODE, study } from "../src/study/settings";
+import { LAB_TOOLS, modeFrom, settingsFor, STUDY_MODE, study } from "../src/study/settings";
 
 // Today's behavior, written out by hand so a change to the caregiver build has to change this test too.
 const TODAY = {
@@ -57,5 +57,14 @@ describe("study settings", () => {
   it("the test run uses the caregiver build", () => {
     expect(STUDY_MODE).toBe("caregiver");
     expect(study).toEqual(TODAY);
+  });
+
+  // The lab's tools sit on "Lab and research", a page only a build with labView has (design note 030 step 7).
+  it("turns a lab tool on only in a build that has the Lab and research page", () => {
+    for (const mode of ["caregiver", "lab"] as const)
+      for (const pin of [false, true]) {
+        const s = settingsFor(mode, pin);
+        for (const tool of LAB_TOOLS) expect(s[tool] && !s.labView, `${mode}: ${tool} without labView`).toBe(false);
+      }
   });
 });

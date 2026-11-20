@@ -125,6 +125,10 @@ const saveChange = async (sheet) => {
     await p.getByRole("heading", { name: "Lab and research", level: 1 }).waitFor();
   }
   ok(true, "#/data/clock and #/data/demo open Lab and research");
+  // The role is read back from the profile, not only shown as tapped: it is still there after the app is opened again.
+  await p.reload();
+  await p.getByRole("heading", { name: "Lab and research", level: 1 }).waitFor();
+  ok(await p.getByRole("radiogroup", { name: "Role for JM" }).getByRole("radio", { name: "Researcher" }).isChecked() && await p.getByRole("radiogroup", { name: "Role for AB" }).getByRole("radio", { name: "Caregiver" }).isChecked(), "after a reload JM is still Researcher and AB still Caregiver");
   await p.locator(".back-btn").click();
   await more.waitFor(); ok(true, "Back returns to Settings");
   // Backup and export is the caregiver's page again: no research export and no lab files on it.
