@@ -81,7 +81,23 @@ Codex on Devin-Desktop, 2026-11-20, on the code diff. Two findings, both checked
 1. The dot said "backup due" only to screen readers; a sighted caregiver saw a dot and, in Settings, only "Never exported". The Backup row now reads "Backup due." in words.
 2. The check that a hold does not log counted whether the Today badge existed, so a hold that logged a second event would have passed. It now compares the number.
 
-Criteria for steps 3 to 8 are added to this note by the pull request that builds each one.
+## Acceptance criteria, step 3
+
+All 29 behaviors are on one page under their four group headings. The four group names stay as a bar, pinned under the resident bar while the page scrolls; a name brings its group's tiles under the bar. The bar hides nothing, so it is a set of jump buttons, not tabs.
+
+Measured at 390 x 844 on demo data: 15 of 29 behaviors are one tap from opening the app with no scroll (it was 11). The other 14 are one scroll, or one tap on a group name, away; never more than before, when 18 needed a tab tap.
+
+1. Log holds all 29 tiles under four headings; nothing on it has a tab, tab list or tab panel role (`e2e/navigation.cjs`).
+2. A group name scrolls its heading to just under the bar, with its first tile in view and clear of both bars, and moves focus to the heading so Tab goes on to that group's first tile. The bar stays pinned under the resident bar and marks the group at the top of the page, one at a time (`e2e/navigation.cjs`).
+3. With "reduce motion" on, the jump does not animate (`src/ui/LogScreen.tsx`, `jump`).
+4. On a 320 x 568 phone the four names fit one row, each 44 px tall, with no sideways scroll (`e2e/navigation.cjs`). With larger text they wrap.
+5. Log opens at its first tile when the first patient arrives, wherever the welcome page was scrolled to (`e2e/navigation.cjs`). This was wrong before on a small phone and showed more once the page grew.
+6. Logging, holding a tile, "It stopped", edit and undo work as before from any group, in both builds (every check in `e2e/`).
+7. axe WCAG 2.2 AA, 0 violations in four modes (`docs/audits/axe-run.cjs`).
+
+Known limit: axe counts a tile that is scrolled part-way under a pinned bar as too small a target. Any scrolled list does this, and scrolling shows the whole tile. `e2e/it-stopped.cjs` runs its audit of the confirmation with the page at the top for that reason.
+
+Criteria for steps 4 to 8 are added to this note by the pull request that builds each one.
 
 ## Sources
 

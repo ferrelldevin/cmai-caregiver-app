@@ -114,7 +114,12 @@ export default function App() {
     };
   }, [refresh]);
 
-  // A new screen starts at the top, and screen readers land on its heading.
+  const hasPatient = !!patientId && patients.some((p) => p.id === patientId);
+
+  // A new screen starts at the top, and screen readers land on its heading. With no patient
+  // the screen shown is Settings whatever the tab says, so the first patient arriving is a
+  // new screen too: Log opens at its first tile, not where the welcome page was scrolled to.
+  const screen = hasPatient ? tab : "data";
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
@@ -122,9 +127,7 @@ export default function App() {
     }
     window.scrollTo({ top: 0 });
     mainRef.current?.focus({ preventScroll: true });
-  }, [tab, route.page]);
-
-  const hasPatient = !!patientId && patients.some((p) => p.id === patientId);
+  }, [screen, route.page]);
 
   // Caregiver profiles (R2, plan 5.2): only with the switch on. Who is logging is remembered on
   // this phone; every new record carries their code. Nothing here ever stands between a caregiver

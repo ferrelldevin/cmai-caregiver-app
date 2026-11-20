@@ -17,8 +17,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const errs = []; p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(m.text()));
   await p.goto(URL);
   await p.getByRole("button", { name: "Try demo data" }).click();
-  await p.getByRole("tab", { name: "Physical" }).tap();
-  const item = p.getByRole("tabpanel").getByRole("button", { name: /^Trying to leave/ });
+  const item = p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Trying to leave/ });
   await item.scrollIntoViewIfNeeded(); await item.tap();
   // Scroll down before opening the sheet, so the check below can see the page held at that spot.
   // The Log screen can now fit one phone screen, so give the page room to scroll first.

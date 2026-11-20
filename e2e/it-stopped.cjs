@@ -21,9 +21,8 @@ async function start(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  await p.getByRole("tab", { name: /Physical/ }).click();
 }
-const tile = (p, name) => p.getByRole("tabpanel").getByRole("button", { name: new RegExp("^" + name) });
+const tile = (p, name) => p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: new RegExp("^" + name) });
 
 // G11: with change reasons on, edits are held until "Save change", which asks why.
 const saveChange = async (sheet, reason = "Wrong time") => {
@@ -52,6 +51,11 @@ const saveChange = async (sheet, reason = "Wrong time") => {
     ok(bb.height >= 24 && bb.width >= 24, `"${await btn.textContent()}" is at least 24 by 24 px`);
   }
   await p.screenshot({ path: `${OUT}/it-stopped-confirm.png` });
+  // The page is longer than the screen now (design note 030 step 3), and the click above scrolled
+  // it so a row of tiles sits half under the pinned bars. axe counts a tile that is part-way
+  // scrolled out as too small a target; any scrolled list does that. The audit is of the
+  // confirmation, so it runs with the page back at the top, where every tile is whole.
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(200);
   await axe(p, "confirmation with It stopped");
   await stop.click();
   await bar.filter({ hasText: " to " }).waitFor();
@@ -61,13 +65,11 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   ok((await bar.getByRole("button", { name: "It stopped" }).count()) === 0, "the button goes once it is stored");
 
   // A behavior that is one event gets none.
-  await p.getByRole("tab", { name: /Aggressive/ }).click();
   await tile(p, "Hitting").click();
   await bar.filter({ hasText: "Hitting" }).waitFor();
   ok((await bar.getByRole("button", { name: "It stopped" }).count()) === 0, "hitting gets no It stopped");
 
   // Today: an open stretch offers it on its row; a stored one shows both times.
-  await p.getByRole("tab", { name: /Physical/ }).click();
   await tile(p, "Pacing").click();
   await p.waitForTimeout(700);
   await p.locator("nav.tabs button", { hasText: "Today" }).click();

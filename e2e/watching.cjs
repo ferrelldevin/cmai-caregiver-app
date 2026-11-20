@@ -33,7 +33,7 @@ async function start(p) {
   ok((await strip.boundingBox()).height <= 60, `the strip is one line (${Math.round((await strip.boundingBox()).height)} px)`);
   await axe(p, "Log with the strip");
 
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
   await strip.filter({ hasText: "With P-01 since" }).waitFor(); ok(true, "a log with no watch open starts one");
   let ws = await watches(p);
   ok(ws.length === 1 && ws[0].startSource === "log" && ws[0].end === undefined, "stored: one open watch, started by a log");
@@ -94,7 +94,7 @@ async function start(p) {
     if (high) await c.addInitScript(() => localStorage.setItem("cmai-contrast", "high"));
     const q = await c.newPage();
     await start(q);
-    await q.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
+    await q.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
     await q.locator(".watch-strip", { hasText: "since" }).waitFor();
     await axe(q, `Log with a watch, ${name}`);
     await q.locator("nav.tabs button", { hasText: "Today" }).click();

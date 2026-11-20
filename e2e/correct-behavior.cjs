@@ -26,7 +26,7 @@ async function openSheet(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); await p.locator(".snackbar").waitFor();
   await p.locator(".snackbar").getByRole("button", { name: "Edit" }).click();
   await p.getByRole("dialog", { name: /^Hitting/ }).waitFor();
   return p.locator(".log-sheet"); // its name changes on the pick step
@@ -113,7 +113,7 @@ async function openSheet(p) {
   ok((await sheet.getByRole("alert").innerText()).includes("was deleted") && d.logs[0].itemId === 10 && d.changes.length === 3, "a log deleted behind the sheet is not changed, and the sheet says so");
   await p.keyboard.press("Escape");
   await p.locator(".log-sheet[open]").waitFor({ state: "detached" }).catch(() => {});
-  const tiles = p.getByRole("tabpanel");
+  const tiles = p.getByRole("group", { name: "All behaviors" });
   ok(!(await tiles.getByRole("button", { name: /^Hitting/ }).locator(".tile-count").count()), "Hitting's tile no longer counts it");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();

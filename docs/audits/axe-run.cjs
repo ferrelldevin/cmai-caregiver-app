@@ -29,14 +29,14 @@ async function scan(page, name, results) {
     await page.goto(URL);
     await scan(page, "Welcome (first run)", results);
     await page.getByRole("button", { name: "Try demo data" }).click();
-    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
+    await page.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).waitFor();
     await scan(page, "Log", results);
     await page.getByRole("button", { name: "What counts as each behavior?" }).click();
     await page.getByRole("dialog", { name: "What counts as each behavior" }).waitFor();
     await scan(page, "What counts as each behavior (sheet)", results);
     await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
     await page.getByRole("dialog").waitFor({ state: "hidden" });
-    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click();
+    await page.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
     await page.locator(".snackbar").waitFor();
     await scan(page, "Log (after a tap: confirmation)", results);
     await page.locator(".snackbar").getByRole("button", { name: "Edit" }).click();
@@ -59,7 +59,7 @@ async function scan(page, name, results) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await scan(page, "Today (checked in: nothing to log today)", results);
     await page.getByRole("button", { name: "Log a behavior", exact: true }).click();
-    await page.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).click(); // a log to fix on Today
+    await page.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click(); // a log to fix on Today
     await page.locator("nav.tabs button", { hasText: "Today" }).click();
     await page.locator(".acc-head").first().click();
     await scan(page, "Today (a behavior opened)", results);

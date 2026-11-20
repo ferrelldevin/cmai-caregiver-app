@@ -54,7 +54,7 @@ const SCREENS = [
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(URL);
     await page.getByRole('button', { name: 'Try demo data' }).click();
-    await page.getByRole('tabpanel').getByRole('button', { name: /^Hitting/ }).waitFor();
+    await page.getByRole("group", { name: "All behaviors" }).getByRole('button', { name: /^Hitting/ }).waitFor();
     for (const s of SCREENS) {
       await page.evaluate((h) => { location.hash = h; }, s.hash);
       await page.waitForTimeout(400);

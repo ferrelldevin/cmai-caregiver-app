@@ -14,7 +14,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
 
   await p.goto(URL);
   await p.getByRole("button", { name: "Try demo data" }).click();
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ }).waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).waitFor();
   ok((await p.locator("nav.tabs button").allTextContents()).join(",") === "Log,Today,Two weeks,Settings", "the bar reads Log, Today, Two weeks, Settings");
 
   // Nothing logged yet today: say so, and offer the quiet-day check-in (moved here from Log).
@@ -31,7 +31,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   // Three logs, two behaviors.
   await tab("Log");
   ok(!(await p.getByRole("heading", { name: "Recent logs" }).count()), "Log no longer has Recent logs");
-  for (const n of ["Hitting", "Spitting", "Hitting"]) { await p.getByRole("tabpanel").getByRole("button", { name: new RegExp("^" + n) }).click(); await p.waitForTimeout(700); }
+  for (const n of ["Hitting", "Spitting", "Hitting"]) { await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: new RegExp("^" + n) }).click(); await p.waitForTimeout(700); }
   ok((await p.locator(".tab-badge").textContent()) === "3" && (await p.getByRole("button", { name: "Today 3 so far", exact: true }).count()) === 1, "the Today tab shows 3, and says '3 so far'");
   const firstTile = (await p.locator(".tile-btn").first().boundingBox()).y + (await p.evaluate(() => scrollY));
   ok(firstTile <= 110, `the first tile starts ${Math.round(firstTile)} px from the top (110 or less; it was 234 or more)`);

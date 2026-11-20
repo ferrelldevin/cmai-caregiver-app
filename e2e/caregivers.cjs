@@ -67,7 +67,7 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await p.getByRole("heading", { name: "Welcome to CMAI Tracker" }).waitFor();
   await p.getByRole("button", { name: "Add a patient" }).click();
   await p.getByLabel("New patient code").fill("P-01"); await p.keyboard.press("Enter");
-  const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
+  const hit = p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ });
   await hit.waitFor();
 
   // No caregiver yet: the app works as before, and the chip leads to adding one.
@@ -160,7 +160,7 @@ const saveChange = async (sheet, reason = "Wrong time") => {
   await p.setViewportSize({ width: 390, height: 844 });
   ok((await chip.textContent()).includes("AB"), "the chip shows AB");
   await p.waitForTimeout(700);
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Kicking/ }).click(); await p.locator(".snackbar", { hasText: "Kicking" }).waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Kicking/ }).click(); await p.locator(".snackbar", { hasText: "Kicking" }).waitFor();
   let data = await stored(p);
   const byItem = (id) => data.observations.find((o) => o.itemId === id && o.by);
   ok(byItem(7).by === "C-01" && byItem(8).by === "C-02", "the log after switching carries C-02; the earlier one keeps C-01");

@@ -30,7 +30,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.screenshot({ path: `${OUT}/flow-01-twoweeks-empty.png` });
   await p.locator("nav.tabs button", { hasText: "Log" }).click();
   // log, double tap guard
-  const hit = p.getByRole("tabpanel").getByRole("button", { name: /^Hitting/ });
+  const hit = p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ });
   // A save that fails says so, shows no "Logged" confirmation, and lets the next tap through (F-33)
   await p.evaluate(() => {
     const add = IDBObjectStore.prototype.add;
@@ -41,9 +41,9 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok((await p.locator(".snackbar").count()) === 0, "a failed save shows the alert and no confirmation");
   await hit.dblclick();
   await p.locator(".snackbar").waitFor();
-  await p.getByRole("tabpanel").getByRole("button", { name: /^Hitting \d+ today$/ }).waitFor();
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting \d+ today$/ }).waitFor();
   await p.waitForTimeout(300);
-  ok((await p.getByRole("tabpanel").getByRole("button", { name: "Hitting 1 today" }).count()) === 1, "double tap logs once");
+  ok((await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: "Hitting 1 today" }).count()) === 1, "double tap logs once");
   const snack = p.locator(".snackbar");
   ok(/P-\S+ · \d/.test(await snack.textContent()), "confirmation names the patient and time");
   const sb = await snack.boundingBox(), tb = await p.locator("nav.tabs").boundingBox();
