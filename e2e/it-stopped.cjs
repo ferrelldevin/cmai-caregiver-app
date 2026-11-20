@@ -25,10 +25,9 @@ async function start(p) {
 }
 const tile = (p, name) => p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: new RegExp("^" + name) });
 
-// G11: with change reasons on, edits are held until "Save change", which asks why.
-const saveChange = async (sheet, reason = "Wrong time") => {
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByRole("button", { name: reason }).click();
+// G11: with change reasons on, edits are held until "Save change". It saves them with a reason worked
+// out from what changed and closes the sheet (design note 030 step 4); a refused save keeps it open.
+const saveChange = async (sheet) => {
   await sheet.getByRole("button", { name: "Save change" }).click();
 };
 

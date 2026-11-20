@@ -90,11 +90,16 @@ async function openSheet(p) {
   d = await stored(p);
   ok(d.logs[0].itemId === 10 && d.logs[0].rev === 3 && d.logs[0].before === undefined, "a correction saves at once and leaves a held edit unsaved");
   await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByRole("button", { name: "Other" }).click();
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByText("Change history (3)").waitFor();
+  await sheet.waitFor({ state: "hidden" });
   d = await stored(p);
-  ok(d.logs[0].itemId === 10 && d.logs[0].before === "Mealtime" && d.logs[0].rev === 4, "the held edit then saves on the corrected log");
+  ok(d.logs[0].itemId === 10 && d.logs[0].before === "Mealtime" && d.logs[0].rev === 4 && d.changes.at(-1).reason === "other", "the held edit then saves on the corrected log, with its own reason");
+  // Save change closed the sheet (design note 030 step 4); open the log again from Today.
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
+  const row = p.locator(".acc-head", { hasText: "Pushing" });
+  await row.waitFor();
+  if ((await row.getAttribute("aria-expanded")) !== "true") await row.click();
+  await p.locator(".acc-body li").first().getByRole("button", { name: /^Edit/ }).click();
+  await p.getByRole("dialog", { name: /^Pushing/ }).waitFor();
 
   // Deleted behind the open sheet (another tab): the correction is refused and the sheet says so.
   await p.evaluate(() => new Promise((res) => {
@@ -113,7 +118,9 @@ async function openSheet(p) {
   ok((await sheet.getByRole("alert").innerText()).includes("was deleted") && d.logs[0].itemId === 10 && d.changes.length === 3, "a log deleted behind the sheet is not changed, and the sheet says so");
   await p.keyboard.press("Escape");
   await p.locator(".log-sheet[open]").waitFor({ state: "detached" }).catch(() => {});
+  await p.locator("nav.tabs button", { hasText: "Log" }).click();
   const tiles = p.getByRole("group", { name: "All behaviors" });
+  await tiles.getByRole("button", { name: /^Hitting/ }).waitFor();
   ok(!(await tiles.getByRole("button", { name: /^Hitting/ }).locator(".tile-count").count()), "Hitting's tile no longer counts it");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();

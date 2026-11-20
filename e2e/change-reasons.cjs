@@ -1,5 +1,6 @@
-// Change reasons (G11, design note 019) on the LAB build: edits are held until "Save change", which asks
-// why from a pick list; a delete asks the same list and takes no free text; the history view shows
+// Change reasons (G11, design note 019) on the LAB build: edits are held until "Save change", which
+// saves them with a reason worked out from what changed and asks nothing (design note 030 step 4);
+// a delete still asks, from the pick list, and takes no free text; the history view shows
 // every version with who, when and why; nothing is rewritten. axe in four display modes.
 // usage: node e2e/change-reasons.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
 const { engine } = require("./browser.cjs");
@@ -23,6 +24,17 @@ const stored = (p) => p.evaluate(() => new Promise((res) => {
   };
 }));
 const REASONS = ["Wrong time", "Wrong behavior", "Logged twice", "Wrong patient", "Tapped by mistake", "Other"];
+// Save change closes the sheet (design note 030 step 4), so a check that goes on with the same log
+// opens it again from Today, as a caregiver would.
+async function reopen(p, name) {
+  await p.locator("nav.tabs button", { hasText: "Today" }).click();
+  const row = p.locator(".acc-head", { hasText: name });
+  await row.waitFor();
+  if ((await row.getAttribute("aria-expanded")) !== "true") await row.click();
+  await p.locator(".acc-body li").first().getByRole("button", { name: /^Edit/ }).click();
+  await p.getByRole("dialog", { name: new RegExp("^" + name) }).waitFor();
+  return p.locator(".log-sheet");
+}
 async function openSheet(p) {
   await p.goto(URL);
   await p.getByRole("button", { name: "Add a patient" }).click();
@@ -41,50 +53,62 @@ async function openSheet(p) {
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
   const sheet = await openSheet(p);
 
+  // What happened before: held until Save change, then saved as "Other" with nothing asked.
   await sheet.getByRole("button", { name: "Mealtime" }).click();
   ok((await stored(p)).logs[0].before === undefined, "a change is held, not saved, until Save change");
-  ok(await sheet.getByText("Your changes are kept when you press Save change").isVisible(), "the sheet says so");
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByRole("button", { name: "Why are you changing it?" }).count();
-  const shown = await sheet.locator("button.choice").allTextContents();
-  ok(REASONS.every((r) => shown.some((t) => t.includes(r))) && shown.length === 6, "the reason list has the six reasons and nothing else");
-  ok(await sheet.getByRole("button", { name: "Save change" }).isDisabled(), "Save change waits for a reason");
+  ok(await sheet.getByText('Press Save change to keep this. It is recorded as "Other"').isVisible(), "the sheet says so, and names the reason it will record");
   await p.screenshot({ path: `${OUT}/change-reason.png` });
-  await axe(p, "reason step");
-  await sheet.getByRole("button", { name: "Back" }).click();
-  ok((await stored(p)).changes.length === 0, "Back saves nothing");
+  await axe(p, "held change");
+  await sheet.getByRole("button", { name: "Mealtime" }).click(); // off again: nothing differs from the stored log
+  ok((await sheet.getByRole("button", { name: "Done" }).count()) === 1 && !(await sheet.getByRole("button", { name: "Save change" }).count()), "a chip tapped on and off again is no change: Done, not Save change");
+  await sheet.getByRole("button", { name: "Mealtime" }).click();
   await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByRole("button", { name: "Wrong time" }).click();
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByText("Change history (1)").waitFor();
+  await sheet.waitFor({ state: "hidden" });
+  ok((await p.locator(".log-sheet button.choice", { hasText: "Wrong time" }).count()) === 0, "Save change asks no reason and closes the sheet");
   let d = await stored(p);
   ok(d.logs[0].before === "Mealtime" && d.logs[0].rev === 2, "the change is saved, revision 2");
-  ok(d.changes.length === 1 && d.changes[0].reason === "wrong_time" && d.changes[0].action === "edit", "the entry carries the reason code wrong_time");
-  await sheet.getByText("Change history (1)").click();
-  const hist = await sheet.locator(".log-history li").allTextContents();
-  ok(hist.length === 2 && hist[0].includes("Logged") && hist[1].includes("Changed") && hist[1].includes("Wrong time"), "the history view lists the log and the change with its reason");
+  ok(d.changes.length === 1 && d.changes[0].reason === "other" && d.changes[0].action === "edit", "the entry carries the reason code other");
+
+  // A time: one tap on "5 min", one on Save change, recorded as wrong_time. Nothing else is asked.
+  let again = await reopen(p, "Hitting");
+  await again.getByRole("button", { name: "5 min before logging", exact: true }).click();
+  ok(await again.getByText('It is recorded as "Wrong time"').isVisible(), "a time change says it will be recorded as Wrong time");
+  await again.getByRole("button", { name: "Save change" }).click();
+  await again.waitFor({ state: "hidden" });
+  const first = JSON.stringify(d.changes[0]);
+  d = await stored(p);
+  ok(d.changes.length === 2 && d.changes[1].reason === "wrong_time" && d.logs[0].loggedAt - d.logs[0].at === 5 * 60_000 && d.logs[0].rev === 3, "the time moved 5 minutes, reason code wrong_time, revision 3");
+  ok(JSON.stringify(d.changes[0]) === first, "history is append-only: two entries, the first unchanged");
+
+  // A time and a chip in one save are one entry, recorded as wrong_time.
+  again = await reopen(p, "Hitting");
+  await again.getByRole("switch", { name: "Time is approximate" }).click();
+  await again.getByRole("button", { name: "Mealtime" }).click(); // clears the chip
+  await again.getByRole("button", { name: "Save change" }).click();
+  await again.waitFor({ state: "hidden" });
+  d = await stored(p);
+  ok(d.changes.length === 3 && d.changes[2].reason === "wrong_time" && d.logs[0].approx === true && d.logs[0].before === undefined, "a time and a chip together are one entry, reason code wrong_time");
+
+  const sheet2 = await reopen(p, "Hitting");
+  await sheet2.getByText("Change history (3)").click();
+  const hist = await sheet2.locator(".log-history li").allTextContents();
+  ok(hist.length === 4 && hist[0].includes("Logged") && hist[1].includes("Other") && hist[2].includes("Wrong time") && hist[3].includes("Wrong time"), "the history view lists the log and each change with its reason");
   await p.screenshot({ path: `${OUT}/change-history.png` });
   await axe(p, "history view");
 
-  // A second change adds a second entry; the first is untouched.
-  await sheet.getByRole("button", { name: "Mealtime" }).click(); // clears the chip
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByRole("button", { name: "Other" }).click();
-  await sheet.getByRole("button", { name: "Save change" }).click();
-  await sheet.getByText("Change history (2)").waitFor();
-  const first = JSON.stringify(d.changes[0]);
-  d = await stored(p);
-  ok(d.changes.length === 2 && JSON.stringify(d.changes[0]) === first, "history is append-only: two entries, the first unchanged");
-
-  // Delete: same list, and Other takes no free text.
-  await sheet.getByRole("button", { name: "Delete log" }).click();
-  await sheet.getByRole("button", { name: "Other" }).click();
-  ok(!(await sheet.getByPlaceholder("A few words, no names").count()), "Other asks for no free text");
-  await sheet.getByRole("button", { name: "Delete log" }).click();
+  // Delete still asks why: the six reasons and nothing else, and Other takes no free text.
+  await sheet2.getByRole("button", { name: "Delete log" }).click();
+  const shown = await sheet2.locator("button.choice").allTextContents();
+  ok(REASONS.every((r) => shown.some((t) => t.includes(r))) && shown.length === 6, "the delete reason list has the six reasons and nothing else");
+  ok(await sheet2.getByRole("button", { name: "Delete log" }).isDisabled(), "Delete log waits for a reason");
+  await axe(p, "delete reason step");
+  await sheet2.getByRole("button", { name: "Other" }).click();
+  ok(!(await sheet2.getByPlaceholder("A few words, no names").count()), "Other asks for no free text");
+  await sheet2.getByRole("button", { name: "Delete log" }).click();
   await p.locator(".snackbar").waitFor();
   d = await stored(p);
   ok(d.logs.length === 1 && d.logs[0].deletedAt !== undefined && d.logs[0].deleteNote === undefined, "the log is kept, marked deleted, with no note");
-  ok(d.changes.at(-1).action === "delete" && d.changes.at(-1).reason === "other" && d.logs[0].rev === 4, "the delete is a tombstone entry with reason other, revision 4");
+  ok(d.changes.at(-1).action === "delete" && d.changes.at(-1).reason === "other" && d.logs[0].rev === 5, "the delete is a tombstone entry with reason other, revision 5");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();
 
@@ -94,8 +118,9 @@ async function openSheet(p) {
     const q = await c.newPage();
     const s = await openSheet(q);
     await s.getByRole("button", { name: "Mealtime" }).click();
-    await s.getByRole("button", { name: "Save change" }).click();
-    await axe(q, `reason step, ${name}`);
+    await axe(q, `held change, ${name}`);
+    await s.getByRole("button", { name: "Delete log" }).click();
+    await axe(q, `delete reason step, ${name}`);
     await c.close();
   }
   await b.close();

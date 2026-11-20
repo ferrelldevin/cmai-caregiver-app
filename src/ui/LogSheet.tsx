@@ -4,12 +4,22 @@
 // then one action row at the bottom: Delete on the left, Done on the right (Devin, 2026-10-24). Design note: docs/design/notes/003-log-confirmation.md.
 // Delete is two steps: pick a reason, then confirm. The log is kept, marked deleted with the
 // reason (D-14, design note 007).
+// With `changeReasons` on (lab build), changes are held until Save change, which saves them, fills
+// in the reason from what was changed and closes the sheet: a time is "Wrong time", anything else
+// is "Other". Nobody is asked why they moved a time (design note 030 step 4). Delete still asks.
 // "Change" beside the behavior (F-64, design note 025) corrects a wrong pick on the same log: pick
 // the right one, confirm. It saves at once with the reason "Wrong behavior"; nothing is deleted.
 
 import { useEffect, useRef, useState } from "react";
 import type { StoredObservation } from "../data/db";
-import { CHANGE_REASONS, DELETE_REASONS, logVersions, REASON_LABEL, type LogVersion } from "../data/logs";
+import {
+  CHANGE_REASONS,
+  DELETE_REASONS,
+  logVersions,
+  REASON_LABEL,
+  type ChangeReason,
+  type LogVersion,
+} from "../data/logs";
 import { addDays } from "../scoring/engine";
 import { GROUP_LABELS, ITEMS, type FactorGroup } from "../scoring/items";
 import { SHORT_NAMES } from "./behavior-names";
@@ -66,7 +76,7 @@ interface Props {
   viaKeyboard: boolean;
   /** Why the last change was not saved, if it was refused. */
   error?: string | null;
-  /** With `changeReasons` on, one call per Save change, with the reason's code; otherwise one call per tap, as always. */
+  /** With `changeReasons` on, one call per Save change, with the reason's code worked out from what changed; otherwise one call per tap, as always. */
   onPatch: (change: Partial<StoredObservation>, reason?: string) => void | Promise<boolean>;
   onDelete: (reason: string, note?: string) => void;
   /** Corrects which behavior the log is for (F-64). Resolves false when it was not saved. */
@@ -75,6 +85,16 @@ interface Props {
 }
 
 const REASON_LABELS = CHANGE_REASONS.map((c) => REASON_LABEL[c]);
+
+const TIME_FIELDS: (keyof StoredObservation)[] = ["at", "approx", "endedAt"];
+/**
+ * The reason recorded for an edit, worked out from what it changes (design note 030 step 4): when
+ * it happened, how exact that is or when it stopped is "wrong_time"; what happened before is
+ * "other". A wrong behavior has its own path (F-64) and a delete still asks.
+ */
+export function reasonFor(change: Partial<StoredObservation>): ChangeReason {
+  return TIME_FIELDS.some((k) => k in change) ? "wrong_time" : "other";
+}
 
 /** What changed between two versions of a log, in words, for the history view. */
 function describe(v: LogVersion, prev?: LogVersion) {
@@ -94,21 +114,21 @@ function describe(v: LogVersion, prev?: LogVersion) {
 }
 
 export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, onCorrect, onClose }: Props) {
-  // G11 (`changeReasons`): changes are held until Save change, which asks why. Otherwise they save as made.
+  // G11 (`changeReasons`): changes are held until Save change. Otherwise they save as made.
   const staged = study.changeReasons;
   const [draft, setDraft] = useState<Partial<StoredObservation>>({});
-  const [changing, setChanging] = useState(false); // the reason step for a saved change
-  const [why, setWhy] = useState<string | null>(null);
   const [saves, setSaves] = useState(0); // counts saved changes, so the history list reloads
   const [versions, setVersions] = useState<LogVersion[]>([]);
   const obs = saved && staged ? { ...saved, ...draft } : saved;
-  const dirty = !!saved && Object.entries(draft).some(([k, v]) => saved[k as keyof StoredObservation] !== v);
+  // Only what differs from the stored log is a change: a chip tapped on and off again is not one.
+  const changed: Partial<StoredObservation> = saved
+    ? Object.fromEntries(Object.entries(draft).filter(([k, v]) => saved[k as keyof StoredObservation] !== v))
+    : {};
+  const dirty = Object.keys(changed).length > 0;
   const patch = (change: Partial<StoredObservation>) =>
     staged ? setDraft((d) => ({ ...d, ...change })) : onPatch(change);
   useEffect(() => {
     setDraft({});
-    setChanging(false);
-    setWhy(null);
   }, [saved?.id]);
   useEffect(() => {
     if (!staged || !saved) return setVersions([]);
@@ -151,14 +171,17 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
     target?.focus({ preventScroll: true });
   }, [deleting, picking]);
   const canDelete = reason !== null && (staged || reason !== "Other" || reasonNote.trim() !== "");
+  // One tap saves and closes. A refused save (an end before its start) keeps the sheet and the draft.
+  const saving = useRef(false);
   async function saveChange() {
-    const code = CHANGE_REASONS[REASON_LABELS.indexOf(why ?? "")];
-    if (!code) return;
-    const ok = await onPatch(draft, code);
-    if (ok !== false) setDraft({});
+    if (!dirty || saving.current) return;
+    saving.current = true;
+    const ok = await onPatch(changed, reasonFor(changed));
+    saving.current = false;
     setSaves((n) => n + 1);
-    setChanging(false);
-    setWhy(null);
+    if (ok === false) return;
+    setDraft({});
+    onClose();
   }
   async function saveBehavior() {
     if (pick === null || !onCorrect) return;
@@ -177,15 +200,7 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
       viaKeyboard={viaKeyboard}
       keyboardFocus=".log-sheet input[type='time']"
       className="log-sheet"
-      title={
-        deleting
-          ? "Delete this log?"
-          : picking
-            ? "Which behavior was it?"
-            : changing
-              ? "Why change it?"
-              : (item?.name ?? "")
-      }
+      title={deleting ? "Delete this log?" : picking ? "Which behavior was it?" : (item?.name ?? "")}
       subtitle={
         obs && (
           <>
@@ -197,16 +212,7 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
       headerClose={false}
       footer={
         obs &&
-        (changing ? (
-          <>
-            <button className="ghost" onClick={() => setChanging(false)}>
-              Back
-            </button>
-            <button disabled={!why} onClick={saveChange}>
-              Save change
-            </button>
-          </>
-        ) : picking ? (
+        (picking ? (
           <>
             <button className="ghost" onClick={() => setPicking(false)}>
               Back
@@ -240,7 +246,7 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
               <Icon name="trash" size={18} /> Delete log
             </button>
             {dirty ? (
-              <button className="sheet-done" onClick={() => setChanging(true)}>
+              <button className="sheet-done" onClick={saveChange}>
                 Save change
               </button>
             ) : (
@@ -311,24 +317,6 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
           </p>
         </div>
       )}
-      {obs && changing && (
-        <div className="sheet-scroll">
-          <section className="form-group" aria-labelledby="ls-change-why">
-            <h3 className="form-label" id="ls-change-why">
-              Why are you changing it?
-            </h3>
-            <div className="choice-grid">
-              {REASON_LABELS.map((r) => (
-                <button key={r} className="choice" aria-pressed={why === r} onClick={() => setWhy(r)}>
-                  <span>{r}</span>
-                  {why === r && <Icon name="check" size={18} />}
-                </button>
-              ))}
-            </div>
-          </section>
-          <p className="muted">The old version is kept. The research team can see every change and why.</p>
-        </div>
-      )}
       {obs && picking && (
         <div className="sheet-scroll" ref={reasons}>
           {GROUP_ORDER.map((g) => (
@@ -351,7 +339,7 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
           </p>
         </div>
       )}
-      {obs && !deleting && !changing && !picking && (
+      {obs && !deleting && !picking && (
         <div className="sheet-scroll">
           {study.correctBehavior && onCorrect && item && (
             <section className="form-group" aria-labelledby="ls-what">
@@ -503,7 +491,12 @@ export function LogSheet({ obs: saved, viaKeyboard, error, onPatch, onDelete, on
               </label>
             )}
           </section>
-          {staged && dirty && <p className="muted">Your changes are kept when you press Save change.</p>}
+          {staged && dirty && (
+            <p className="muted">
+              Press Save change to keep this. It is recorded as "{REASON_LABEL[reasonFor(changed)]}", and the old
+              version is kept.
+            </p>
+          )}
           {/* G11: every version of this log, who made it, when and why. Reads only. */}
           {staged && versions.length > 1 && (
             <details className="log-history">
