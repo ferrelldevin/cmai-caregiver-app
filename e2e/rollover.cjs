@@ -42,6 +42,14 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   ok(p.url().endsWith("#/today"), "left on Today and back within 4 minutes: still Today");
   await away(6 * 60_000);
   ok(await onLog(), "left on Today and back after 6 minutes: Log");
+  ok(await p.evaluate(() => scrollY === 0 && document.activeElement === document.querySelector("main")), "Log starts at the top, and focus is on the page so a screen reader says where it is");
+  // Exactly 5 minutes counts; the browser saying "hidden" or "visible" twice changes nothing.
+  await tab("Today"); await p.waitForFunction(() => location.hash === "#/today");
+  await see("hidden"); await p.clock.fastForward(2 * 60_000); await see("hidden"); await p.clock.fastForward(3 * 60_000); await see("visible"); await p.waitForTimeout(300);
+  ok(await onLog(), "hidden for exactly 5 minutes, told twice: Log");
+  await tab("Today"); await p.waitForFunction(() => location.hash === "#/today");
+  await see("visible"); await p.waitForTimeout(300);
+  ok(p.url().endsWith("#/today"), "a second \"visible\" with no absence moves nothing");
   await tab("Two weeks"); await p.waitForFunction(() => location.hash.startsWith("#/twoweeks"));
   await away(60 * 60_000);
   ok(await onLog(), "left on Two weeks for an hour: Log");
@@ -50,8 +58,11 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("heading", { name: "Display", level: 1 }).waitFor();
   await away(6 * 60_000);
   ok(await onLog(), "left on a Settings page: Log");
+  // The Settings page is gone from the history: Back from Log leaves the app as it always does, and Forward is Log again.
   await p.goBack(); await p.waitForTimeout(300);
-  ok(!p.url().includes("#/data/display"), "and the back gesture does not return to that page");
+  ok(p.url() === "about:blank", "Back from Log does not return to the Settings page (" + p.url() + ")");
+  await p.goForward(); await p.getByRole("group", { name: "All behaviors" }).waitFor();
+  ok(p.url().endsWith("#/log"), "and Forward is Log");
   // Something in progress is never taken away: an open sheet, or a field being typed in.
   await p.goto(URL.replace(/\/?$/, "/") + "#/today"); await p.waitForFunction(() => location.hash === "#/today");
   await p.getByRole("button", { name: /Choose patient$/ }).click();
@@ -62,7 +73,13 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await tab("Settings");
   await p.getByLabel("New patient code").fill("P-0");
   await away(6 * 60_000);
-  ok(p.url().endsWith("#/data") && (await p.getByLabel("New patient code").inputValue()) === "P-0", "a code half typed in Settings is still there after 6 minutes");
+  await p.getByLabel("New patient code").blur(); // a tap elsewhere: the field no longer has the focus
+  await away(6 * 60_000);
+  ok(p.url().endsWith("#/data") && (await p.getByLabel("New patient code").inputValue()) === "P-0", "a code half typed in Settings, focus elsewhere, is still there after 6 minutes");
+  // An empty field that only kept the focus is not work: it does not hold the app on Settings.
+  await p.getByLabel("New patient code").fill(""); await p.getByLabel("New patient code").focus();
+  await away(6 * 60_000);
+  ok(await onLog(), "an empty field with the focus does not stop the return to Log");
   // Already on Log: nothing moves, the page stays where it was scrolled.
   await tab("Log"); await p.getByRole("navigation", { name: "Jump to a behavior group" }).getByRole("button", { name: "Other", exact: true }).click(); await p.waitForTimeout(900);
   const y = await p.evaluate(() => scrollY);

@@ -70,7 +70,7 @@ export const AWAY_MS = 5 * 60_000;
  * Whether the app, brought back to the front, should show Log (design note 030 step 8).
  * A caregiver opens the phone to log: after a real absence the app is on Log, wherever it was left.
  * It stays put after a short look away, and whenever something is in progress: a rating, an open
- * sheet or a field being typed in (busy).
+ * sheet or something typed into a field (busy).
  */
 export const reopensOnLog = (route: Route, awayMs: number, busy: boolean) =>
   awayMs >= AWAY_MS && !busy && !route.rating && (route.tab !== "log" || route.page !== null);

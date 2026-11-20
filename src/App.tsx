@@ -31,6 +31,8 @@ const RatingScreen = lazy(() => import("./ui/RatingScreen").then((m) => ({ defau
 
 // The PIN needs caregivers to sign in as (plan 5.3).
 const PIN_ON = study.pin && study.caregiverProfiles;
+// Fields a person types words or numbers into; a date, a tick or a choice is not a draft.
+const TYPED = new Set(["text", "search", "password", "tel", "number", "email", "url"]);
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
@@ -56,7 +58,7 @@ export default function App() {
   const [restored, setRestored] = useState(false);
   const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
   // Opening the app means Log (design note 030 step 8): back in front after a real absence, it shows Log
-  // wherever it was left, unless a rating, an open sheet or a field being typed in would be lost.
+  // wherever it was left, unless a rating, an open sheet or something typed into a field would be lost.
   const reopen = useRef({ route, go });
   useEffect(() => {
     reopen.current = { route, go };
@@ -70,12 +72,12 @@ export default function App() {
       }
       const away = hiddenAt === null ? 0 : Date.now() - hiddenAt;
       hiddenAt = null;
-      const el = document.activeElement;
-      const busy =
-        !!document.querySelector('[role="dialog"], [role="alertdialog"], dialog[open]') ||
-        el instanceof HTMLInputElement ||
-        el instanceof HTMLTextAreaElement ||
-        el instanceof HTMLSelectElement;
+      // In progress: a sheet is open, or something has been typed into a field and not yet used.
+      // An empty field that merely kept the focus is not work, and must not hold the app back.
+      const typed = [
+        ...document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("main input, main textarea"),
+      ].some((f) => (f instanceof HTMLTextAreaElement || TYPED.has(f.type)) && f.value.trim() !== "");
+      const busy = !!document.querySelector("dialog[open]") || typed;
       if (reopensOnLog(reopen.current.route, away, busy)) reopen.current.go({ tab: "log", page: null });
     };
     document.addEventListener("visibilitychange", onChange);
