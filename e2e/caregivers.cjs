@@ -115,6 +115,22 @@ const saveChange = async (sheet) => {
   await who.getByRole("button", { name: /^AB/ }).click();
   await p.locator(".switch-notice", { hasText: "AB is logging" }).waitFor(); ok(true, "switching is that one tap, and says who is logging now");
   // Who is logging is remembered on this phone: closing and opening the app asks nothing (design note 030 step 5).
+  // A session left from when the PIN was on, for JM and 13 hours old, changes nothing: nobody is signed out or swapped.
+  await p.evaluate(() => new Promise((res, rej) => {
+    const r = indexedDB.open("cmai-tracker");
+    r.onsuccess = () => {
+      const tx = r.result.transaction("meta", "readwrite");
+      tx.objectStore("meta").put({ key: "session", value: JSON.stringify({ id: "C-01", at: Date.now() - 13 * 3600_000 }) });
+      tx.oncomplete = () => { r.result.close(); res(); };
+      tx.onerror = () => rej(tx.error);
+    };
+  }));
+  // A new tab shares nothing with this one but the phone's storage, like the app closed and opened again.
+  const q = await ctx.newPage();
+  await q.goto(URL);
+  await q.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).waitFor();
+  ok((await q.locator(".signin").count()) === 0 && (await q.locator(".cg-chip").textContent()).includes("AB"), "opened fresh in a new tab, the app shows the tiles with AB still logging, whatever an old PIN session says");
+  await q.close();
   await p.reload();
   await hit.waitFor();
   ok((await p.locator(".signin").count()) === 0 && (await p.getByText(/PIN/).count()) === 0 && (await chip.textContent()).includes("AB"), "after a reload the app opens on the tiles with AB still logging, and no sign-in screen");

@@ -69,8 +69,9 @@ function setup() {
   const steps = [
     ["Install dependencies", "npm", ["ci"]],
     ["Install " + BROWSER, "npx", ["playwright", "install", BROWSER]],
-    ["Build", "npm", ["run", "build"]],
-    ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab" }],
+    // The PIN is named off for these two, so a variable left in the shell cannot switch it on.
+    ["Build", "npm", ["run", "build"], { VITE_STUDY_PIN: "off" }],
+    ["Build (lab)", "npx", ["vite", "build", "--outDir", LAB_DIR], { VITE_STUDY_MODE: "lab", VITE_STUDY_PIN: "off" }],
     [
       "Build (lab with PIN)",
       "npx",
@@ -185,7 +186,7 @@ const results = [];
 let setupError = setup();
 if (!setupError) {
   let server, labServer, pinServer;
-  const stopped = (s) => new Promise((r) => (s.exitCode !== null ? r() : s.once("exit", r)));
+  const stopped = (s) => new Promise((r) => (s.exitCode !== null || s.signalCode !== null ? r() : s.once("exit", r)));
   try {
     server = await startServer();
     for (const check of CHECKS) if (!(webkit && CHROMIUM_ONLY.has(check.name))) results.push(runCheck(check));
