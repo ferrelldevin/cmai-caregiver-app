@@ -8,6 +8,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Changed
 
+- The app opens on Log (F-65, design note 030 step 8). Brought back after 5 minutes or more out of sight, it shows Log wherever it was left; sooner, it stays. A rating, an open sheet or a field being typed in is never taken away. Both builds. Last step of the simplicity plan.
 - Lab build: one "Lab and research" row in Settings (F-65, design note 030 step 7). It holds the research export, the lab spreadsheets, each caregiver's role, the clock check and demo data. Backup and export and Caregivers carry no lab tools; the Clock check and Demo data rows are gone and their old addresses open the new page. The caregiver build is unchanged.
 - Lab build: the watching strip leaves Log (F-65, design note 030 step 6). "I'm here" and "I've left" now sit on Today, above the band they feed; a log still starts a watch by itself. Nothing about watching stands before the tiles. The caregiver build is unchanged.
 - Lab build: no PIN (F-65, F-67, design note 030 step 5). Who is logging is remembered on the phone; adding a caregiver asks for initials only; switching is one tap; no sign-in screen. The PIN code is kept, switched off, and its check still runs against its own build (`VITE_STUDY_PIN=on`). A log's "by" code is no longer backed by a secret. The caregiver build is unchanged.

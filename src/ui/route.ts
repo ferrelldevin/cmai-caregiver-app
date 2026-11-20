@@ -63,6 +63,18 @@ export const routeHash = (r: Route) =>
     ? `#/rating/${r.rating.patientId}/p${r.rating.period}`
     : `#/${r.tab}${r.page ? `/${r.page}` : r.tab === "twoweeks" && r.period ? `/p${r.period}` : ""}`;
 
+/** How long the app must have been out of sight before coming back counts as opening it again. */
+export const AWAY_MS = 5 * 60_000;
+
+/**
+ * Whether the app, brought back to the front, should show Log (design note 030 step 8).
+ * A caregiver opens the phone to log: after a real absence the app is on Log, wherever it was left.
+ * It stays put after a short look away, and whenever something is in progress: a rating, an open
+ * sheet or something typed into a field (busy).
+ */
+export const reopensOnLog = (route: Route, awayMs: number, busy: boolean) =>
+  awayMs >= AWAY_MS && !busy && !route.rating && (route.tab !== "log" || route.page !== null);
+
 /**
  * The current route, plus go() and back(). Only a Data page is pushed onto history, and
  * leaving it by any route pops it first, so the stack never holds more than hub + page.

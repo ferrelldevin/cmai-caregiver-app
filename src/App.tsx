@@ -10,7 +10,7 @@ import { addDays, localMidnight } from "./scoring/engine";
 import { backupReminder } from "./data/backupReminder";
 import { startingPatient } from "./data/lastPatient";
 import { useCmaiData } from "./ui/useCmaiData";
-import { useRoute, type DataPage, type Tab } from "./ui/route";
+import { reopensOnLog, useRoute, type DataPage, type Tab } from "./ui/route";
 import { closeIfTimedOut, endWatch, resumeWatch, touch } from "./data/watches";
 import { timeOfDay } from "./ui/format";
 import type { Watch } from "./data/db";
@@ -31,6 +31,8 @@ const RatingScreen = lazy(() => import("./ui/RatingScreen").then((m) => ({ defau
 
 // The PIN needs caregivers to sign in as (plan 5.3).
 const PIN_ON = study.pin && study.caregiverProfiles;
+// Fields a person types words or numbers into; a date, a tick or a choice is not a draft.
+const TYPED = new Set(["text", "search", "password", "tel", "number", "email", "url"]);
 
 const TABS: { id: Tab; label: string; title: string; icon: IconName }[] = [
   { id: "log", label: "Log", title: "Log a behavior", icon: "plus" },
@@ -55,6 +57,32 @@ export default function App() {
   // The patient to open on is worked out from the data once, before anything is shown (lastPatient.ts).
   const [restored, setRestored] = useState(false);
   const { route, go, back } = useRoute(() => ({ tab: "log", page: null }));
+  // Opening the app means Log (design note 030 step 8): back in front after a real absence, it shows Log
+  // wherever it was left, unless a rating, an open sheet or something typed into a field would be lost.
+  const reopen = useRef({ route, go });
+  useEffect(() => {
+    reopen.current = { route, go };
+  });
+  useEffect(() => {
+    let hiddenAt: number | null = document.visibilityState === "hidden" ? Date.now() : null;
+    const onChange = () => {
+      if (document.visibilityState !== "visible") {
+        hiddenAt ??= Date.now();
+        return;
+      }
+      const away = hiddenAt === null ? 0 : Date.now() - hiddenAt;
+      hiddenAt = null;
+      // In progress: a sheet is open, or something has been typed into a field and not yet used.
+      // An empty field that merely kept the focus is not work, and must not hold the app back.
+      const typed = [
+        ...document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("main input, main textarea"),
+      ].some((f) => (f instanceof HTMLTextAreaElement || TYPED.has(f.type)) && f.value.trim() !== "");
+      const busy = !!document.querySelector("dialog[open]") || typed;
+      if (reopensOnLog(reopen.current.route, away, busy)) reopen.current.go({ tab: "log", page: null });
+    };
+    document.addEventListener("visibilitychange", onChange);
+    return () => document.removeEventListener("visibilitychange", onChange);
+  }, []);
   const tab = route.tab;
   // The period chosen on Two weeks for each patient, so leaving and coming back keeps it.
   const weeksPeriod = useRef<Record<string, number>>({});

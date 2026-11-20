@@ -177,7 +177,21 @@ The caregiver build has no lab tools, so it has no such row and keeps its Demo d
 6. axe WCAG 2.2 AA, 0 violations on Lab and research (`e2e/caregivers.cjs`).
 7. The caregiver build is unchanged: its Settings rows, its Demo data page and `#/data/demo` (`e2e/navigation.cjs`, `e2e/flows.cjs`, `e2e/screenshots.cjs`, `docs/audits/axe-run.cjs`).
 
-Criteria for step 8 are added to this note by the pull request that builds it.
+## Acceptance criteria, step 8
+
+Both builds. The app is one page that stays loaded: a caregiver who last looked at Today, Two weeks or a Settings page found that screen, not Log, the next time the phone came out, and had to find the Log tab before logging. A fresh start was already Log (the installed app starts at its start address, which is Log).
+
+Rule: brought back to the front after 5 minutes or more out of sight, the app shows Log. Five minutes separates "looked at something else for a moment" from "opened the app again"; it is one constant (`AWAY_MS`, `src/ui/route.ts`).
+
+It never takes work away. The app stays where it is when a rating is open, a sheet is open, or something has been typed into a field and not yet used, whether or not the field still has the focus. An empty field that only kept the focus does not hold it back. An address still opens the screen it names, so links, a reload and the back gesture work as before.
+
+1. Left on Today, Two weeks or a Settings page and brought back after 5 minutes or more: Log (`e2e/rollover.cjs`, `tests/route.test.ts`).
+2. Brought back sooner: the same screen (`e2e/rollover.cjs`).
+3. With a sheet open, something typed into a field (focused or not), or a rating open: the same screen, nothing lost. An empty focused field does not count (`e2e/rollover.cjs`, `tests/route.test.ts`).
+4. After the move, Log starts at the top with focus on the page; the back gesture does not return to the Settings page that was left (`e2e/rollover.cjs`).
+5. Already on Log: nothing moves, the scroll position is kept (`e2e/rollover.cjs`).
+6. A fresh start with no address is Log; an address opens what it names; a reload keeps the screen (`e2e/navigation.cjs`, `tests/route.test.ts`).
+7. Nothing is stored, and no new screen or text is added, so the accessibility audit is unchanged.
 
 ## Sources
 
@@ -231,3 +245,17 @@ Built by Claude (cloud session). Reviewed by Codex on the diff, 2026-11-20. Each
 | The role picker shows only with `researchExport`                                                            | Intended: a role is only ever stamped on the research export (F-58). The Roles card is left out, not empty, without it | No change                                                                     |
 | Backup and Lab files share one message slot, so a message could show on the wrong page                      | Not so: the message is cleared whenever the page changes (`DataScreen.tsx`, the `page` effect)                         | No change                                                                     |
 | The role check never reloads, so it would pass if saved roles were not read back                            | True                                                                                                                   | `e2e/caregivers.cjs` reloads and checks both caregivers' roles                |
+
+## Review, step 8
+
+Built by Claude (cloud session). Reviewed by Codex on the diff, 2026-11-20. Each finding was checked against the code.
+
+| Finding                                                                          | Checked                                                                                                                                                          | Result                                                                                                      |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| A draft is only protected while its field has the focus                          | True: a code typed in Settings, then a tap elsewhere, was lost                                                                                                   | Fixed: any text typed into a field on the page holds the app, focused or not; checked in `e2e/rollover.cjs` |
+| A field that keeps the focus stops the return for good                           | True for an empty field or a choice list                                                                                                                         | Fixed: focus alone no longer counts, only typed text; checked                                               |
+| A hidden element with a dialog role could block the return                       | The app's sheets are all the native `<dialog>` (`src/ui/Sheet.tsx`); nothing else carries the role                                                               | The test is now `dialog[open]` only                                                                         |
+| Time away is measured on the wall clock                                          | Intended: the wall clock keeps counting while a phone sleeps, a monotonic timer may not. A clock set back while away reads as no absence, which is the safe side | No change                                                                                                   |
+| Focus is not managed after the move                                              | Not so: every change of screen scrolls to the top and focuses the page (`src/App.tsx`, the screen effect)                                                        | No change; a check now holds it                                                                             |
+| The Back check passes on any address but the Settings page                       | True                                                                                                                                                             | The check now names where Back lands and that Forward is Log                                                |
+| Only made-up visibility events are checked: no exact boundary, no doubled events | True for the boundary and doubled events. A page restored from the back-forward cache also gets `visibilitychange`, so it takes the same path                    | Checks added for exactly 5 minutes and for doubled events; a rating is held by the unit test                |

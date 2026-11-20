@@ -1,6 +1,6 @@
 // Screens in the URL hash, so the back gesture and a reload keep your place.
 import { describe, expect, it } from "vitest";
-import { parseRoute, routeHash } from "../src/ui/route";
+import { AWAY_MS, parseRoute, reopensOnLog, routeHash } from "../src/ui/route";
 
 describe("routes", () => {
   it("reads each tab", () => {
@@ -72,5 +72,27 @@ describe("pages behind a study switch", () => {
   it("the clock check and the rating form do not exist in the caregiver build", () => {
     expect(parseRoute("#/data/clock")).toEqual({ tab: "data", page: null });
     expect(parseRoute("#/rating/P-01/p1")).toBeNull();
+  });
+});
+
+describe("opening the app means Log", () => {
+  const today = { tab: "today", page: null } as const;
+  it("shows Log after a real absence, from any tab or Settings page", () => {
+    expect(reopensOnLog(today, AWAY_MS, false)).toBe(true);
+    expect(reopensOnLog({ tab: "twoweeks", page: null, period: 2 }, AWAY_MS, false)).toBe(true);
+    expect(reopensOnLog({ tab: "data", page: "display" }, AWAY_MS * 10, false)).toBe(true);
+  });
+  it("stays put after a short look away", () => {
+    expect(reopensOnLog(today, AWAY_MS - 1, false)).toBe(false);
+    expect(reopensOnLog(today, 0, false)).toBe(false);
+  });
+  it("never takes away a rating, an open sheet or a field being typed in", () => {
+    expect(reopensOnLog({ tab: "twoweeks", page: null, rating: { patientId: "p1", period: 1 } }, AWAY_MS, false)).toBe(
+      false,
+    );
+    expect(reopensOnLog(today, AWAY_MS, true)).toBe(false);
+  });
+  it("does nothing when Log is already showing", () => {
+    expect(reopensOnLog({ tab: "log", page: null }, AWAY_MS, false)).toBe(false);
   });
 });
