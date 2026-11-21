@@ -194,7 +194,7 @@ Work that came from Devin's direction after 2026-11-10 and was not planned as a 
 | Simplicity plan, "open, tap, done", 8 steps                                                     | F-65, F-67, F-68, note 030     | #116, #117, #119 to #124 |
 | Episode tap proposal, filed, not built                                                          | F-66, note 031                 | #118                     |
 
-Next free: the register row after F-70, design note 033.
+Next free: the register row after F-70, design note 034.
 
 ---
 

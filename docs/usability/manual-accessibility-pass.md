@@ -39,13 +39,13 @@ Mark each line Pass or Fail. For a fail, write what you did, what should have ha
 
 VoiceOver off.
 
-**Known gap (register F-69):** the app sets its text in fixed sizes, so the iPhone's text size setting is not expected to change it. Line 14 confirms that on a real phone. Lines 15 to 20 are then done by zooming with two fingers; do them again with Larger Text once F-69 is fixed.
+**Built, not yet seen on a phone (register F-69, design note 033):** the app now follows the iPhone's text size up to one and a half times the usual size. Line 14 confirms that on a real phone. If the text does not grow, write that down and do lines 15 to 20 by zooming with two fingers.
 
 iOS Settings, Accessibility, Display & Text Size, Larger Text: turn on Larger Accessibility Sizes and move the slider to the end. Reopen the app.
 
 | #   | Look at                                           | It should                                                                                                  | WCAG   | Pass / Fail |
 | --- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------ | ----------- |
-| 14  | Log, before and after turning Larger Text on      | The text gets bigger. Expected today: it does not (F-69). Write down what you see                          | 1.4.4  |             |
+| 14  | Log, before and after turning Larger Text on      | The text gets bigger, up to about one and a half times (F-69). Write down what you see                     | 1.4.4  |             |
 | 15  | Log. Spread two fingers to zoom to about double   | The page zooms. Every tile's name is whole, not cut with "...", and every tile can be reached by scrolling | 1.4.4  |             |
 | 16  | Log one behavior, still zoomed                    | The confirmation's behavior name, Edit, Undo and the three When? chips can all be reached                  | 1.4.4  |             |
 | 17  | Not zoomed: the tab bar                           | All four names readable. It does not cover the last tile when scrolled to the end                          | 1.4.10 |             |
