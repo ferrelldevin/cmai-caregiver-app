@@ -24,6 +24,9 @@ function contentSecurityPolicy(): Plugin {
           "default-src 'self'",
           `script-src 'self' ${hashes.join(" ")}`,
           "style-src 'self'",
+          // Safari (WebKit) also applies the style rules to the inline styles React sets from code (bar
+          // heights, avatar sizes). Allowing style attributes only; style sheets and <style> stay "self".
+          "style-src-attr 'unsafe-inline'",
           "img-src 'self' data: blob:",
           "font-src 'self'",
           "connect-src 'self'",
