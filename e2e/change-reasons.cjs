@@ -48,8 +48,12 @@ async function openSheet(p) {
 
 (async () => {
   const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
-  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, bypassCSP: true });
+  // The chip step moves a log back 5 minutes, which is refused before the resident's first day (local midnight),
+  // so the page's clock starts at midday whatever time the check runs; it then runs on at real speed.
+  const midday = new Date(); midday.setUTCHours(12, 0, 0, 0);
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, bypassCSP: true, timezoneId: "UTC" });
   const p = await ctx.newPage();
+  await p.clock.install({ time: midday });
   const errs = []; p.on("pageerror", (e) => errs.push(e.message));
   const sheet = await openSheet(p);
 
