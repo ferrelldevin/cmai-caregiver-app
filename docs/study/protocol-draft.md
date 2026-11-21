@@ -77,7 +77,7 @@ Rules fixed before seeing any data.
 
 - Agreement studies: GRRAS ([DOI 10.1016/j.jclinepi.2010.03.002](https://doi.org/10.1016/j.jclinepi.2010.03.002); _abstract only_).
 - If a sensor model is later graded against app labels: STARD 2015 ([DOI 10.1136/bmj.h5527](https://doi.org/10.1136/bmj.h5527); _abstract only_).
-- Say how AI was used in building the app: `docs/lab/contributions.md` once it is merged and corrected.
+- Say how AI was used in building the app: `docs/lab/contributions.md`, once Devin has corrected it.
 - Report every left-out period and every deviation from this plan, with the date.
 
 ## 8. Preregistration
@@ -91,7 +91,7 @@ All of these are Stop items in the build plan. None is done.
 1. IRB determination, including whether it covers data about caregivers: their codes, watching hours and their own ratings (review packet, question 13).
 2. Where real data may live, in writing (P-03, P-04).
 3. The lab adopts the app (G1), and the rule's open decisions are settled (D-01, D-02).
-4. The internal pilot with made-up data has run and no kill rule fired (V-16, `docs/study/pilot-script.md` once merged).
+4. The internal pilot with made-up data has run and no kill rule fired (V-16, `docs/study/pilot-script.md`).
 5. Written permission from the CMAI's author (P-01).
 
 ## What Devin should check before taking this to Dr. Gupta
