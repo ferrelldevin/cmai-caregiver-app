@@ -23,6 +23,7 @@ Running record of which AI service did which job on this project, for Dr. Gupta 
 | 2026-11-18 | Independent review of PR 112's code diff (src, tests, e2e, scripts; no docs, made-up data only): three findings, each checked against the code by Claude and fixed                                      | Codex              | Codex CLI 0.159.2, lane default, model not printed | Review gate: author and reviewer differ      |
 | 2026-11-21 | Build plan status table and Part 3 checked against main and the pull request list (PR 125)                                                                                                              | Claude             | Fable 5.2                                          | Planning                                     |
 | 2026-11-21 | Independent review of PR 125 (plan table diff and merge titles only, no item wording): 25 notes, 9 changed the text, the rest were claims it could not see evidence for and Claude had checked directly | Codex              | Codex CLI 0.159.2, lane default, model not printed | Review gate: author and reviewer differ      |
+| 2026-11-21 | Independent review of PR 126 (three screen names; src and e2e diff, made-up data only): two findings, both on how tight the new checks were, both fixed                                                 | Codex              | Codex CLI 0.159.2, lane default, model not printed | Review gate: author and reviewer differ      |
 
 Grok, Antigravity and local Ollama are set up and have had no jobs yet.
 
