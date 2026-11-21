@@ -10,7 +10,7 @@ The WebKit job (Safari's engine) failed the theme, Today and Two weeks checks wi
 
 The Content-Security-Policy in `vite.config.ts` says `style-src 'self'`. The app sets inline styles from code with React `style={{ ... }}`: bar heights on Today and Two weeks, the avatar size, the colour chips. Chromium lets styles set from code through. WebKit applies `style-src` to them too, so on an iPhone those sizes and colours can be dropped. The bundle holds no `<style>` element and no `style="..."` text, so the style props are the only source. The error and the screens that fail match them.
 
-Not reproduced locally: the cloud container cannot download WebKit. The cause is from the CI log plus the source, and the CI WebKit job is the check.
+Not reproduced locally: the cloud container cannot download WebKit. The cause is from the CI log plus the source, not proven; Codex review (Devin-Desktop) could not confirm that WebKit blocks styles set through CSSOM and asked for a computed-style check. The WebKit job on the pull request is that check: if the errors remain after this change, the cause is elsewhere and this is reverted.
 
 ## Fix
 
