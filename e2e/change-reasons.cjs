@@ -1,7 +1,7 @@
 // Change reasons (G11, design note 019) on the LAB build: edits are held until "Save change", which
 // saves them with a reason worked out from what changed and asks nothing (design note 030 step 4);
 // a delete still asks, from the pick list, and takes no free text; the history view shows
-// every version with who, when and why; nothing is rewritten. axe in four display modes.
+// every version with who, when and why; nothing is rewritten; a "When?" chip on the confirmation saves as Wrong time and asks nothing (F-51). axe in four display modes.
 // usage: node e2e/change-reasons.cjs URL OUTDIR   (URL serves a build made with VITE_STUDY_MODE=lab)
 const { engine } = require("./browser.cjs");
 const fs = require("fs");
@@ -111,6 +111,17 @@ async function openSheet(p) {
   d = await stored(p);
   ok(d.logs.length === 1 && d.logs[0].deletedAt !== undefined && d.logs[0].deleteNote === undefined, "the log is kept, marked deleted, with no note");
   ok(d.changes.at(-1).action === "delete" && d.changes.at(-1).reason === "other" && d.logs[0].rev === 5, "the delete is a tombstone entry with reason other, revision 5");
+  // The "When?" chips on the confirmation (F-51): one tap, saved as wrong_time, nothing asked.
+  await p.goto(URL);
+  await p.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
+  const snack = p.locator(".snackbar"); await snack.waitFor();
+  await snack.getByRole("button", { name: "5 min ago", exact: true }).click();
+  await p.waitForFunction(() => /\(about\)/.test(document.querySelector(".snackbar-meta")?.textContent ?? ""));
+  ok((await p.getByRole("dialog").count()) === 0 && (await p.locator("button.choice").count()) === 0, "a chip asks nothing: no sheet and no reason list");
+  d = await stored(p);
+  const chipped = d.logs.at(-1); // the log just made
+  const entry = d.changes.find((c) => c.observationId === chipped?.id);
+  ok(chipped.loggedAt - chipped.at === 5 * 60_000 && chipped.approx === true && entry && entry.reason === "wrong_time" && entry.action === "edit", "a chip saves the time with the reason code wrong_time");
   ok(errs.length === 0, "no page errors: " + errs.join("; "));
   await ctx.close();
 

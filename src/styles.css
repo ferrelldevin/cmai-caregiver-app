@@ -1509,6 +1509,47 @@ body:has(.snackbar) .switch-notice {
   border: 2px solid var(--rule-strong);
 }
 
+/* "When?" (F-51): chips on their own line under the title and actions. The chosen one is filled and bold, so it is not told by color alone. */
+.snackbar-when {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 var(--s1);
+}
+.snackbar-when-label {
+  font-size: var(--fs-xs);
+  color: var(--inverse-muted);
+}
+.when-chip {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--inverse-muted);
+  border-radius: 22px;
+  background: transparent;
+  color: var(--inverse-text);
+  font-size: var(--fs-sm);
+}
+.when-chip[aria-pressed="true"] {
+  background: var(--inverse-accent);
+  border: 2px solid var(--inverse-accent);
+  color: var(--inverse-surface);
+  font-weight: 700;
+}
+@media (hover: hover) {
+  .when-chip[aria-pressed="false"]:hover {
+    background: color-mix(in srgb, var(--inverse-accent) 14%, transparent);
+  }
+}
+.snackbar-when-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0 var(--s2) var(--s2) 0;
+  font-size: var(--fs-sm);
+  color: var(--inverse-text);
+}
+
 /* Log details sheet (src/ui/LogSheet.tsx) */
 .sheet-title {
   min-width: 0;
@@ -2929,6 +2970,13 @@ table.cmp td {
 .snackbar.three .snackbar-actions {
   grid-column: 1 / -1;
   justify-content: flex-end;
+  order: 3; /* under the "When?" chips (F-51) */
+}
+.snackbar.three .snackbar-when {
+  order: 1;
+}
+.snackbar.three .snackbar-when-error {
+  order: 2;
 }
 .ended-label {
   display: flex;

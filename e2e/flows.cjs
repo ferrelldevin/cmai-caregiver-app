@@ -3,6 +3,14 @@ const { engine } = require("./browser.cjs");
 const fs = require("fs");
 const [URL, OUT] = process.argv.slice(2);
 const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok", m); };
+const stored = (p) => p.evaluate(() => new Promise((res) => {
+  const r = indexedDB.open("cmai-tracker");
+  r.onsuccess = () => {
+    const tx = r.result.transaction(["observations", "changes"]);
+    const o = tx.objectStore("observations").getAll(), c = tx.objectStore("changes").getAll();
+    tx.oncomplete = () => res({ logs: o.result, changes: c.result });
+  };
+}));
 (async () => {
   const b = await engine.launch({ executablePath: process.env.CHROME || undefined });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, acceptDownloads: true });
@@ -50,7 +58,50 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   const sb = await snack.boundingBox(), tb = await p.locator("nav.tabs").boundingBox();
   ok(sb.y + sb.height <= tb.y, `confirmation sits above the tab bar, not under it (${Math.round(sb.y + sb.height)} vs ${Math.round(tb.y)})`);
   ok((await snack.getByRole("button", { name: "Undo" }).boundingBox()).height >= 44, "Undo is at least 44 px tall");
-  ok((await snack.boundingBox()).height <= 80, "confirmation is compact: " + Math.round((await snack.boundingBox()).height) + " px");
+  ok((await snack.boundingBox()).height <= 130, "confirmation is compact, with its When? line (it was 80 px before F-51): " + Math.round((await snack.boundingBox()).height) + " px");
+  // "When did it happen?" (F-51, design note 032): three chips on the confirmation, all optional.
+  const when = snack.getByRole("group", { name: "When did it happen?" });
+  const chip = (name) => when.getByRole("button", { name, exact: true });
+  const pressed = async () => (await when.getByRole("button").evaluateAll((bs) => bs.filter((x) => x.getAttribute("aria-pressed") === "true").map((x) => x.textContent)));
+  ok(JSON.stringify(await when.getByRole("button").allTextContents()) === JSON.stringify(["Just now", "5 min ago", "15 min ago"]) && (await when.getByText("When?", { exact: true }).count()) === 1, "the confirmation offers When? with Just now, 5 min ago and 15 min ago");
+  ok(JSON.stringify(await pressed()) === JSON.stringify(["Just now"]), "Just now is the one selected");
+  ok((await chip("5 min ago").boundingBox()).height >= 44, "the chips are at least 44 px tall");
+  let d = await stored(p);
+  const made = d.logs[0];
+  ok(made.at === made.loggedAt && (made.approx === undefined || made.approx === false) && d.changes.length === 0, "a tap with no chip stores the time of the tap, not approximate, and no change");
+  await chip("Just now").click(); await p.waitForTimeout(200);
+  ok((await stored(p)).changes.length === 0, "tapping the chip already selected writes nothing");
+  await chip("5 min ago").click();
+  await p.waitForFunction(() => /\(about\)/.test(document.querySelector(".snackbar-meta")?.textContent ?? ""));
+  d = await stored(p);
+  ok(d.logs[0].loggedAt - d.logs[0].at === 5 * 60_000 && d.logs[0].approx === true && d.logs[0].loggedAt === made.loggedAt, "5 min ago stores at five minutes before loggedAt and approx true");
+  ok(d.changes.length === 1 && d.changes[0].action === "edit" && d.changes[0].from.at === made.loggedAt && d.changes[0].to.at === made.loggedAt - 5 * 60_000, "5 min ago writes one change-history entry with the old and new time");
+  ok(JSON.stringify(await pressed()) === JSON.stringify(["5 min ago"]), "5 min ago is now the one selected, and the time reads (about)");
+  await chip("15 min ago").click();
+  await p.waitForFunction((t) => document.querySelector(".snackbar [aria-pressed=true]")?.textContent === t, "15 min ago");
+  d = await stored(p);
+  ok(d.logs[0].loggedAt - d.logs[0].at === 15 * 60_000, "15 min ago after 5 min ago is 15 minutes before loggedAt, not 20");
+  await chip("Just now").click();
+  await p.waitForFunction((t) => document.querySelector(".snackbar [aria-pressed=true]")?.textContent === t, "Just now");
+  d = await stored(p);
+  ok(d.logs[0].at === d.logs[0].loggedAt && !d.logs[0].approx, "Just now after another chip puts at back to loggedAt and clears approx");
+  ok(!/\(about\)/.test(await p.locator(".snackbar-meta").textContent()), "and the time no longer reads (about)");
+  // At large text the chips wrap, and at 360 px nothing runs off the side.
+  const fit = () => p.evaluate(() => {
+    const box = document.querySelector(".snackbar").getBoundingClientRect();
+    const chips = [...document.querySelectorAll(".snackbar [aria-pressed]")].map((x) => x.getBoundingClientRect());
+    return { page: document.documentElement.scrollWidth - innerWidth, off: box.right - innerWidth, left: Math.min(box.left, ...chips.map((c) => c.left)), right: Math.max(box.right - innerWidth, ...chips.map((c) => c.right - box.right)), rows: new Set(chips.map((c) => Math.round(c.top))).size };
+  });
+  await p.setViewportSize({ width: 360, height: 740 }); await p.waitForTimeout(300);
+  let f = await fit();
+  ok(f.page <= 0 && f.left >= 0 && f.right <= 0, "360 px wide: the chips and the confirmation stay on screen " + JSON.stringify(f));
+  await p.screenshot({ path: `${OUT}/flow-when-360.png` });
+  const FS = { "--fs-xs": "22px", "--fs-sm": "26px", "--fs-md": "30px", "--fs-lg": "34px", "--fs-xl": "40px" }; // what the larger text sizes come to
+  await p.evaluate((fs) => Object.entries(fs).forEach(([k, v]) => document.documentElement.style.setProperty(k, v)), FS); await p.waitForTimeout(300);
+  f = await fit();
+  ok(f.rows > 1 && f.off <= 0 && f.left >= 0 && f.right <= 0, "360 px wide, large text: the chips wrap and the confirmation stays on screen (the page itself is not measured: tile names overflow at this size with or without it) " + JSON.stringify(f));
+  await p.screenshot({ path: `${OUT}/flow-when-360-large.png` });
+  await p.evaluate((fs) => Object.keys(fs).forEach((k) => document.documentElement.style.removeProperty(k)), FS); await p.setViewportSize({ width: 390, height: 844 });
   // timer pauses while the confirmation is in use
   await snack.hover(); await p.waitForTimeout(9000);
   ok(await snack.isVisible(), "confirmation stays past 8 s while in use");
@@ -195,6 +246,26 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await ctx.setOffline(true); await p.reload(); await p.locator(".pnav-label", { hasText: /Period \d+ ·/ }).waitFor({ timeout: 8000 });
   ok(true, "reload offline works, and stays on Two weeks");
   await ctx.setOffline(false);
+  // A chip may not put a log before the resident's first day (F-32). The first day starts at local midnight,
+  // so a log made at 00:02 on a new resident's first day is refused for 5 min ago and 15 min ago.
+  const early = await b.newContext({ viewport: { width: 390, height: 844 }, timezoneId: "America/New_York" });
+  const e = await early.newPage();
+  await e.clock.install({ time: new Date("2026-05-12T00:02:00-04:00") });
+  await e.goto(URL);
+  await e.getByRole("button", { name: "Add a patient" }).click();
+  await e.getByLabel("New patient code").fill("P-09"); await e.keyboard.press("Enter");
+  await e.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
+  const esnack = e.locator(".snackbar"); await esnack.waitFor();
+  await esnack.getByRole("button", { name: "5 min ago", exact: true }).click();
+  await esnack.getByRole("alert").filter({ hasText: "first day in the app is" }).waitFor({ timeout: 5000 });
+  ok(true, "a chip before the resident's first day shows the first-day message on the confirmation");
+  const refused = await stored(e);
+  ok(refused.logs[0].at === refused.logs[0].loggedAt && !refused.logs[0].approx && refused.changes.length === 0, "and stores nothing");
+  ok((await esnack.getByRole("button", { name: "Just now", exact: true }).getAttribute("aria-pressed")) === "true" && !/\(about\)/.test(await esnack.locator(".snackbar-meta").textContent()), "the selected chip and the time stay as they were");
+  await esnack.getByRole("button", { name: "15 min ago", exact: true }).click();
+  await esnack.getByRole("alert").waitFor();
+  await esnack.getByRole("button", { name: "Undo" }).click(); // a refused chip leaves the confirmation working
+  await early.close();
   ok(errs.length === 0, "no console errors " + JSON.stringify(errs));
   await b.close();
 })().catch((e) => { console.error(e.message); process.exit(1); });
