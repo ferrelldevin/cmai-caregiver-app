@@ -25,6 +25,7 @@ What this departs from: build plan 4.7 lists four chips. Everything else in the 
 - `Just now` puts `at` back to `loggedAt` and `approx` back to false.
 - The chips count from `loggedAt`, never from the last chip, so `15 min ago` after `5 min ago` is 15 minutes, not 20.
 - The chips show only on a log just made. A "Deleted" confirmation has none.
+- A chip shows at once and its save follows; saves run in the order tapped, so the last chip tapped is the one that stays. A refused or failed save puts the chip back to what it was before that tap.
 - A chip keeps the confirmation open for another 8 seconds, as any change to it does.
 - Lab build (`changeReasons` on): the chip fills in the reason the log details sheet would for the same change, "Wrong time" (`reasonFor`, design note 030 step 4). Nothing is asked.
 - A chip that would put the log before the resident's first day is refused with step 1.3's message (F-32), shown on the confirmation; the stored log and the selected chip stay as they were.

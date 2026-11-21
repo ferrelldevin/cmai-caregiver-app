@@ -90,6 +90,12 @@ const stored = (p) => p.evaluate(() => new Promise((res) => {
   d = await stored(p);
   ok(d.logs[0].at === d.logs[0].loggedAt && !d.logs[0].approx, "Just now after another chip puts at back to loggedAt and clears approx");
   ok(!/\(about\)/.test(await p.locator(".snackbar-meta").textContent()), "and the time no longer reads (about)");
+  // Two taps before the first save returns: the last tap is the one that stays, and the chip shows at once.
+  await p.evaluate(() => { const bs = [...document.querySelectorAll(".snackbar [aria-pressed]")]; bs.find((x) => x.textContent === "5 min ago").click(); bs.find((x) => x.textContent === "Just now").click(); });
+  await p.waitForTimeout(800);
+  d = await stored(p);
+  ok(d.logs[0].at === d.logs[0].loggedAt && !d.logs[0].approx, "5 min ago then Just now at once: the log ends at the time of the tap, not approximate");
+  ok(JSON.stringify(await pressed()) === JSON.stringify(["Just now"]) && !/\(about\)/.test(await p.locator(".snackbar-meta").textContent()), "and Just now is the chip shown");
   // At large text the chips wrap, and at 360 px nothing runs off the side.
   const fit = () => p.evaluate(() => {
     const box = document.querySelector(".snackbar").getBoundingClientRect();
@@ -267,7 +273,10 @@ const stored = (p) => p.evaluate(() => new Promise((res) => {
   ok(refused.logs[0].at === refused.logs[0].loggedAt && !refused.logs[0].approx && refused.changes.length === 0, "and stores nothing");
   ok((await esnack.getByRole("button", { name: "Just now", exact: true }).getAttribute("aria-pressed")) === "true" && !/\(about\)/.test(await esnack.locator(".snackbar-meta").textContent()), "the selected chip and the time stay as they were");
   await esnack.getByRole("button", { name: "15 min ago", exact: true }).click();
-  await esnack.getByRole("alert").waitFor();
+  await e.waitForTimeout(800); // the first alert is already up, so wait for the second save to settle, then read
+  const refused2 = await stored(e);
+  ok(refused2.logs[0].at === refused2.logs[0].loggedAt && !refused2.logs[0].approx && refused2.changes.length === 0, "15 min ago is refused as well and stores nothing");
+  ok((await esnack.getByRole("alert").filter({ hasText: "first day in the app is" }).count()) === 1 && (await esnack.getByRole("button", { name: "Just now", exact: true }).getAttribute("aria-pressed")) === "true" && (await esnack.getByRole("button", { name: "15 min ago", exact: true }).getAttribute("aria-pressed")) === "false", "the message is showing and Just now is still the chip shown");
   await esnack.getByRole("button", { name: "Undo" }).click(); // a refused chip leaves the confirmation working
   await early.close();
   ok(errs.length === 0, "no console errors " + JSON.stringify(errs));

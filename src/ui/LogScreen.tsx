@@ -51,7 +51,7 @@ const WHEN_CHIPS = [
   { label: "15 min ago", minutes: 15 },
 ];
 const whenMinutes = (o: StoredObservation) =>
-  o.at === o.loggedAt ? 0 : o.approx ? (o.loggedAt - o.at) / 60_000 : null;
+  o.approx ? (o.at === o.loggedAt ? null : (o.loggedAt - o.at) / 60_000) : o.at === o.loggedAt ? 0 : null;
 
 export const SAVE_FAILED = "That did not save. Check the phone has free space, then try again.";
 
@@ -68,6 +68,8 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
   const [group, setGroup] = useState<FactorGroup>("aggressive"); // the group at the top of the page now
   const [toast, setToast] = useState<Toast | null>(null);
+  const toastNow = useRef<Toast | null>(null); // the confirmation as last set, so two quick taps each see the one before
+  const timeSaves = useRef(Promise.resolve()); // chip saves, one after another in the order tapped
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
   const [saveError, setSaveError] = useState(false); // the last save failed
@@ -81,6 +83,10 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
   const frequent = mostLogged(observations, now);
+
+  useEffect(() => {
+    toastNow.current = toast;
+  }, [toast]);
 
   // The confirmation closes on its own only while nobody is using it.
   useEffect(() => {
@@ -165,26 +171,33 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
   }
 
   // F-51: the same two fields, and the same change-history entry and reason, as the log details sheet writes for a time.
-  async function moveTime(minutes: number) {
-    if (!toast || toast.kind !== "logged" || whenMinutes(toast.obs) === minutes) return;
-    const o = toast.obs;
+  // The chip shows at once and the saves run in the order tapped; a refused save puts the chip back.
+  function moveTime(minutes: number) {
+    const cur = toastNow.current;
+    if (!cur || cur.kind !== "logged" || whenMinutes(cur.obs) === minutes) return;
+    const o = cur.obs;
     const change = minutes ? { at: o.loggedAt - minutes * 60_000, approx: true } : { at: o.loggedAt, approx: false };
+    const shows = (t: Toast | null): t is Toast =>
+      !!t && t.kind === "logged" && t.obs.id === o.id && t.obs.at === change.at && !!t.obs.approx === change.approx;
+    toastNow.current = { kind: "logged", obs: { ...o, ...change } };
+    setToast(toastNow.current);
     setWhenError(null);
     setSaveError(false);
-    try {
-      await editLog(o, change, undefined, reasonFor(change));
-    } catch (e) {
-      if (e instanceof LogTimeError) {
-        setWhenError({ id: o.id, message: e.message });
-        setToast({ ...toast }); // the message gets its 8 seconds too
-      } else {
-        record(e);
-        setSaveError(true);
+    timeSaves.current = timeSaves.current.then(async () => {
+      try {
+        await editLog(o, change, undefined, reasonFor(change));
+      } catch (e) {
+        if (e instanceof LogTimeError) setWhenError({ id: o.id, message: e.message });
+        else {
+          record(e);
+          setSaveError(true);
+        }
+        // Back to what the log was before this tap, if the bar still shows this tap and is for this log.
+        setToast((t) => (shows(t) ? { kind: "logged", obs: { ...t.obs, at: o.at, approx: o.approx } } : t));
+        return;
       }
-      return;
-    }
-    setToast((t) => (t && t.obs.id === o.id ? { kind: "logged", obs: { ...t.obs, ...change } } : t));
-    onChange();
+      onChange();
+    });
   }
 
   function edit(o: SavedObs, e: MouseEvent) {
@@ -467,7 +480,7 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
                   type="button"
                   className="when-chip"
                   aria-pressed={whenMinutes(toast.obs) === c.minutes}
-                  onClick={() => void moveTime(c.minutes)}
+                  onClick={() => moveTime(c.minutes)}
                 >
                   {c.label}
                 </button>
