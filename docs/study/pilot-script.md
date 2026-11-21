@@ -2,23 +2,28 @@
 
 Build plan step 3.6. Seven days, one made-up resident, 72 made-up events. It tests the tool, not people.
 
-**Who:** Devin, and Shanmei if she offers. Nobody else: with anyone else it becomes a usability session and stops for P-06.
+**Who:** Devin. A second lab member may run it too, on their own phone, with their own copy of this script and their own initials; the two runs are measured apart. Nobody outside the lab: with anyone else it becomes a usability session and stops for P-06.
 
-**Rule:** nothing here is real. No real resident, no real behavior, no real times. The events below came from a random number generator with a fixed seed.
+**Rule:** nothing here is real. No real resident, no real behavior, no real times. The events below came from a random number generator with a fixed seed. Anything you type (what happened just before, a note) is made up too.
 
 ## Set up, once
 
 1. Use the lab build on your own phone, from the Home Screen icon.
-2. Settings, Patients: add `P-PILOT-1`. Its first 14-day period starts that day, so start on Day 1.
-3. Settings, Caregivers: add yourself by initials.
-4. Set a phone alarm for each event time the evening before, or work from this page. An alarm is closer to real life: the event interrupts you.
+2. Settings, Patients: the list must be empty before you start. Remove demo data and any other patient. The backup you hand over at the end holds everything in the app, so the app must hold only this pilot.
+3. Add `P-PILOT-1`. Its first 14-day period starts that day, so start on Day 1.
+4. Settings, Caregivers: add yourself by initials.
+5. Set a phone alarm for each event time the evening before, or work from this page. An alarm is closer to real life: the event interrupts you.
 
 ## How to use each day's table
 
 - **It happens at:** pretend the behavior starts at this time.
 - **Log it:** "at once" means tap the tile at that time. "5 min later" means wait, tap the tile, then set when it happened. Do it the way the app offers at the time: the "When?" chips if they are there, otherwise Edit.
 - **Also:** one more thing to do with that log.
-- If you miss an event, do not go back and add it. A miss is a result. Write it in the notes.
+- **"It stops after N min":** tap "It stopped" on Today at that time. If the stretch ended before you logged it (a late log), open Edit on the log and set "It stopped" to the end time. If you cannot find how, leave it and write that in the notes.
+- Two events due at the same minute: do them in number order. A minute either way is fine.
+- If you miss an event, do not go back and add it, and skip its "Also". A miss is a result. Write it in the notes.
+
+**The seven days are seven dates in a row.** Day 5 is a night: its watch starts at 11:00 PM on the fifth date and its events are after midnight, so they fall on the sixth date. Day 6 starts at 7:00 AM that same morning.
 
 ## Each evening, two minutes
 
@@ -87,7 +92,7 @@ Watch: tap **I'm here** on Today at 3:00 PM. Tap **I've left** at 11:00 PM.
 
 ### Day 4
 
-Watch: tap **I'm here** on Today at 3:00 PM. Tap **I've left** at 11:00 PM. Skip "I've left" today and see what the app asks later.
+Watch: tap **I'm here** on Today at 3:00 PM. Do not tap "I've left" today. The next time you open the app is Day 5 at 11:00 PM: it should ask "Still with P-PILOT-1 since 3:00 PM?". Write down what it says, tap **No, I left about then**, then start Day 5's watch.
 
 | #   | It happens at | Behavior        | Log it       | Also                                                 |
 | --- | ------------- | --------------- | ------------ | ---------------------------------------------------- |
@@ -104,7 +109,7 @@ Watch: tap **I'm here** on Today at 3:00 PM. Tap **I've left** at 11:00 PM. Skip
 
 ### Day 5
 
-Watch: tap **I'm here** on Today at 11:00 PM. Tap **I've left** at 7:00 AM.
+Watch: tap **I'm here** on Today at 11:00 PM (the fifth date). Tap **I've left** at 7:00 AM (the sixth date).
 
 | #   | It happens at | Behavior        | Log it       | Also                                                 |
 | --- | ------------- | --------------- | ------------ | ---------------------------------------------------- |
@@ -157,15 +162,17 @@ Watch: tap **I'm here** on Today at 3:00 PM. Tap **I've left** at 11:00 PM.
 
 Settings, Backup and export: download a backup. It holds the logs, their change history and the watches. Give Claude the file, its passphrase and your evening notes; all of it is made up, so it may be shared in the project. (The research export refuses a resident who is not demo data, on purpose, so it is not used here.) Claude works the measures out from the file; nothing is judged by feel.
 
-| Measure                                           | From                                           | Kill rule                                                                                |
-| ------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Events logged, out of 72                          | backup against this script                     | Under 8 in 10: the flow is too heavy. Stop adding features, go back to build plan Part 8 |
-| Share logged within 5 minutes of the event        | `at` against the script                        | none; it is the baseline                                                                 |
-| Late logs given the right time                    | `at`, `approx`, change history                 | none                                                                                     |
-| Watches that ended by timeout, not by "I've left" | watches                                        | build plan 5.6                                                                           |
-| Stretches given an end, out of 14                 | `endedAt`                                      | build plan 5.7                                                                           |
-| Chips or buttons tapped by mistake                | change history: a change undone within seconds | design note 032 for the "When?" chips                                                    |
-| Every stop-and-think moment                       | your notes                                     | each one is a design question                                                            |
+Matching: each log is matched to a script event by day, behavior and the nearest time. A scripted event with no log is a miss. A log with no scripted event is extra, unless it is one of the nine scripted wrong tiles (logged, then undone).
+
+| Measure                        | Worked out as                                                                                                                       | Pass mark, set now                                                           | If it misses                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Events logged                  | scripted events with a matching log, out of 72                                                                                      | 58 or more (8 in 10)                                                         | The flow is too heavy. Stop adding features, go back to build plan Part 8 |
+| Logged on time                 | logs whose `loggedAt` is no more than 5 minutes after the time the script says to log it (the event time plus the delay), out of 72 | none: a baseline, reported as a number                                       |                                                                           |
+| Late logs given the right time | of the 29 late events that were logged, those whose `at` is within 5 minutes of the scripted event time                             | none: a baseline. The three "40 min later" events are also listed one by one |                                                                           |
+| Watches ended by timeout       | watches whose `endSource` is `timeout`, out of 7                                                                                    | exactly 1 (Day 4, on purpose)                                                | Each extra one is a forgotten "I've left": a finding for build plan 5.6   |
+| Stretches given an end         | of the 14 scripted stretches that were logged, those with `endedAt`                                                                 | 10 or more                                                                   | A finding for build plan 5.7: the end is too easy to forget               |
+| Taps by mistake                | your evening notes, checked against the change history. The nine scripted wrong tiles do not count                                  | "When?" chips tapped by mistake fewer than chips tapped on purpose           | Design note 032's kill rule: the chips come out                           |
+| Stop-and-think moments         | your notes                                                                                                                          | none: each one is listed                                                     | Each one is a design question                                             |
 
 ## What seven days cannot test
 
