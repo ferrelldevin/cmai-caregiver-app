@@ -343,7 +343,7 @@ export function DataScreen({
       <div className="data subpage">
         <div className="page-head">
           <button className="back-btn ghost small" onClick={onBack}>
-            <Icon name="chevron" size={20} className="back-icon" /> Data
+            <Icon name="chevron" size={20} className="back-icon" /> Settings
           </button>
           <p className="screen-title" aria-hidden>
             {pageTitle}
@@ -682,7 +682,7 @@ export function DataScreen({
               <b>Log.</b> One tap the moment you see a behavior.
             </li>
             <li>
-              <b>Score.</b> See each behavior period by period, and when in the day it happens.
+              <b>Two weeks.</b> See each behavior period by period, and when in the day it happens.
             </li>
             <li>
               <b>Back up.</b> Download a backup now and then, so the logs are never only on this phone.

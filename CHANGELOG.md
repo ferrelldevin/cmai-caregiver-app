@@ -18,6 +18,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Fixed
 
+- Three places still used screen names the app no longer has: the welcome card said "Score", Today's quiet-day line said "on Score", and the back button on every Settings page said "Data". They now say "Two weeks" and "Settings", as the tab bar does (F-49).
 - Notes from the lab to itself ("Open: R4", "Open: D-17", "Open: D-18") no longer show on a caregiver's Today and Two weeks screens; they show in the lab build only, where a register ID links to the register (F-65, design note 030, build plan 4.8). First step of the simplicity plan.
 
 ### Added

@@ -104,6 +104,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await p.getByRole("link", { name: /Display/ }).click(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data/display"), "row opens #/data/display");
   ok((await p.locator("h1").textContent()).startsWith("Display"), "page heading is Display");
+  ok((await p.locator(".back-btn").innerText()).trim() === "Settings", "the back button is named after the tab it returns to");
   await shot("09-data-display");
   await p.goBack(); await p.waitForTimeout(400);
   ok(p.url().endsWith("#/data") && await p.getByRole("link", { name: /Backup and export/ }).isVisible(), "back gesture returns to the hub");
