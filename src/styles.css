@@ -53,26 +53,42 @@
   --r-light: #ffffff;
   --shadow-1: 0 1px 2px rgba(27, 38, 48, 0.06), 0 1px 1px rgba(27, 38, 48, 0.04);
   --shadow-2: 0 10px 30px rgba(27, 38, 48, 0.18);
-  /* Scale: 4-point spacing, fixed type sizes, two radii. */
+  /* Scale: 4-point spacing, five type sizes, two radii. */
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
   --s4: 16px;
   --s5: 24px;
   --s6: 32px;
-  --fs-xs: 13px;
-  --fs-sm: 15px;
-  --fs-md: 17px;
-  --fs-lg: 20px;
-  --fs-xl: 24px;
+  /* Type follows the reader's own text size (F-69, design note 033). The sizes are in rem, so they
+     grow with the browser's font size; at the usual 16px they come to 13, 15, 17, 20 and 24px as
+     before. Each stops at one and a half times its usual size: past that the header and the tab bar crowd
+     out the tiles, and logging in one tap matters more. */
+  --fs-xs: min(0.8125rem, 19.5px);
+  --fs-sm: min(0.9375rem, 22.5px);
+  --fs-md: min(1.0625rem, 25.5px);
+  --fs-lg: min(1.25rem, 30px);
+  --fs-xl: min(1.5rem, 36px);
   --radius: 14px;
   --radius-sm: 10px;
-  font-family:
-    "Atkinson Hyperlegible Next",
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  --font: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font);
+}
+/* iPhone and iPad: `-apple-system-body` is the size chosen under Settings > Display & Brightness >
+   Text Size (and Larger Text under Accessibility). It is 17px at the default setting, so here the
+   five sizes are counted from 17, not 16, and come out the same as everywhere else. The shorthand
+   also resets the family, weight, style and line height on the root. The family is put back; the
+   weight and style it sets are the usual ones, and `body` sets its own line height below. */
+@supports (font: -apple-system-body) {
+  :root {
+    font: -apple-system-body;
+    font-family: var(--font);
+    --fs-xs: min(calc(13rem / 17), 19.5px);
+    --fs-sm: min(calc(15rem / 17), 22.5px);
+    --fs-md: min(1rem, 25.5px);
+    --fs-lg: min(calc(20rem / 17), 30px);
+    --fs-xl: min(calc(24rem / 17), 36px);
+  }
 }
 /* Dark theme. Set as data-theme="dark" on <html> by src/ui/display.ts (or index.html before first paint). */
 :root[data-theme="dark"] {
@@ -595,7 +611,7 @@ input[type="checkbox"] {
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-text);
-  font-size: 12px;
+  font-size: calc(var(--fs-xs) - 1px);
   font-weight: 700;
   line-height: 20px;
   text-align: center;
@@ -644,7 +660,7 @@ input[type="checkbox"] {
 }
 .tag {
   display: inline-block;
-  font-size: 12px;
+  font-size: calc(var(--fs-xs) - 1px);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
@@ -700,7 +716,7 @@ input[type="checkbox"] {
   box-shadow: var(--shadow-2, 0 2px 8px rgb(0 0 0 / 0.25));
 }
 .crash {
-  max-width: 28rem;
+  max-width: 448px;
   margin: 0 auto;
   padding: 64px var(--s4);
   text-align: center;
@@ -1092,12 +1108,13 @@ body:has(.snackbar) .switch-notice {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Three across, or fewer when larger text needs the room for a behavior's name (F-69). */
+  grid-template-columns: repeat(auto-fill, minmax(max(calc(var(--fs-sm) * 6.6), (100% - 2 * var(--s2)) / 3), 1fr));
   gap: var(--s2);
 }
 @media (min-width: 600px) {
   .tile-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(max(calc(var(--fs-sm) * 6.6), (100% - 3 * var(--s2)) / 4), 1fr));
   }
 }
 .tile {
@@ -1167,6 +1184,8 @@ body:has(.snackbar) .switch-notice {
   align-self: end;
   font-size: var(--fs-sm);
   hyphens: auto;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 /* "What counts as each behavior?" under the grid, and its sheet (F-37). */
 .defs-btn {
@@ -1825,7 +1844,7 @@ button.text-danger {
 }
 .heat .sub {
   display: block;
-  font-size: 12px;
+  font-size: calc(var(--fs-xs) - 1px);
   font-weight: 400;
 }
 .heat .open {
@@ -2416,6 +2435,11 @@ button.text-danger {
   font-size: var(--fs-xs);
   color: var(--text-muted);
 }
+/* At larger text the table can be wider than a phone: its card scrolls sideways, the page does not (F-69). */
+.card.card-scroll {
+  overflow-x: auto;
+  position: relative; /* keeps the table's screen-reader-only text inside the scrolling card */
+}
 .rtable {
   width: 100%;
   border-collapse: collapse;
@@ -2611,7 +2635,7 @@ button.text-danger {
   width: 22px;
   height: 22px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: calc(var(--fs-xs) - 2px);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -2719,7 +2743,7 @@ button.text-danger {
 }
 .signin h1 {
   margin: var(--s3) 0 0;
-  font-size: 1.5rem;
+  font-size: var(--fs-xl);
 }
 .signin h1:focus,
 .signin h1:focus-visible {
@@ -2763,7 +2787,7 @@ button.text-danger {
   height: 72px;
   border-radius: 50%;
   padding: 0;
-  font-size: 1.6rem;
+  font-size: calc(var(--fs-xl) * 1.0667);
   font-weight: 600;
   background: var(--surface);
   color: var(--text);
@@ -2904,14 +2928,15 @@ table.cmp td {
 
 /* Clock check (F-40, plan 5.8): tabular figures, so the digits never shift sideways. */
 .clock-time {
-  font-size: clamp(2.6rem, 14vw, 4rem);
+  /* Fixed: already the largest text in the app, and it has to fit one line to be read against another clock. */
+  font-size: clamp(41.6px, 14vw, 64px);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   margin: var(--s3) 0 0;
 }
 .clock-date {
-  font-size: 1.15rem;
+  font-size: calc(var(--fs-md) * 1.0824);
   font-weight: 600;
   margin: 0;
 }

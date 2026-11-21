@@ -112,6 +112,35 @@ const stored = (p) => p.evaluate(() => new Promise((res) => {
   ok(f.rows > 1 && f.off <= 0 && f.left >= 0 && f.right <= 0, "360 px wide, large text: the chips wrap and the confirmation stays on screen (the page itself is not measured: tile names overflow at this size with or without it) " + JSON.stringify(f));
   await p.screenshot({ path: `${OUT}/flow-when-360-large.png` });
   await p.evaluate((fs) => Object.keys(fs).forEach((k) => document.documentElement.style.removeProperty(k)), FS); await p.setViewportSize({ width: 390, height: 844 });
+  // The reader's own text size (F-69, design note 033): type grows with the root font size, stops at
+  // one and a half times, and the tiles give a name the room by going two across.
+  const type = (px) => p.evaluate((px) => {
+    document.documentElement.style.fontSize = px;
+    const cols = getComputedStyle(document.querySelector(".tile-grid")).gridTemplateColumns.split(" ").length;
+    // The text itself, not its box: a range around the name's characters, against the tile it sits in.
+    const all = [...document.querySelectorAll(".tile-name")];
+    const names = all.filter((n) => {
+      const r = document.createRange(); r.selectNodeContents(n);
+      const t = r.getBoundingClientRect(), tile = n.closest(".tile").getBoundingClientRect();
+      return t.right > tile.right + 1 || t.left < tile.left - 1 || t.bottom > tile.bottom + 1 || t.top < tile.top - 1;
+    }).length;
+    return { body: parseFloat(getComputedStyle(document.body).fontSize), cols, tiles: all.length, names, page: document.documentElement.scrollWidth - innerWidth };
+  }, px);
+  await p.setViewportSize({ width: 360, height: 740 }); await p.waitForTimeout(300);
+  let ty = await type("");
+  ok(ty.body === 17 && ty.cols === 3 && ty.tiles >= 29 && ty.names === 0 && ty.page <= 0, "usual text size at 360 px: 17px body, tiles three across, every name in its tile " + JSON.stringify(ty));
+  await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(300);
+  ty = await type("");
+  ok(ty.cols === 3 && ty.names === 0 && ty.page <= 0, "usual text size at 390 px: tiles three across " + JSON.stringify(ty));
+  await p.setViewportSize({ width: 360, height: 740 }); await p.waitForTimeout(300);
+  await type("20px"); await p.waitForTimeout(200); ty = await type("20px");
+  ok(Math.abs(ty.body - 21.25) < 0.1 && ty.names === 0 && ty.page <= 0, "larger text (root 20px): body text grows to 21.25px, every tile name stays in its tile, nothing runs off the side " + JSON.stringify(ty));
+  await type("24px"); await p.waitForTimeout(200); ty = await type("24px");
+  ok(ty.body === 25.5 && ty.cols === 2 && ty.tiles >= 29 && ty.names === 0 && ty.page <= 0, "largest followed (root 24px): 25.5px body, tiles two across, every name in its tile, nothing off the side " + JSON.stringify(ty));
+  await p.screenshot({ path: `${OUT}/flow-text-size-largest.png` });
+  await type("40px"); await p.waitForTimeout(200); ty = await type("40px");
+  ok(ty.body === 25.5 && ty.page <= 0, "past that (root 40px) the text stays at one and a half times " + JSON.stringify(ty));
+  await type(""); await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(300);
   // timer pauses while the confirmation is in use
   await snack.hover(); await p.waitForTimeout(9000);
   ok(await snack.isVisible(), "confirmation stays past 8 s while in use");
