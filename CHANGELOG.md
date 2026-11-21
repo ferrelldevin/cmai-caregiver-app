@@ -24,6 +24,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 ### Added
 
+- Register row F-69, a finding with nothing built: the app does not follow the iPhone's text size setting. Zooming with two fingers is not blocked; the checklist confirms it on a phone.
 - A checklist for the manual accessibility pass on an iPhone: VoiceOver and the largest text size, 20 lines, about 15 minutes (V-13, build plan 2.10). No app change.
 - Design note 031 (F-66): the one-tap episode, episode grouping and daily check proposal for the lab home study, checked against the code and the simplicity rule. Proposal only; nothing built.
 - Correct a wrong behavior, lab build only (F-64, design note 025): "Change" beside the behavior on the log details sheet. The same log is corrected and its history keeps the first pick with the reason Wrong behavior; nothing is deleted, no second log is made, and it is counted once. No database version, no export format change, no scoring change.
