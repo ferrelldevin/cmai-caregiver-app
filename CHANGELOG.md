@@ -26,6 +26,7 @@ A scoring change is always called out here with its new `RULE_VERSION`. Day-by-d
 
 - Register row F-70, a question with nothing built: whether 88% within 1 point is the right pass mark for agreement. An outside review reports the manual gives three figures (92%, 92%, 88%); not yet confirmed.
 - Register row F-69, a finding with nothing built: the app does not follow the iPhone's text size setting. Zooming with two fingers is not blocked; the checklist confirms it on a phone.
+- A one-page quick card for caregivers and a five-minute setup script for whoever sets up the phone (build plan 3.12). Both use the app's current screen names and the "When?" chips. No app change.
 - A checklist for the manual accessibility pass on an iPhone: VoiceOver and the largest text size, 20 lines, about 15 minutes (V-13, build plan 2.10). No app change.
 - The script for the internal pilot: seven days, one made-up resident, 72 made-up events from a fixed seed, with what to write down each evening and how each measure is read from the backup (V-16, build plan 3.6). No app change.
 - Sensor pairing guide, one page: filming the clock check at the start and end of a session, which lab file holds what, how to line up two clocks, and what the labels cannot say (build plan 3.14). No app change.
