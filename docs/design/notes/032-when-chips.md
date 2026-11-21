@@ -16,7 +16,7 @@ Design note 030 (F-65): nothing is asked before the tap; everything else comes a
 2. The plan's four chips: `Just now`, `5 min ago`, `15 min ago`, `Earlier…`.
 3. **Chosen:** three chips: `Just now`, `5 min ago`, `15 min ago`. `Earlier…` is left out because it would open the log details sheet, and the Edit button that already does that sits in the same bar, one line away. Two controls for one action is clutter on the busiest screen.
 
-What this departs from: build plan 4.7 lists four chips. Everything else in the step is built as written. Putting `Earlier…` back is one line.
+What this departed from: build plan 4.7 listed four chips. Everything else in the step is built as written. **Decided:** Devin chose "Keep three chips" on a decision card on 2026-11-21, and the build plan now says three.
 
 ## Decision
 
