@@ -38,7 +38,10 @@ async function scan(page, name, results) {
     await page.getByRole("dialog").waitFor({ state: "hidden" });
     await page.getByRole("group", { name: "All behaviors" }).getByRole("button", { name: /^Hitting/ }).click();
     await page.locator(".snackbar").waitFor();
-    await scan(page, "Log (after a tap: confirmation)", results);
+    await scan(page, "Log (after a tap: confirmation with the When? chips)", results);
+    await page.locator(".snackbar").getByRole("button", { name: "5 min ago", exact: true }).click();
+    await page.locator(".snackbar [aria-pressed=true]", { hasText: "5 min ago" }).waitFor();
+    await scan(page, "Log (confirmation, 5 min ago chosen)", results);
     await page.locator(".snackbar").getByRole("button", { name: "Edit" }).click();
     await page.getByRole("dialog", { name: /^Hitting/ }).waitFor();
     await scan(page, "Log details sheet (from the confirmation)", results);

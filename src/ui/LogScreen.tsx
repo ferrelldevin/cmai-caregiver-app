@@ -4,7 +4,8 @@
 // short name and today's count. What counts, what does not and the manual page (p.12-13)
 // used to sit on every button; they are now in one sheet, opened from the button under the
 // grid or by holding a tile (F-37). A short
-// confirmation offers Edit and Undo for 8 seconds; the timer stops while the caregiver is
+// confirmation offers Edit and Undo, and three chips (Just now, 5 min ago, 15 min ago) that move
+// the time back from when it was logged (F-51, design note 032), for 8 seconds; the timer stops while the caregiver is
 // using it (WCAG 2.2.1). Edit opens the log details sheet (design note 003). Earlier logs
 // are fixed on the Today tab, whose badge in the tab bar carries today's count (F-27, F-65).
 // The screen starts with tiles: the how-to line shows only until this resident has a first
@@ -33,7 +34,7 @@ import { SHORT_NAMES } from "./behavior-names";
 import { timeOfDay } from "./format";
 import { record } from "./diagnostics";
 import { Icon } from "./Icon";
-import { LogSheet } from "./LogSheet";
+import { LogSheet, reasonFor } from "./LogSheet";
 import { DefinitionsSheet, HOW_TO_LOG } from "./DefinitionsSheet";
 
 const GROUP_ORDER: FactorGroup[] = ["aggressive", "physical", "verbal", "other"];
@@ -42,6 +43,15 @@ const TOAST_MS = 8000;
 
 type SavedObs = StoredObservation & { id: number };
 type Toast = { kind: "logged" | "deleted"; obs: SavedObs };
+
+// Chips count back from loggedAt, never from the last chip, so each is the same minutes whatever came before.
+const WHEN_CHIPS = [
+  { label: "Just now", minutes: 0 },
+  { label: "5 min ago", minutes: 5 },
+  { label: "15 min ago", minutes: 15 },
+];
+const whenMinutes = (o: StoredObservation) =>
+  o.approx ? (o.at === o.loggedAt ? null : (o.loggedAt - o.at) / 60_000) : o.at === o.loggedAt ? 0 : null;
 
 export const SAVE_FAILED = "That did not save. Check the phone has free space, then try again.";
 
@@ -58,10 +68,13 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
   const [defs, setDefs] = useState<{ itemId: number | null; viaKeyboard: boolean } | null>(null);
   const [group, setGroup] = useState<FactorGroup>("aggressive"); // the group at the top of the page now
   const [toast, setToast] = useState<Toast | null>(null);
+  const toastNow = useRef<Toast | null>(null); // the confirmation as last set, so two quick taps each see the one before
+  const timeSaves = useRef(Promise.resolve()); // chip saves, one after another in the order tapped
   const [held, setHeld] = useState(false); // pointer or focus inside the confirmation
   const [editing, setEditing] = useState<{ obs: SavedObs; viaKeyboard: boolean } | null>(null);
   const [saveError, setSaveError] = useState(false); // the last save failed
   const [editError, setEditError] = useState<string | null>(null);
+  const [whenError, setWhenError] = useState<{ id: number; message: string } | null>(null); // a chip refused, for that log
   const lastTap = useRef<{ itemId: number; t: number } | null>(null);
   const [flash, setFlash] = useState<number | null>(null); // the row just logged, highlighted briefly
 
@@ -70,6 +83,10 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
   const todayCounts = new Map<number, number>();
   for (const o of observations) if (o.at >= todayStart) todayCounts.set(o.itemId, (todayCounts.get(o.itemId) ?? 0) + 1);
   const frequent = mostLogged(observations, now);
+
+  useEffect(() => {
+    toastNow.current = toast;
+  }, [toast]);
 
   // The confirmation closes on its own only while nobody is using it.
   useEffect(() => {
@@ -151,6 +168,36 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
     await stopLog(o, now);
     setToast({ kind: "logged", obs: { ...o, endedAt: now } });
     onChange();
+  }
+
+  // F-51: the same two fields, and the same change-history entry and reason, as the log details sheet writes for a time.
+  // The chip shows at once and the saves run in the order tapped; a refused save puts the chip back.
+  function moveTime(minutes: number) {
+    const cur = toastNow.current;
+    if (!cur || cur.kind !== "logged" || whenMinutes(cur.obs) === minutes) return;
+    const o = cur.obs;
+    const change = minutes ? { at: o.loggedAt - minutes * 60_000, approx: true } : { at: o.loggedAt, approx: false };
+    const shows = (t: Toast | null): t is Toast =>
+      !!t && t.kind === "logged" && t.obs.id === o.id && t.obs.at === change.at && !!t.obs.approx === change.approx;
+    toastNow.current = { kind: "logged", obs: { ...o, ...change } };
+    setToast(toastNow.current);
+    setWhenError(null);
+    setSaveError(false);
+    timeSaves.current = timeSaves.current.then(async () => {
+      try {
+        await editLog(o, change, undefined, reasonFor(change));
+      } catch (e) {
+        if (e instanceof LogTimeError) setWhenError({ id: o.id, message: e.message });
+        else {
+          record(e);
+          setSaveError(true);
+        }
+        // Back to what the log was before this tap, if the bar still shows this tap and is for this log.
+        setToast((t) => (shows(t) ? { kind: "logged", obs: { ...t.obs, at: o.at, approx: o.approx } } : t));
+        return;
+      }
+      onChange();
+    });
   }
 
   function edit(o: SavedObs, e: MouseEvent) {
@@ -422,6 +469,29 @@ export function LogScreen({ patientId, observations, onChange, ratingsDue = [], 
               Undo
             </button>
           </span>
+          {toast.kind === "logged" && (
+            <div className="snackbar-when" role="group" aria-label="When did it happen?">
+              <span className="snackbar-when-label" aria-hidden="true">
+                When?
+              </span>
+              {WHEN_CHIPS.map((c) => (
+                <button
+                  key={c.label}
+                  type="button"
+                  className="when-chip"
+                  aria-pressed={whenMinutes(toast.obs) === c.minutes}
+                  onClick={() => moveTime(c.minutes)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {whenError?.id === toast.obs.id && (
+            <p className="snackbar-when-error" role="alert">
+              {whenError.message}
+            </p>
+          )}
         </div>
       )}
 
