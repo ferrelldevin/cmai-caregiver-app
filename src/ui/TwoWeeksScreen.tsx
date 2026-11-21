@@ -242,7 +242,7 @@ export function TwoWeeksScreen({
       </section>
 
       {/* What Score showed: each behavior, this period against last. */}
-      <section className="card" id="tw-behaviors" aria-labelledby="tw-table">
+      <section className="card card-scroll" id="tw-behaviors" aria-labelledby="tw-table">
         <h2 className="card-h" id="tw-table">
           Behaviors, this period vs last
         </h2>

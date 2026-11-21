@@ -19,10 +19,10 @@ Design note 030 (F-65): open, tap, done. Nothing here adds a step, a setting or 
 ## What it does
 
 - The five type sizes in `src/styles.css` are in rem, so they grow with the browser's font size. At the usual setting they are 13, 15, 17, 20 and 24px, as before.
-- On iPhone and iPad the root font is `-apple-system-body`, which is the size chosen under Settings, Display & Brightness, Text Size (and Larger Text under Accessibility). It is 17px at the default setting, so the sizes are counted from 17 there and from 16 elsewhere. Other browsers ignore that rule.
+- On iPhone and iPad the root font is `-apple-system-body`, which is the size chosen under Settings, Display & Brightness, Text Size (and Larger Text under Accessibility). It is 17px at the default setting, so the sizes are counted from 17 there and from 16 elsewhere. Other browsers ignore that rule. That keyword also sets the weight, style and line height on the root; they are the usual ones, and `body` sets its own line height.
 - Each size stops at one and a half times its usual value.
 - Log: the tiles are three across (four on a wide screen), or fewer when a behavior's name needs the room. At the largest followed size on a phone they are two across. A long name may break inside its tile and never runs out of it.
-- Two weeks: when the ratings table is wider than the phone, its card scrolls sideways. The page does not.
+- Two weeks: when the ratings table is wider than the phone, its card scrolls sideways (`card-scroll`). The page does not.
 - The few sizes that were written as bare pixels or rem now follow the same five sizes.
 - The clock check's time (lab build) stays a fixed size: it is already the largest text in the app and has to fit one line.
 
@@ -30,7 +30,7 @@ Design note 030 (F-65): open, tap, done. Nothing here adds a step, a setting or 
 
 - It does not change spacing, icons or touch targets. They were already at least 44px.
 - It does not change anything at the usual text size. The screenshots and checks at the default are unchanged.
-- It is **not confirmed on a real iPhone.** The checks drive Chromium, which has no `-apple-system-body`, so they set the root font size by hand. Whether an installed Home Screen app picks up the setting is line 14 of the manual accessibility checklist.
+- It is **not confirmed on a real iPhone.** The checks drive Chromium, which has no `-apple-system-body`, so they set the root font size by hand and exercise only the sizes counted from 16. Whether an installed Home Screen app picks up the setting, at the default, a middle and an accessibility size, and after the setting is changed while the app is open, is line 14 of the manual accessibility checklist. Until then the iPhone half of this is built but unproven.
 
 ## Risk and kill rule
 

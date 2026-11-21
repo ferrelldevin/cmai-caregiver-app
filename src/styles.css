@@ -77,16 +77,17 @@
 /* iPhone and iPad: `-apple-system-body` is the size chosen under Settings > Display & Brightness >
    Text Size (and Larger Text under Accessibility). It is 17px at the default setting, so here the
    five sizes are counted from 17, not 16, and come out the same as everywhere else. The shorthand
-   also resets the family and line height, so the family is put back. */
+   also resets the family, weight, style and line height on the root. The family is put back; the
+   weight and style it sets are the usual ones, and `body` sets its own line height below. */
 @supports (font: -apple-system-body) {
   :root {
     font: -apple-system-body;
     font-family: var(--font);
-    --fs-xs: min(0.7647rem, 19.5px);
-    --fs-sm: min(0.8824rem, 22.5px);
+    --fs-xs: min(calc(13rem / 17), 19.5px);
+    --fs-sm: min(calc(15rem / 17), 22.5px);
     --fs-md: min(1rem, 25.5px);
-    --fs-lg: min(1.1765rem, 30px);
-    --fs-xl: min(1.4118rem, 36px);
+    --fs-lg: min(calc(20rem / 17), 30px);
+    --fs-xl: min(calc(24rem / 17), 36px);
   }
 }
 /* Dark theme. Set as data-theme="dark" on <html> by src/ui/display.ts (or index.html before first paint). */
@@ -2435,7 +2436,7 @@ button.text-danger {
   color: var(--text-muted);
 }
 /* At larger text the table can be wider than a phone: its card scrolls sideways, the page does not (F-69). */
-.card:has(> .rtable) {
+.card.card-scroll {
   overflow-x: auto;
   position: relative; /* keeps the table's screen-reader-only text inside the scrolling card */
 }

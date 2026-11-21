@@ -117,16 +117,26 @@ const stored = (p) => p.evaluate(() => new Promise((res) => {
   const type = (px) => p.evaluate((px) => {
     document.documentElement.style.fontSize = px;
     const cols = getComputedStyle(document.querySelector(".tile-grid")).gridTemplateColumns.split(" ").length;
-    const names = [...document.querySelectorAll(".tile-name")].filter((n) => n.getBoundingClientRect().right > n.closest(".tile").getBoundingClientRect().right + 1).length;
-    return { body: parseFloat(getComputedStyle(document.body).fontSize), cols, names, page: document.documentElement.scrollWidth - innerWidth };
+    // The text itself, not its box: a range around the name's characters, against the tile it sits in.
+    const all = [...document.querySelectorAll(".tile-name")];
+    const names = all.filter((n) => {
+      const r = document.createRange(); r.selectNodeContents(n);
+      const t = r.getBoundingClientRect(), tile = n.closest(".tile").getBoundingClientRect();
+      return t.right > tile.right + 1 || t.left < tile.left - 1 || t.bottom > tile.bottom + 1 || t.top < tile.top - 1;
+    }).length;
+    return { body: parseFloat(getComputedStyle(document.body).fontSize), cols, tiles: all.length, names, page: document.documentElement.scrollWidth - innerWidth };
   }, px);
   await p.setViewportSize({ width: 360, height: 740 }); await p.waitForTimeout(300);
   let ty = await type("");
-  ok(ty.body === 17 && ty.cols === 3 && ty.page <= 0, "usual text size: 17px body, tiles three across " + JSON.stringify(ty));
+  ok(ty.body === 17 && ty.cols === 3 && ty.tiles >= 29 && ty.names === 0 && ty.page <= 0, "usual text size at 360 px: 17px body, tiles three across, every name in its tile " + JSON.stringify(ty));
+  await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(300);
+  ty = await type("");
+  ok(ty.cols === 3 && ty.names === 0 && ty.page <= 0, "usual text size at 390 px: tiles three across " + JSON.stringify(ty));
+  await p.setViewportSize({ width: 360, height: 740 }); await p.waitForTimeout(300);
   await type("20px"); await p.waitForTimeout(200); ty = await type("20px");
   ok(Math.abs(ty.body - 21.25) < 0.1 && ty.names === 0 && ty.page <= 0, "larger text (root 20px): body text grows to 21.25px, every tile name stays in its tile, nothing runs off the side " + JSON.stringify(ty));
   await type("24px"); await p.waitForTimeout(200); ty = await type("24px");
-  ok(ty.body === 25.5 && ty.cols === 2 && ty.names === 0 && ty.page <= 0, "largest followed (root 24px): 25.5px body, tiles two across, every name in its tile, nothing off the side " + JSON.stringify(ty));
+  ok(ty.body === 25.5 && ty.cols === 2 && ty.tiles >= 29 && ty.names === 0 && ty.page <= 0, "largest followed (root 24px): 25.5px body, tiles two across, every name in its tile, nothing off the side " + JSON.stringify(ty));
   await p.screenshot({ path: `${OUT}/flow-text-size-largest.png` });
   await type("40px"); await p.waitForTimeout(200); ty = await type("40px");
   ok(ty.body === 25.5 && ty.page <= 0, "past that (root 40px) the text stays at one and a half times " + JSON.stringify(ty));
