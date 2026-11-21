@@ -225,7 +225,7 @@ export function TodayScreen({ patientId, observations, checkins, onChange, initi
           <h2 id="today-empty-h">Nothing logged today</h2>
           <p className="muted">
             Saw none of these behaviors today? Tap this so the app knows today was quiet, not missed. Days with no logs
-            and no check-in show as "unlogged" on Score.
+            and no check-in show as "unlogged" on Two weeks.
           </p>
           <button className={checkedIn ? "ghost" : ""} aria-pressed={checkedIn} onClick={toggleCheckIn}>
             {checkedIn ? "✓ Nothing to log today (tap to undo)" : "Nothing to log today"}

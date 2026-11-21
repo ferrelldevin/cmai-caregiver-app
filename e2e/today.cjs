@@ -21,6 +21,7 @@ const ok = (c, m) => { if (!c) throw new Error("FAIL: " + m); console.log("  ok"
   await tab("Today");
   ok(p.url().endsWith("#/today"), "Today has its own address");
   await p.getByRole("heading", { name: "Nothing logged today" }).waitFor(); ok(true, "nothing yet: the screen says so");
+  { const t = await p.locator(".today-empty").innerText(); ok(/on Two weeks/.test(t) && !/Score/.test(t), "the quiet-day line names the Two weeks tab, not the old Score screen"); }
   ok((await stat("Logs today")) === "0" && (await stat("Last log")) === "None", "figures read 0 and None");
   const quiet = p.getByRole("button", { name: /Nothing to log today/ });
   await quiet.click(); await p.waitForTimeout(300); ok((await quiet.getAttribute("aria-pressed")) === "true", "the quiet-day check-in can be set here");
