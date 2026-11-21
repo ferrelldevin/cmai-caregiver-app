@@ -194,7 +194,7 @@ Work that came from Devin's direction after 2026-11-10 and was not planned as a 
 | Simplicity plan, "open, tap, done", 8 steps                                                     | F-65, F-67, F-68, note 030     | #116, #117, #119 to #124 |
 | Episode tap proposal, filed, not built                                                          | F-66, note 031                 | #118                     |
 
-Next free: the register row after F-69, design note 033.
+Next free: the register row after F-70, design note 033.
 
 ---
 
@@ -244,7 +244,7 @@ Update the Status column in the same pull request that does the step. Status is 
 | 3.6  | Internal pilot, usability sessions, agreement study            | A for the pilot; Stop for the rest       | Devin and the lab  | 5.4, 5.6, 5.7 for the pilot; P-06 for the rest | Pilot script written (`docs/study/pilot-script.md`). Running the pilot is Devin's. The usability sessions and the agreement study are Stop                    |
 | 3.7  | Wording once the lab adopts the app                            | A                                        | Claude             | Dr. Gupta says adopted                         | Not started                                                                                                                                                   |
 | 3.8  | Continuity: CONTRIBUTING, access, runbook                      | A                                        | Claude and Devin   | 0.7                                            | Done for CONTRIBUTING and the runbook (#46). Adding a collaborator is Devin's                                                                                 |
-| 3.9  | Study protocol and analysis plan, draft                        | A to write, Stop to register or send     | Claude, then Devin | 3.4                                            | Not started                                                                                                                                                   |
+| 3.9  | Study protocol and analysis plan, draft                        | A to write, Stop to register or send     | Claude, then Devin | 3.4                                            | Drafted (`docs/study/protocol-draft.md`). Not sent. Sending or registering it is Dr. Gupta's call, through Devin                                              |
 | 3.10 | Research notes: add the scan's sources after a full-text check | A                                        | Claude             | none                                           | Not started                                                                                                                                                   |
 | 3.11 | Who did what, and how AI was used                              | A to write                               | Claude, then Devin | none                                           | Drafted (`docs/lab/contributions.md`). Done when Devin has read and corrected it                                                                              |
 | 3.12 | Caregiver quick card and training script                       | A                                        | Claude             | 4.1                                            | Not started                                                                                                                                                   |
